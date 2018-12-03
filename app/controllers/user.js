@@ -70,58 +70,64 @@ exports.register = async (req, res) => {
     });
   }
 
-  var userObj = req.body;
+ const type = (user)=>{
+    if(Boolean(user.isContractor) === true && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === false)  return {isContractor: true };   
+    if(Boolean(user.isContractor) === false && Boolean(user.isFunder) === true && Boolean(user.isEvaluator) === false)  return {isFunder: true };   
+    if( Boolean(user.isContractor) === false && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === true)  return {isEvaluator: true };   
+  }
 
-  if (req.body.organization.id) {
-    try {
+  var userObj = {
+    ...type(req.body),
+    email: req.body.email,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    password: req.body.password,
+    phone: req.body.phone,
+    
+    profilePhoto: req.body.profilePhoto
+  };
+
+  try {
+
+    let org = req.body.organization, signThis = {};
+
+    if(org.id !== ""){
       let fetchOrg = await Organization.findOne({
         _id: req.body.organization.id
       });
-
-      userObj.organization = fetchOrg.id;
-    } catch (checkErr) {
-      failRes.message = checkErr.name + ": " + checkErr.message;
-      return res.status(500).json(failRes);
+      userObj.organization = fetchOrg.id; 
+    }else if(org.id == "" && org.name !== ""){
+      let obj = await new Organization({name: org.name}).save();
+      userObj.organization = obj._id;
     }
-  } else {
+
+    var newUser = await new User(userObj).save();
     
-    try {
-        if(req.body.organization){
-        let newOrgData = req.body.organization;
-        let obj = new Organization(newOrgData);
-        await obj.save();
-        userObj.organization = obj._id;
-      } catch (checkErr) {
-        failRes.message = checkErr.name + ": " + checkErr.message;
-        return res.status(500).json(failRes);
+    if(Boolean(newUser.organization)){
+      signThis.organization =  {
+        name: newUser.organization.name,
+        id: newUser.organization._id
+      }
+    }else{
+      signThis.organization = {
+        name: "No Organization",
+        id:""
       }
     }
-  }
 
-  var newUser = new User(userObj);
+    let { isFunder, isEvaluator, isContractor } = newUser;
 
-  try {
-    await newUser.save();
-
-    let { isFunder, isEvaluator, isContractor } = newUser,
-      signThis = {
-        id: newUser._id,
-        isFunder,
-        isEvaluator,
-        isContractor,
-        firstName: newUser.firstName,
-        phone: newUser.phone,
-        email: newUser.email,
-        lastName: newUser.lastName
-      };
-
-
-      if(req.body.organization){
-        signThis.organization =  {
-          name: newUser.organization.name,
-          id: newUser.organization._id
-        },
-      };
+    signThis = {
+      ...signThis,
+      id: newUser._id,
+      isFunder,
+      isEvaluator,
+      isContractor,
+      firstName: newUser.firstName,
+      phone: newUser.phone,
+      email: newUser.email,
+      lastName: newUser.lastName
+    };
 
     var token = jwt.sign(signThis, process.env.SECRET, {
       expiresIn: tokenValidityPeriod
@@ -132,7 +138,9 @@ exports.register = async (req, res) => {
       ...signThis,
       token
     });
+    
   } catch (regErr) {
+    console.log(regErr)
     failRes.message = regErr.name + ": " + regErr.message;
     return res.status(500).json(failRes);
   }
@@ -145,6 +153,7 @@ exports.verify = (req, res) => {
 exports.login = (req, res) => {
   var successRes = { success: true };
   var failRes = { success: false };
+  var signThis = {};
 
   const { email, phone } = req.body,
     query = email ? { email } : { phone };
@@ -172,8 +181,22 @@ exports.login = (req, res) => {
       }
 
       if (user.activation === "approved") {
-        const { isFunder, isEvaluator, isContractor } = user,
+        const { isFunder, isEvaluator, isContractor } = user;
+
+          if(Boolean(user.organization)){
+            signThis.organization = {
+              name: user.organization.name,
+              id: user.organization._id
+            }
+          }else{
+            signThis.organization = {
+              name: "No Organization",
+              id:""
+            }
+          }
+        
           signThis = {
+            ...signThis,
             profilePhoto: user.profilePhoto,
             id: user._id,
             isFunder,
@@ -182,10 +205,6 @@ exports.login = (req, res) => {
             firstName: user.firstName,
             phone: user.phone,
             email: user.email,
-            organization: {
-              name: user.organization.name,
-              id: user.organization._id
-            },
             lastName: user.lastName
           };
 
