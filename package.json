@@ -3,6 +3,9 @@
   "version": "0.3.0",
   "description": "Sela - A Distributed Micropayments Platform",
   "main": "sela_app.js",
+  "engines": {
+    "node": "8.11.1"
+  },
   "scripts": {
     "start": "nodemon sela_app.js",
     "server": "nodemon sela_app.js",
