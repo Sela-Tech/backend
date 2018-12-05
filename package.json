@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "Sela - A Distributed Micropayments Platform",
   "engines": {
-    "node": "8.9.1"
+    "node": "8.11.1"
   },
   "main": "sela_app.js",
   "scripts": {
