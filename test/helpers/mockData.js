@@ -140,7 +140,7 @@ const generateToken = (user) => {
 const validUser = {
 	email: "usertwo@mail.com",
 	phone: "8949000384",
-	organization: { name: "test organisaction2" },
+	organization: {id:"", name: "test organisaction2" },
 	firstName: "usertwo",
 	lastName: "mylastname2",
 	username: "usertwo",
@@ -154,7 +154,7 @@ const validUser = {
 const validUser2 = {
 	email: "user10@mail.com",
 	phone: "9309582038",
-	organization: { name: "test organisaction2" },
+	organization: {id:"", name: "test organisaction2" },
 	firstName: "user10",
 	lastName: "mylastname10",
 	username: "user10",
@@ -190,6 +190,18 @@ const invalidUserUpdateInfo2 = {
 const userWithExistingEmail = {
 	email: "usertwo@mail.com",
 	phone: "890384",
+	organization: { name: "test organisaction2" },
+	firstName: "usertwo",
+	lastName: "mylastname2",
+	username: "usertwo",
+	isEvaluator: false,
+	isContractor: false,
+	isFunder: true,
+	password: "mypassword"
+};
+
+const userWithExistingPhone = {
+	phone: "8949000384",
 	organization: { name: "test organisaction2" },
 	firstName: "usertwo",
 	lastName: "mylastname2",
@@ -293,5 +305,6 @@ module.exports = {
 	userWithWrongEmail, userWithWrongPhone, userWithWrongPassword,
 	validUser2, userWithPendingAccount, generateToken, validUserUpdateInfo, invalidUserUpdateInfo,
 	invalidUserUpdateInfo2, validProject,insertProjectSeed,validStakeholders,invalidStakeholders,
-	validDocument,insertProject,valideOrganization,validTrnInfo,invalidTrnInfo, validTask, invalidTask
+	validDocument,insertProject,valideOrganization,validTrnInfo,invalidTrnInfo, validTask, invalidTask,
+	userWithExistingPhone
 }

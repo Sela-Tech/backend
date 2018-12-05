@@ -7,8 +7,8 @@ const { insertUserSeed,
         validUser,validUserUpdateInfo,
         userWithWrongEmail,invalidUserUpdateInfo,
         userWithWrongPhone,invalidUserUpdateInfo2,
-        userWithWrongPassword,
-        validUser2, generateToken
+        userWithWrongPassword,userWithExistingPhone,
+        validUser2, generateToken,
         } = require('./helpers/mockData')
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
@@ -80,7 +80,7 @@ after(async ()=>{
     it('should return 401 if phone number already exist', (done) => {
       request
         .post('/register')
-        .send(validUser)
+        .send(userWithExistingPhone)
         .expect(401)
         .end((err, res) => {
           if (err) return done(err);
