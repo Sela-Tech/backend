@@ -6,8 +6,8 @@ var jwt = require("jsonwebtoken");
 exports.verifyToken = (req, res, next) => {
   const whitelisted = ["/projects", "/projects/:id"];
 
-  const token = req.headers[tokenHeaderField],
-    public = req.headers[visibilityHeaderField];
+  const token = req.headers[tokenHeaderField] || req.headers['authorization'],
+  public = req.headers[visibilityHeaderField];
 
   if (typeof token === "undefined" && public) {
     // check if the route is whitelisted

@@ -72,3 +72,5 @@ app.use(generalError);
 http.listen(port, function() {
   console.log("listening on port " + port);
 });
+
+module.exports=app;
