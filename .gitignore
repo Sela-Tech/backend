@@ -59,3 +59,7 @@ bower_components
 
 # vscode
 .vscode/**
+
+
+#temporary ignore
+travis.yml
