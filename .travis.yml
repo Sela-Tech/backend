@@ -12,9 +12,10 @@ cache:
  directories:
    - "node_modules"     
 script:
- - istanbul cover npm run test --report lcovonly -- -R test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+ - istanbul cover npm run test --report lcovonly -- -R test
     
-# after_script:
+after_script:
+  cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
 #  - npm run coveralls
 #  - codeclimate-test-reporter < ./coverage/lcov.info
 # addons:
