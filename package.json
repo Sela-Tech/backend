@@ -71,6 +71,7 @@
     "stellar-sdk": "^0.8.0",
     "supertest": "^3.3.0",
     "telegram-node-bot": "^4.0.5",
+    "twilio": "^3.25.0",
     "underscore": "1.8.3"
   },
   "devDependencies": {
