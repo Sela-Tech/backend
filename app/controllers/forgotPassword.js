@@ -1,4 +1,3 @@
-
 const validate = require('../../middleware/validate');
 
 const sgMail = require('@sendgrid/mail');
@@ -8,6 +7,7 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
 const crypto = require('crypto');
+
 
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
