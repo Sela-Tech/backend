@@ -11,10 +11,11 @@
     "server": "nodemon sela_app.js",
     "client": "nodemon start-client.js",
     "test": "cross-env NODE_ENV=test mocha --timeout 500000",
-    "coveralls":"istanbul cover npm run test --report lcovonly -- -R test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "coveralls": "istanbul cover npm run test --report lcovonly -- -R test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "lint": "eslint ."
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "aws-sdk": "^2.325.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",

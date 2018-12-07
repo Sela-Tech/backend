@@ -78,7 +78,7 @@ exports.register = async (req, res) => {
 
   var userObj = {
     ...type(req.body),
-    email: req.body.email,
+    email: req.body.email.toLowerCase(),
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     password: req.body.password,

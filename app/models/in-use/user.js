@@ -93,6 +93,14 @@ var userStructure = {
       },
       "Password is incorrect"
     ]
+  },
+  resetPasswordToken:{
+    type:String,
+    default:null
+  },
+  resetPasswordExpires:{
+    type:Date,
+    default:null
   }
 };
 
