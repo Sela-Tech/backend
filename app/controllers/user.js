@@ -82,7 +82,7 @@ exports.register = async (req, res) => {
 
   var userObj = {
     ...type(req.body),
-    email: req.body.email.toLowerCase(),
+    email: req.body.email,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     password: req.body.password,
@@ -95,12 +95,12 @@ exports.register = async (req, res) => {
 
     let org = req.body.organization, signThis = {};
 
-    if(org.id !== ""){
+    if(org.id !== "" && org.id !== undefined){
       let fetchOrg = await Organization.findOne({
         _id: req.body.organization.id
       });
       userObj.organization = fetchOrg.id; 
-    }else if(org.id == "" && org.name !== ""){
+    }else if(Boolean(org.id) == false && org.name !== ""){
       let obj = await new Organization({name: org.name}).save();
       userObj.organization = obj._id;
     }
@@ -294,7 +294,10 @@ exports.update = async (req, res) => {
         email: objSearch.email
       });
 
-      check = check.toJSON();
+      // if(check){
+        check = check.toJSON();
+      // }
+     
       console.log(check , req.userId)
       if( Boolean(check) === true && check._id.toString() === req.userId.toString() ){ 
 
@@ -341,7 +344,7 @@ exports.update = async (req, res) => {
     }
     });
   } catch (error) {
-    res.status(401).json({
+    return res.status(401).json({
       message: error.message
     });
   }

@@ -19,7 +19,7 @@ class Helper{
         sgMail.send(msg, false, (error, result) => {
             if (error) return console.log(error);
 
-            console.log(result);
+            // console.log(result);
         });
     }
 }

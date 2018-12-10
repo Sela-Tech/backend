@@ -140,7 +140,7 @@ const generateToken = (user) => {
 const validUser = {
 	email: "usertwo@mail.com",
 	phone: "8949000384",
-	organization: {id:"", name: "test organisaction2" },
+	organization: { name: "test organisaction2" },
 	firstName: "usertwo",
 	lastName: "mylastname2",
 	username: "usertwo",
