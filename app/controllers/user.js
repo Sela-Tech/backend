@@ -9,6 +9,10 @@ var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
 var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
+const Helper= require('../helper/helper');
+
+const helper = new Helper();
+
 
 exports.find_stakeholder_info = async (req, res) => {
   let userInfo = await User.findOne({ _id: req.body.id });
@@ -133,6 +137,9 @@ exports.register = async (req, res) => {
       expiresIn: tokenValidityPeriod
     });
 
+  helper.welcomeMail(email.toLowerCase(), 'support@sela-labs.com');
+
+
     return res.status(200).json({
       ...successRes,
       ...signThis,
@@ -211,6 +218,7 @@ exports.login = (req, res) => {
         var token = jwt.sign(signThis, process.env.SECRET, {
           expiresIn: tokenValidityPeriod
         });
+
 
         return res.status(200).json({
           ...successRes,

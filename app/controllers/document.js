@@ -88,7 +88,6 @@ exports.new = async (req, res) => {
 exports.findAll = async (req, res) => {
   let projectId = req.body.projectId;
 
-
   try {
     let documents = await Document.find({ project: projectId });
 
