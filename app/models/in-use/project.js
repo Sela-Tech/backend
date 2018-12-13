@@ -88,6 +88,11 @@ var projectStructure = {
         agreed: {
           type: Boolean,
           default: false
+        },
+        status: {
+          type: String,
+          enum:['PENDING','ACCEPTED', 'DECLINED'],
+          default: "PENDING"
         }
       }
     }
@@ -97,7 +102,7 @@ var projectStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "organization firstName reputationScore lastName _id activated profilePhoto "
+        "organization firstName reputationScore lastName _id activated profilePhoto email"
     }
   },
   status: {

@@ -121,6 +121,7 @@ exports.find = async (req, res) => {
         }
         successRes.projects = projects;
       }
+      
 
       return res.json(successRes);
     });

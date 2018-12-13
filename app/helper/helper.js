@@ -22,6 +22,17 @@ class Helper{
             // console.log(result);
         });
     }
+
+    getRole(req, res){
+        const roles = req.roles;
+       
+        let role = Object.keys(roles).filter(k=>roles[k]===true);
+
+        if(role.length=1){
+            return role[0];
+        }
+
+    }
 }
 
 module.exports=Helper;
