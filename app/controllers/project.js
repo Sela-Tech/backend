@@ -121,6 +121,7 @@ exports.find = async (req, res) => {
         }
         successRes.projects = projects;
       }
+      
 
       return res.json(successRes);
     });
@@ -157,21 +158,21 @@ exports.delete = async (req, res) => {
           let response = await Project.deleteOne({ _id: req.params.id });
 
           if (response.result.n === 1) {
-            res.status(200).json({
+            return res.status(200).json({
               success: true
             });
           } else {
-            res.status(400).json({
+            return res.status(400).json({
               success: false
             });
           }
         } else {
-          res.status(400).json({
+        return res.status(400).json({
             success: false
           });
         }
       } catch (error) {
-        res.status(400).json({
+      return res.status(400).json({
           message: error.message
         });
       }
@@ -183,23 +184,23 @@ exports.delete = async (req, res) => {
           { activated: !findProjectResponse.activated }
         );
         if (project.n === 1) {
-          res.status(200).json({
+          return res.status(200).json({
             success: true
           });
         } else {
-          res.status(400).json({
+          return res.status(400).json({
             success: false
           });
         }
       } catch (error) {
-        res.status(400).json({
+       return res.status(400).json({
           message: error.message,
           success: false
         });
       }
     }
   } else {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "You don't have the rights"
     });
@@ -269,7 +270,7 @@ exports.add_stakeholder = async (req, res) => {
 
       if (breakCode === true && foundMatch === true) {
         return res.status(401).json({
-          message: `Cannot add stakeholdrs because: "This project has a connection with ${foundPerson}" `
+          message: `Cannot add stakeholders because: "This project has a connection with ${foundPerson}" `
         });
       }
 

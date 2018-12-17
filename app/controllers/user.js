@@ -9,6 +9,12 @@ var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
 var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
+const Helper= require('../helper/helper');
+const Notifications= require('../helper/notifications');
+
+const helper = new Helper();
+const notify = new Notifications();
+
 
 exports.find_stakeholder_info = async (req, res) => {
   let userInfo = await User.findOne({ _id: req.body.id });
@@ -91,12 +97,12 @@ exports.register = async (req, res) => {
 
     let org = req.body.organization, signThis = {};
 
-    if(org.id !== ""){
+    if(org.id !== "" && org.id !== undefined){
       let fetchOrg = await Organization.findOne({
         _id: req.body.organization.id
       });
       userObj.organization = fetchOrg.id; 
-    }else if(org.id == "" && org.name !== ""){
+    }else if(Boolean(org.id) == false && org.name !== ""){
       let obj = await new Organization({name: org.name}).save();
       userObj.organization = obj._id;
     }
@@ -132,6 +138,9 @@ exports.register = async (req, res) => {
     var token = jwt.sign(signThis, process.env.SECRET, {
       expiresIn: tokenValidityPeriod
     });
+
+  notify.welcomeMail(email.toLowerCase(), 'support@sela-labs.com');
+
 
     return res.status(200).json({
       ...successRes,
@@ -212,6 +221,7 @@ exports.login = (req, res) => {
           expiresIn: tokenValidityPeriod
         });
 
+
         return res.status(200).json({
           ...successRes,
           ...signThis,
@@ -286,7 +296,10 @@ exports.update = async (req, res) => {
         email: objSearch.email
       });
 
-      check = check.toJSON();
+      // if(check){
+        check = check.toJSON();
+      // }
+     
       console.log(check , req.userId)
       if( Boolean(check) === true && check._id.toString() === req.userId.toString() ){ 
 
@@ -333,7 +346,7 @@ exports.update = async (req, res) => {
     }
     });
   } catch (error) {
-    res.status(401).json({
+    return res.status(401).json({
       message: error.message
     });
   }

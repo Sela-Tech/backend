@@ -6,8 +6,8 @@ var jwt = require("jsonwebtoken");
 exports.verifyToken = (req, res, next) => {
   const whitelisted = ["/projects", "/projects/:id"];
 
-  const token = req.headers[tokenHeaderField],
-    public = req.headers[visibilityHeaderField];
+  const token = req.headers[tokenHeaderField] || req.headers['authorization'],
+  public = req.headers[visibilityHeaderField];
 
   if (typeof token === "undefined" && public) {
     // check if the route is whitelisted
@@ -38,6 +38,13 @@ exports.verifyToken = (req, res, next) => {
           message: err.message
         });
       } else {
+        
+        req.roles={
+          isFunder:decoded.isFunder,
+           isEvaluator:decoded.isEvaluator, 
+           isContractor:decoded.isContractor,
+           isAdmin:decoded.isAdmin || false
+        }
         req.tokenExists = true;
         req.userId = decoded.id;
         req.decodedTokenData = decoded;
@@ -50,6 +57,7 @@ exports.verifyToken = (req, res, next) => {
     });
   }
 };
+
 
 exports.generalError = function(err, req, res, next) {
   res.status(err.status || 500);

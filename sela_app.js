@@ -8,6 +8,8 @@ var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 var dotenv = require("dotenv");
+const validator = require('express-validator');
+
 var http = require("http");
 
 var { pageNotFound, generalError } = require("./in-use/utils");
@@ -25,11 +27,16 @@ mongooseInit(() => {
   passportInit();
 });
 
+app.disable('x-powered-by');
+
 app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(cors());
+
+app.use(validator());
+
 const AWS = require("aws-sdk");
 AWS.config = {
   accessKeyId: process.env.AWSaccessKeyId,
@@ -72,3 +79,5 @@ app.use(generalError);
 http.listen(port, function() {
   console.log("listening on port " + port);
 });
+
+module.exports=app;
