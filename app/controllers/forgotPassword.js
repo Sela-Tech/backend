@@ -10,13 +10,11 @@ const crypto = require('crypto');
 
 const twilio = require('twilio');
 
-
-
-
+const { getHost } = require("../../in-use/utils");
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
-const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
+// const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
 
 /**
  *
@@ -56,8 +54,6 @@ class ForgotPassword {
             return res.status(404).json({ message: `user with email ${email} doesn't exists on this platform` })
         }
 
-
-
         try {
 
             let token = crypto.randomBytes(20).toString('hex');
@@ -75,7 +71,7 @@ class ForgotPassword {
                     subject: "Password Reset",
                     text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
                         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                        'https://' + host + '/password/reset/' + token + '\n\n' +
+                        getHost(req) + '/password/reset/' + token + '\n\n' +
                         'If you did not request this, please ignore this email and your password will remain unchanged.\n'
                 };
 
