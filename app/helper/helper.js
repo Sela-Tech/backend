@@ -23,7 +23,7 @@ class Helper{
         });
     }
 
-    getRole(req, res){
+    getRole(req){
         const roles = req.roles;
        
         let role = Object.keys(roles).filter(k=>roles[k]===true);

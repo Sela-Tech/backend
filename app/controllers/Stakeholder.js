@@ -27,7 +27,6 @@ const notify= require('../helper/notifications');
      */
     static async getCollaboratedProjects(req, res){
         let userId = req.userId
-        console.log(req.decodedTokenData);
         try {
             let projects = await Project.find({'stakeholders.user.information':userId});
 
@@ -68,7 +67,7 @@ const notify= require('../helper/notifications');
         let userId = req.userId;
         let projectId = req.params.id
         let agreed = req.body.agreed
-        let role= new Helper().getRole(req, res);
+        let role = new Helper().getRole(req);
 
         let success=true,
         failure=false;
@@ -99,6 +98,7 @@ const notify= require('../helper/notifications');
 
                     const notificationData={
                         stakeholderName:req.decodedTokenData.firstName + ' ' + req.decodedTokenData.lastName,
+                        stakeholderId:userId,
                         projectOwner:project.owner._id,
                         projectOwnerEmail:project.owner.email,
                         projectId:project._id,
@@ -130,7 +130,44 @@ const notify= require('../helper/notifications');
 
             }
         }
-        
+
+    }
+
+    static async requestToJoinP(req, res){
+        let userId = req.userId;
+        let _id = req.body.projectId;
+
+        var successRes = { success: true };
+        var failRes = { success: false };
+
+        try {
+            
+            let project =  await Project.findOne({_id, activated:true});
+
+            if(project===null){
+                return res.status(404).json({message:"This project doesn't exists on sela platform\n"+
+            "or has not been activated"})
+            }
+
+            let project_stakeholders =project.stakeholders;
+
+            let found_stakeholder = project_stakeholders.find((s)=>{
+                return s.user.information._id==userId
+            })
+
+            // if(found_stakeholder){
+            //     return res.status(401).json({
+            //         message: `You already have a connection with the project "${project.name}" `
+            //       });
+            // }
+
+             await notify.notifyRequestToJoinP(req,project)
+            
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({message:`internal server error`})
+        }
+
 
     }
 

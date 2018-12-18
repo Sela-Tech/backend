@@ -1,10 +1,22 @@
 const sgMail = require('@sendgrid/mail');
 let mongoose = require("mongoose");
 let Notification = mongoose.model("Notification");
+const Helper = require('../helper/helper')
+
+
+const options = {
+    apiKey: process.env.AFRICAS_TALKING_API,         
+    username: process.env.AFRICAS_TALKING_APP_USERNAME
+};
+
+const AfricasTalking = require('africastalking')(options);
 
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
+let sms = AfricasTalking.SMS;
+
+let helper = new Helper();
 
 class Notifications{
 
@@ -40,7 +52,8 @@ class Notifications{
         const notifObj= {
             project:data.projectId,
             userId:data.projectOwner,
-            message
+            message,
+            stakeholder:data.stakeholderId
         }
 
         try {
@@ -62,6 +75,23 @@ class Notifications{
             console.log(error);
         }
     }
+
+    static async notifyRequestToJoinP(req, project){
+        const role= helper.getRole(req);
+        let userRole;
+        role=='isFunder'? userRole='a funder':role=='isContractor'?userRole = 'a contractor':userRole='an evaluator';
+
+        console.log(role)
+        const message= ""
+        const msg = {
+            to: `${project.owner._id}`,
+            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+            subject:"Request To Join Project",
+            text: message         
+       };
+
+    }
+
 
 }
 
