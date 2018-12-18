@@ -8,18 +8,22 @@ const User = mongoose.model('User');
 
 const crypto = require('crypto');
 
+
 const options = {
-    apiKey: process.env.AFRICAS_TALKING_API,
+    apiKey: process.env.AFRICAS_TALKING_API,         
     username: process.env.AFRICAS_TALKING_APP_USERNAME
 };
 
 const AfricasTalking = require('africastalking')(options);
 
-let sms = AfricasTalking.SMS;
+
+const { getHost } = require("../../in-use/utils");
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
-const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
+let sms = AfricasTalking.SMS;
+
+// const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
 
 /**
  *
@@ -41,16 +45,6 @@ class ForgotPassword {
 
     static async requestPasswordReset(req, res) {
 
-
-        // validate.validateRequestResetPasswordEmail(req, res)
-        // const errors = req.validationErrors();
-
-        // if (errors) {
-        //     return res.status(400).json({
-        //         message: errors
-        //     });
-        // }
-
         const { body: { email, phone } } = req;
 
         let queryObj = email ? { email: email.toLowerCase() } : { phone }
@@ -60,7 +54,6 @@ class ForgotPassword {
         if (user === null) {
             return res.status(404).json({ message: `Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register` })
         }
-
 
         try {
 
@@ -88,6 +81,7 @@ class ForgotPassword {
                     }
 
                     let result = await sms.send(msg);
+                
                     // if(result){
                     return res.status(200).json({ message: `A message has been sent to ${updatedUser.phone} with further instructions` })
                     // }
@@ -103,33 +97,31 @@ class ForgotPassword {
 
                 let updatedUser = await user.save();
 
-                if (updatedUser) {
-                    const msg = {
-                        to: `${updatedUser.email}`,
-                        from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
-                        subject: "Password Reset",
-                        text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-                            'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                            'https://' + host + '/password/reset?token=' + token + '\n\n' +
-                            'If you did not request this, please ignore this email and your password will remain unchanged.\n'
-                    };
+            if (updatedUser) {
+                const msg = {
+                    to: `${updatedUser.email}`,
+                    from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
+                    subject: "Password Reset",
+                    text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                        'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                        getHost(req) + '/password/reset?token=' + token + '\n\n' +
+                        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+                };
 
-                    sgMail.send(msg, false, (error, result) => {
-                        if (error) return console.log(error);
-                        res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
-                    });
-
-                }
-
+                sgMail.send(msg, false, (error, result) => {
+                    if (error) return console.log(error);
+                    res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
+                });
 
             }
-
+        }
 
         } catch (error) {
             console.log(error)
             res.status(500).json({ message: "internal server error" })
         }
     }
+    
 
 
 
@@ -218,4 +210,4 @@ class ForgotPassword {
 
 }
 
-module.exports = ForgotPassword;;
+module.exports = ForgotPassword;

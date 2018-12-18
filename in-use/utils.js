@@ -70,3 +70,9 @@ exports.pageNotFound = function(req, res, next) {
     message: "Route Not Found"
   });
 };
+
+
+exports.getHost = (req)=>{
+  var origin = req.get('origin') || req.get('host');
+   return origin;
+}
