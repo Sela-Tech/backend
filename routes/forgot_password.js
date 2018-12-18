@@ -6,6 +6,6 @@ let forgotPassword = require("../app/controllers/forgotPassword");
 module.exports = function(app) {
   //real routes
   app.route("/forgot-password").put(forgotPassword.requestPasswordReset);
-  app.route("/password/reset/:token").put(forgotPassword.resetPassword);
+  app.route("/password/reset?").put(forgotPassword.resetPassword);
   
 };

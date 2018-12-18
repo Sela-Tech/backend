@@ -23,7 +23,7 @@ exports.new = async (req, res) => {
         owner: req.userId
       });
 
-      console.log("fetched project we want task to belong to");
+      // console.log("fetched project we want task to belong to");
 
       project = project.toJSON();
       let collectionOfTaskIds = project.tasks;

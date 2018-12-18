@@ -8,11 +8,14 @@ const User = mongoose.model('User');
 
 const crypto = require('crypto');
 
-const twilio = require('twilio');
+const options = {
+    apiKey: process.env.AFRICAS_TALKING_API,
+    username: process.env.AFRICAS_TALKING_APP_USERNAME
+};
 
+const AfricasTalking = require('africastalking')(options);
 
-
-
+let sms = AfricasTalking.SMS;
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
@@ -39,50 +42,85 @@ class ForgotPassword {
     static async requestPasswordReset(req, res) {
 
 
-        validate.validateRequestResetPasswordEmail(req, res)
-        const errors = req.validationErrors();
+        // validate.validateRequestResetPasswordEmail(req, res)
+        // const errors = req.validationErrors();
 
-        if (errors) {
-            return res.status(400).json({
-                message: errors
-            });
-        }
+        // if (errors) {
+        //     return res.status(400).json({
+        //         message: errors
+        //     });
+        // }
 
-        const { body: { email } } = req;
+        const { body: { email, phone } } = req;
 
-        let user = await User.findOne({ email: email.toLowerCase() });
+        let queryObj = email ? { email: email.toLowerCase() } : { phone }
+
+        let user = await User.findOne(queryObj);
 
         if (user === null) {
-            return res.status(404).json({ message: `user with email ${email} doesn't exists on this platform` })
+            return res.status(404).json({ message: `Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register` })
         }
-
 
 
         try {
 
-            let token = crypto.randomBytes(20).toString('hex');
+            if (req.body.phone && req.body.phone !== "" && !req.body.email || req.body.email == "") {
+                let verificationCode = crypto.randomBytes(3).toString('hex');
 
-            user.resetPasswordToken = token;
-            user.resetPasswordExpires = Date.now() + 3600000 // 1 hour
+                user.resetPasswordToken = verificationCode;
+                user.resetPasswordExpires = Date.now() + 3600000 // 1 hour
 
 
-            let updatedUser = await user.save();
+                let updatedUser = await user.save();
 
-            if (updatedUser) {
-                const msg = {
-                    to: `${updatedUser.email}`,
-                    from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
-                    subject: "Password Reset",
-                    text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-                        'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                        'https://' + host + '/password/reset/' + token + '\n\n' +
-                        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
-                };
+                const receiver = '+234' + req.body.phone;
+                const to = [receiver];
 
-                sgMail.send(msg, false, (error, result) => {
-                    if (error) return console.log(error);
-                    res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
-                });
+                if (updatedUser) {
+
+                    const msg = {
+                        to: to,
+                        message: 'You are receiving this message because you (or someone else) have requested the reset of the password for your account. ' +
+                            'Please use this code to reset your password: ' +
+                            verificationCode +
+                            ' If you did not request this, please ignore this message and your password will remain unchanged.'
+                        // from: '75111'
+                    }
+
+                    let result = await sms.send(msg);
+                    // if(result){
+                    return res.status(200).json({ message: `A message has been sent to ${updatedUser.phone} with further instructions` })
+                    // }
+                }
+
+            } else if (req.body.email && req.body.email !== "" && !req.body.phone || req.body.phone == "") {
+
+                let token = crypto.randomBytes(20).toString('hex');
+
+                user.resetPasswordToken = token;
+                user.resetPasswordExpires = Date.now() + 3600000 // 1 hour
+
+
+                let updatedUser = await user.save();
+
+                if (updatedUser) {
+                    const msg = {
+                        to: `${updatedUser.email}`,
+                        from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
+                        subject: "Password Reset",
+                        text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                            'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                            'https://' + host + '/password/reset?token=' + token + '\n\n' +
+                            'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+                    };
+
+                    sgMail.send(msg, false, (error, result) => {
+                        if (error) return console.log(error);
+                        res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
+                    });
+
+                }
+
 
             }
 
@@ -118,7 +156,7 @@ class ForgotPassword {
         const { newPassword } = req.body;
 
         try {
-            const token = req.params.token;
+            const token = req.query.token || req.body.verificationCode
 
             let user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
 
@@ -132,22 +170,44 @@ class ForgotPassword {
 
             let updatedUser = await user.save();
 
-
             if (updatedUser) {
-                const msg = {
-                    to: `${updatedUser.email}`,
-                    from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
-                    subject: "Your password has been changed",
-                    text: 'Hello,\n\n' +
-                        'This is a confirmation that the password for your account ' + updatedUser.email + ' has just been changed.\n'
-                };
 
-                sgMail.send(msg, false, (error, result) => {
-                    if (error) return console.log(error);
-                    res.status(200).json({ message: `Your Password has been changed` });
-                });
+                if (req.body.verificationCode) {
+
+                    const receiver = '+234' + updatedUser.phone;
+                
+                    // send sms
+                    const msg = {
+                        to: [receiver],
+                        message: 'This is a confirmation that the password for your account with sela has just been changed'
+                        // from: '75111'
+                    }
+
+                    let result = await sms.send(msg);
+                    return res.status(200).json({ message: `Your Password has been changed` });
+                }
+
+
+                else if (req.query.token) {
+                    // send email
+                    const msg = {
+                        to: `${updatedUser.email}`,
+                        from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
+                        subject: "Your password has been changed",
+                        text: 'Hello,\n\n' +
+                            'This is a confirmation that the password for your account ' + updatedUser.email + ' has just been changed.\n'
+                    };
+
+                    sgMail.send(msg, false, (error, result) => {
+                        if (error) return console.log(error);
+                       return res.status(200).json({ message: `Your Password has been changed` });
+                    });
+
+                }
+
 
             }
+
 
         } catch (error) {
             console.log(error)

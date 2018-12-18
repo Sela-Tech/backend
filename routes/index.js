@@ -8,6 +8,7 @@ const documents = require("./document.js");
 const trn = require("./transaction");
 const forgotPassword = require("./forgot_password");
 const stakeholder = require("./stakeholder");
+const notification = require("./notifications")
 
 module.exports = function(app) {
   user(app);
@@ -20,4 +21,5 @@ module.exports = function(app) {
   documents(app);
   forgotPassword(app);
   stakeholder(app);
+  notification(app);
 };
