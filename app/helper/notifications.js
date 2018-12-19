@@ -21,6 +21,14 @@ let helper = new Helper();
 class Notifications{
 
 
+    /**
+     *
+     *
+     * @param {*} receiver
+     * @param {*} sender
+     * @memberof Notifications
+     */
+    
     welcomeMail(receiver, sender){
         const url = 'https:sela.now.sh';
         const msg = {
@@ -41,6 +49,13 @@ class Notifications{
 
 
 
+   /**
+    *
+    *
+    * @static
+    * @param {*} data
+    * @memberof Notifications
+    */
    static async notifyAcceptance(data){
         
         let message='';
@@ -76,19 +91,55 @@ class Notifications{
         }
     }
 
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} project
+     * @returns
+     * @memberof Notifications
+     */
+
     static async notifyRequestToJoinP(req, project){
         const role= helper.getRole(req);
         let userRole;
         role=='isFunder'? userRole='a funder':role=='isContractor'?userRole = 'a contractor':userRole='an evaluator';
 
-        console.log(role)
-        const message= ""
-        const msg = {
-            to: `${project.owner._id}`,
-            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
-            subject:"Request To Join Project",
-            text: message         
-       };
+        const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} has requested to join your project "${project.name}" as ${userRole}`;
+
+        const message1= '<b>' + req.decodedTokenData.firstName + ' '+ req.decodedTokenData.lastName +'</b>'+
+        ' has requested to join your project "'+ project.name+'" as ' +userRole + '<br/>' +
+        '<a href ="https://'+req.headers.host+'/project/stakeholder?id='+req.userId +'">Confirm Acceptance'+'</a>';
+
+        const notifObj= {
+            project:project._id,
+            userId:project.owner._id,
+            message,
+            stakeholder:req.userId
+        }
+
+        try {
+            let notification = await new Notification(notifObj).save();
+
+        if(notification){
+
+            const msg = {
+                to: `${project.owner.email}`,
+                from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+                subject:"Request To Join Project",
+                html: message1         
+           };
+            
+           await sgMail.send(msg);
+           return true;
+        }
+        return false
+            
+        } catch (error) {
+            console.log(error);
+        }
 
     }
 
