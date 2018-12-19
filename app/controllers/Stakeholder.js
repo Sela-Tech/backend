@@ -155,13 +155,22 @@ const notify= require('../helper/notifications');
                 return s.user.information._id==userId
             })
 
-            // if(found_stakeholder){
-            //     return res.status(401).json({
-            //         message: `You already have a connection with the project "${project.name}" `
-            //       });
-            // }
+            if(found_stakeholder){
+                return res.status(401).json({
+                    message: `You already have a connection with the project "${project.name}" `
+                  });
+            }
 
-             await notify.notifyRequestToJoinP(req,project)
+             let hasNotified=await notify.notifyRequestToJoinP(req,project);
+
+             if(hasNotified){
+                successRes.message=`Your request to join "${project.name}" has been sent`;
+                return res.status(200).json({successRes});
+             }
+
+             failRes.message=`Your request to join "${project.name}" is not successful`;
+             return res.status(400).json({failRes});
+
             
         } catch (error) {
             console.log(error);
