@@ -1,7 +1,8 @@
 const sgMail = require('@sendgrid/mail');
 let mongoose = require("mongoose");
 let Notification = mongoose.model("Notification");
-const Helper = require('../helper/helper')
+const Helper = require('../helper/helper');
+const { getHost }=require('../../in-use/utils')
 
 
 const options = {
@@ -30,10 +31,10 @@ class Notifications{
      */
     
     welcomeMail(req,receiver, sender){
-        // const url = 'https:sela.now.sh';
+        // const url = 'sela.now.sh';
         const message = '<p>Welcome to Sela, '+ '<b>'+receiver.firstName+'</b>' +'! We\'re excited'+
         ' to have you join our community of Sela Citizens.</p>'+
-        '<p><a href ="https://'+req.headers.host+'/signin' +'">Click here'+'</a> to visit your account.</p>'+
+        '<p><a href ="'+getHost(req)+'/signin' +'">Click here'+'</a> to visit your account.</p>'+
         '<p>Have questions? We\'re happy to help! Feel free to reply to this email</p>'
         const msg = {
             to: `${receiver.email}`,
@@ -113,7 +114,7 @@ class Notifications{
 
         const message1= '<b>' + req.decodedTokenData.firstName + ' '+ req.decodedTokenData.lastName +'</b>'+
         ' has requested to join your project "'+ project.name+'" as ' +userRole + '<br/>' +
-        '<a href ="https://'+req.headers.host+'/project/stakeholder?id='+req.userId +'">Confirm Acceptance'+'</a>';
+        '<a href ="'+getHost(req)+'/project/stakeholder?id='+req.userId +'">Confirm Acceptance'+'</a>';
 
         const notifObj= {
             project:project._id,
