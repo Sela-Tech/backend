@@ -8,6 +8,12 @@ const mongoose = require("mongoose"),
 const Helper = require('../helper/helper');
 const notify= require('../helper/notifications');
 
+// const accountSid = 'ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+// const authToken = 'your_auth_token';
+// const client = require('twilio')(accountSid, authToken);
+
+
+
   /**
    *
    *
@@ -22,7 +28,7 @@ const notify= require('../helper/notifications');
      * @static
      * @param {*} req
      * @param {*} res
-     * @returns
+     * @returns {object}
      * @memberof Stakeholder
      */
     static async getCollaboratedProjects(req, res){
@@ -31,13 +37,6 @@ const notify= require('../helper/notifications');
             let projects = await Project.find({'stakeholders.user.information':userId});
 
             if(projects.length>0){
-
-                // let stakeholder_projects = projects.filter(p => p.stakeholders.some(s =>s.user.information._id == userId));
-
-                // if(stakeholder_projects<1){
-                //     return res.status(404).json({message:"you have not been added to any project yet"})
-                // }
-                // return res.status(200).json({stakeholder_projects})
                 return res.status(200).json({projects})
 
             }else{
@@ -59,7 +58,7 @@ const notify= require('../helper/notifications');
      * @static
      * @param {*} req
      * @param {*} res
-     * @returns
+     * @returns {object}
      * @memberof Stakeholder
      */
 
@@ -133,12 +132,21 @@ const notify= require('../helper/notifications');
 
     }
 
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns {objecct}
+     * @memberof Stakeholder
+     */
     static async requestToJoinP(req, res){
         let userId = req.userId;
         let _id = req.body.projectId;
 
-        var successRes = { success: true };
-        var failRes = { success: false };
+        let successRes = { success: true };
+        let failRes = { success: false };
 
         try {
             
@@ -163,7 +171,7 @@ const notify= require('../helper/notifications');
 
              let hasNotified=await notify.notifyRequestToJoinP(req,project);
 
-             if(hasNotified){
+             if(Boolean(hasNotified)){
                 successRes.message=`Your request to join "${project.name}" has been sent`;
                 return res.status(200).json({successRes});
              }

@@ -9,4 +9,8 @@ module.exports = function(app) {
     .route("/notifications")
     .get(verifyToken, notification.getUserNotifications);
 
+  app
+    .route("/notifications/mark-as-read")
+    .post(verifyToken, notification.markNotificationAsRead);
+
 };
