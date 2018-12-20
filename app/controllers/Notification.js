@@ -1,15 +1,15 @@
 "use strict";
 require("dotenv").config();
 const mongoose = require("mongoose"),
-  Notificate = mongoose.model("Notification");
+    Notificate = mongoose.model("Notification");
 
 
-  /**
-   *
-   *
-   * @class Stakeholder
-   */
-  class Notifications{
+/**
+ *
+ *
+ * @class Stakeholder
+ */
+class Notifications {
 
 
     /**
@@ -21,28 +21,71 @@ const mongoose = require("mongoose"),
      * @returns
      * @memberof Notifications
      */
-    static async getUserNotifications(req, res){
+    static async getUserNotifications(req, res) {
         let userId = req.userId
         try {
-            let notifications = await Notificate.find({userId});
+            let notifications = await Notificate.find({ userId });
 
-            if(notifications.length>0){
-               
-                return res.status(200).json({notifications})
+            if (notifications.length > 0) {
+                notifications = notifications.map((n) => {
+                    return {
+                        _id: n._id,
+                        read: n.read,
+                        stakeholder: n.stakeholder,
+                        message: n.message,
+                        userId: n.userId,
+                        project: {
+                            name: n.project.name,
+                            id: n.project._id
+                        }
 
-            }else{
-                return res.status(404).json({message:"you currently have no notifications"});
+                    }
+                });
+
+                //extract unread notitifications
+                const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
+
+                return res.status(200).json({ notifications, unreadNIds })
+
+            } else {
+                return res.status(404).json({ message: "you currently have no notifications" });
             }
 
         } catch (error) {
             console.log(error)
-            return res.status(500).json({message:"Internal server error"});
-            
+            return res.status(500).json({ message: "Internal server error" });
+
         }
-        
+
+    }
+
+    static async markNotificationAsRead(req, res) {
+        const ids = req.body.unreadNIds;
+
+        let successRes = { success: true };
+        let failRes = { success: false };
+
+        try {
+            if (ids && ids.length > 0) {
+
+                let notifications = await Notificate.updateMany({_id: [...ids] }, { $set: { read: true } });
+
+                if (Boolean(notifications.n)) {
+                    return res.status(200).json({successRes});
+                }
+
+            } else {
+                return res.status(404).json({ message: "You have no unread notifications" });
+            }
+        } catch (error) {
+            console.log(error)
+            failRes.message="Internal server error"
+            return res.status(500).json({failRes});
+        }
+
     }
 
 
-  }
+}
 
-  module.exports=Notifications;
+module.exports = Notifications;
