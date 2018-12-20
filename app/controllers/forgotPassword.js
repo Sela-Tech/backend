@@ -52,7 +52,7 @@ class ForgotPassword {
         let user = await User.findOne(queryObj);
 
         if (user === null) {
-            return res.status(404).json({ message: `Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register` })
+            return res.status(404).json({ message: `Sela does not have an account with those user credentials. Please try another email/phone number.` })
         }
 
         try {

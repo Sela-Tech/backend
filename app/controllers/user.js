@@ -139,7 +139,11 @@ exports.register = async (req, res) => {
       expiresIn: tokenValidityPeriod
     });
 
-  notify.welcomeMail(email.toLowerCase(), 'support@sela-labs.com');
+    let emailData={
+      firstName:newUser.firstName,
+      email:email.toLowerCase()
+    }
+  notify.welcomeMail(req, emailData, 'support@sela-labs.com');
 
 
     return res.status(200).json({
@@ -160,9 +164,9 @@ exports.verify = (req, res) => {
 };
 
 exports.login = (req, res) => {
-  var successRes = { success: true };
-  var failRes = { success: false };
-  var signThis = {};
+  let successRes = { success: true };
+  let failRes = { success: false };
+  let signThis = {};
 
   const { email, phone } = req.body,
     query = email ? { email } : { phone };
@@ -174,7 +178,7 @@ exports.login = (req, res) => {
     }
     if (!user) {
       failRes.message =
-        "Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register";
+        "Sela does not have an account with those user credentials. Please try another email/phone number.";
       return res.status(401).json(failRes);
     }
 

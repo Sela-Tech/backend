@@ -29,15 +29,17 @@ class Notifications{
      * @memberof Notifications
      */
     
-    welcomeMail(receiver, sender){
-        const url = 'https:sela.now.sh';
+    welcomeMail(req,receiver, sender){
+        // const url = 'https:sela.now.sh';
+        const message = '<p>Welcome to Sela, '+ '<b>'+receiver.firstName+'</b>' +'! We\'re excited'+
+        ' to have you join our community of Sela Citizens.</p>'+
+        '<p><a href ="https://'+req.headers.host+'/signin' +'">Click here'+'</a> to visit your account.</p>'+
+        '<p>Have questions? We\'re happy to help! Feel free to reply to this email</p>'
         const msg = {
-            to: `${receiver}`,
+            to: `${receiver.email}`,
             from: 'Sela Labs' + '<' + `${sender}` + '>',
-            subject: "Hello from Sela",
-            text: 'Welcome to Sela Platform. You have just joined over 1000 people who use the sela Platform to manage' +
-            'their projects. We are glad to have you here. \n\n Excited to try it out? Use the link below '+
-            'to get up and running.\n' +url+'. \n Any Questions? "Click reply" and we will be glad to help.'
+            subject: "Welcome to Sela",
+            html:message
         };
 
         sgMail.send(msg, false, (error, result) => {

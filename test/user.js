@@ -114,7 +114,7 @@ after(async ()=>{
           if (err) return done(err);
           expect(res.body.message)
             .to
-            .equal('Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register');
+            .equal('Sela does not have an account with those user credentials. Please try another email/phone number.');
           expect(res.status).to.equal(401);
           done();
         });
@@ -127,7 +127,7 @@ after(async ()=>{
           if (err) return done(err);
           expect(res.body.message)
             .to
-            .equal('Sela does not have an account with those user credentials. Please try another email/phone number or follow the link below to register');
+            .equal('Sela does not have an account with those user credentials. Please try another email/phone number.');
           expect(res.status).to.equal(401);
           done();
         });
