@@ -46,6 +46,7 @@ var notificationStructure = {
   },
   stakeholder:{
     type: ObjectId,
+    default:null,
     ref: "User",
     autopopulate: {
       select:
@@ -54,10 +55,15 @@ var notificationStructure = {
   },
   message: {
     type: String,
+    required:true
   },
   read:{
     type:Boolean,
     default:false
+  },
+  socket:{
+    type:String,
+    default:null
   }
 };
 

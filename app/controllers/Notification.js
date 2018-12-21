@@ -2,6 +2,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose"),
     Notificate = mongoose.model("Notification");
+  const User = mongoose.model("User");
 
 
 /**
@@ -81,6 +82,43 @@ class Notifications {
             console.log(error)
             failRes.message="Internal server error"
             return res.status(500).json({failRes});
+        }
+
+    }
+
+    static async getUserNViaSocket(userId){
+        try {
+            let notifications = await Notificate.find({ userId });
+
+            if (notifications.length > 0) {
+                notifications = notifications.map((n) => {
+                    return {
+                        _id: n._id,
+                        read: n.read,
+                        stakeholder: n.stakeholder,
+                        message: n.message,
+                        userId: n.userId,
+                        project: {
+                            name: n.project.name,
+                            id: n.project._id
+                        }
+
+                    }
+                });
+
+                //extract unread notitifications
+                const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
+
+                return { notifications, unreadNIds }
+
+            } else {
+                return { message: "you currently have no notifications" };
+            }
+
+        } catch (error) {
+            console.log(error)
+            return { message: "Internal server error" };
+
         }
 
     }

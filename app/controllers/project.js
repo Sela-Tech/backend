@@ -5,6 +5,9 @@ const mongoose = require("mongoose"),
   User = mongoose.model("User"),
   Location = mongoose.model("Location");
 
+  const notify=require('../helper/notifications');
+
+
 exports.new = async (req, res) => {
   var successRes = { success: true };
   var failRes = { success: false };
@@ -240,6 +243,7 @@ exports.add_stakeholder = async (req, res) => {
   });
     let project = await Project.findOne({ _id: req.body.id });
 
+
     const old_stakeholders = project.stakeholders.map(s => ({
       user: {
         information: `${s.user.information._id}`,
@@ -282,7 +286,8 @@ exports.add_stakeholder = async (req, res) => {
       );
 
       if (saveResponse.n === 1) {
-        res.status(200).json({
+        await notify.notifyAddedStakeholders(req.body.stakeholders,project);
+         return res.status(200).json({
           message: "Stakeholder Added Sucessfully"
         });
       }

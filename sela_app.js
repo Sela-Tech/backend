@@ -3,14 +3,18 @@ FRONTEND = __dirname + "/public";
 
 var express = require("express");
 var app = express();
-var port = process.env.PORT || 3009;
+var port = process.env.PORT || 3001;
 var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 var dotenv = require("dotenv");
 const validator = require('express-validator');
 
-var http = require("http");
+var http = require("http").Server(app);
+
+const io = require('socket.io')(http);
+
+
 
 var { pageNotFound, generalError } = require("./in-use/utils");
 
@@ -27,6 +31,21 @@ mongooseInit(() => {
   passportInit();
 });
 
+const notification = require('./app/controllers/Notification')
+
+io.on('connection', (socket)=>{
+  socket.on('user', async(data)=>{
+    const notifications = await notification.getUserNViaSocket(data);
+    socket.emit('notifications', {notifications});
+  });
+  console.log('user connected', socket.id)
+  socket.emit('connected', {user:socket.id});
+
+  socket.on('disconnect',(data)=>{
+    console.log('user disconnected', data);
+  })
+});
+
 app.disable('x-powered-by');
 
 app.use(logger("dev"));
@@ -37,6 +56,10 @@ app.use(cors());
 
 app.use(validator());
 
+app.use(function(req, res, next) {
+  req.io = io;
+  next();
+});
 const AWS = require("aws-sdk");
 AWS.config = {
   accessKeyId: process.env.AWSaccessKeyId,
@@ -59,7 +82,7 @@ app.use(
   })
 );
 
-var http = require("http").Server(app);
+// http.Server(app);
 
 if (process.env.NODE_ENV === "development") {
   environmentsDev.call(app);

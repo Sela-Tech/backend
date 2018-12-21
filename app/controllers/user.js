@@ -143,7 +143,7 @@ exports.register = async (req, res) => {
       firstName:newUser.firstName,
       email:email.toLowerCase()
     }
-  notify.welcomeMail(req, emailData, 'support@sela-labs.com');
+  notify.welcomeMail(req, emailData, process.env.sela_email);
 
 
     return res.status(200).json({
