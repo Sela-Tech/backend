@@ -101,6 +101,11 @@ var userStructure = {
   resetPasswordExpires:{
     type:Date,
     default:null
+  },
+
+  socket:{
+    type:String,
+    default:null
   }
 };
 
