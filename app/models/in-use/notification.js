@@ -60,10 +60,6 @@ var notificationStructure = {
   read:{
     type:Boolean,
     default:false
-  },
-  socket:{
-    type:String,
-    default:null
   }
 };
 
