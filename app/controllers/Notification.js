@@ -86,7 +86,8 @@ class Notifications {
 
     }
 
-    static async getUserNViaSocket(userId){
+    static async getUserNViaSocket(data){
+        const userId= data.userId;
         try {
             let notifications = await Notificate.find({ userId });
 
