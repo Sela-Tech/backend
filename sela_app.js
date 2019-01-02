@@ -31,10 +31,14 @@ mongooseInit(() => {
   passportInit();
 });
 
-const notification = require('./app/controllers/Notification')
+const notification = require('./app/controllers/Notification');
+const Helper = require('./app/helper/helper');
+
 
 io.on('connection', (socket)=>{
   socket.on('user', async(data)=>{
+    const helper = new Helper();
+    await helper.updateUserSocket(data);
     const notifications = await notification.getUserNViaSocket(data);
     socket.emit('notifications', {notifications});
   });
@@ -45,6 +49,8 @@ io.on('connection', (socket)=>{
     console.log('user disconnected', data);
   })
 });
+
+
 
 app.disable('x-powered-by');
 

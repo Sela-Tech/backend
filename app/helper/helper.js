@@ -1,4 +1,8 @@
 const sgMail = require('@sendgrid/mail');
+"use strict";
+require("dotenv").config();
+const mongoose = require("mongoose"),
+  User = mongoose.model("User");
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
@@ -33,6 +37,14 @@ class Helper{
         }
 
     }
+
+    async updateUserSocket (data){
+            try {
+              await User.findByIdAndUpdate(data.userId, {socket:data.socketId});
+            } catch (error) {
+                console.log(error)
+            }
+   } 
 }
 
 module.exports=Helper;
