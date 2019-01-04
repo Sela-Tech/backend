@@ -110,7 +110,7 @@ class ForgotPassword {
                     to: `${updatedUser.email}`,
                     from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
                     subject: "Password Reset",
-                    html:emailTemplates.requestResetPassword(host, user.firstName,token)
+                    html:emailTemplates.requestResetPassword(host, updatedUser.firstName,token)
                     };
                     
                 sgMail.send(msg, false, (error, result) => {
@@ -191,8 +191,7 @@ class ForgotPassword {
                         to: `${updatedUser.email}`,
                         from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
                         subject: "Your password has been changed",
-                        text: 'Hello,\n\n' +
-                            'This is a confirmation that the password for your account ' + updatedUser.email + ' has just been changed.\n'
+                        html:emailTemplates.resetPasswordSuccess(updatedUser.firstName)
                     };
 
                     sgMail.send(msg, false, (error, result) => {

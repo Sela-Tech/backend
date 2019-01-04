@@ -53,6 +53,7 @@ exports.register = async (req, res) => {
 
   let user;
 
+
   try {
     user = await User.findOne(query);
     if (user) {
@@ -143,6 +144,7 @@ exports.register = async (req, res) => {
       firstName:newUser.firstName,
       email:email.toLowerCase()
     }
+    
   notify.welcomeMail(req, emailData, process.env.sela_email);
 
 
