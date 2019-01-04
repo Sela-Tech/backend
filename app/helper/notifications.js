@@ -161,10 +161,24 @@ class Notifications {
                     message
                 }
             })
+
+            let notifyOwner = users.map((u)=>{
+                const message = `You sent a request to ${u.firstName} ${u.lastName} to join this project "${project.name}".`;
+                return{
+                    project: project._id,
+                    userId: project.owner._id,
+                    message,
+                    stakeholder: u._id
+                }
+                
+            })
     
             if(notifObjs.length>0){
                 let notifications = await Notification.insertMany(notifObjs);
                 if(notifications){
+
+                    await Notification.insertMany(notifyOwner);
+
                     users.forEach(user => {
                         const msg = {
                             to: `${user.email}`,
