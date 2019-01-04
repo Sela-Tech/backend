@@ -60,6 +60,14 @@ var notificationStructure = {
   read:{
     type:Boolean,
     default:false
+  },
+  createdOn: {
+    type: Date,
+    default: Date.now()
+  },
+  updatedOn: {
+    type: Date,
+    default: Date.now()
   }
 };
 
@@ -71,11 +79,11 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var notificationSchemaOptions = _.extend({}, schemaOptions, {
-  collection: "notifications"
-});
+// var notificationSchemaOptions = _.extend({}, schemaOptions, {
+//   collection: "notifications"
+// });
   
-var notificationSchema = new Schema(notificationStructure,notificationSchemaOptions,{ timestamps: true });
+var notificationSchema = new Schema(notificationStructure,{ timestamps: true });
 notificationSchema.plugin(autoPopulate);
 
 module.exports = mongoose.model("Notification", notificationSchema);
