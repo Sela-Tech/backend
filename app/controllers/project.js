@@ -6,6 +6,9 @@ const mongoose = require("mongoose"),
   Location = mongoose.model("Location");
 
   const notify=require('../helper/notifications');
+  const Helper=require('../helper/helper');
+
+  let helper= new Helper();
 
 
 exports.new = async (req, res) => {
@@ -141,6 +144,7 @@ exports.delete = async (req, res) => {
     if (req.headers["permanent-delete"] === "true") {
       try {
         let project = await Project.findOne({ _id: req.params.id });
+        let projectAvatarKey = project.avatarKey;
 
         // find if multiple projects share a location
         let locations = await Project.find({ location: project.location });
@@ -160,7 +164,9 @@ exports.delete = async (req, res) => {
           // delete project
           let response = await Project.deleteOne({ _id: req.params.id });
 
+
           if (response.result.n === 1) {
+            helper.removeImgFBucket(projectAvatarKey);
             return res.status(200).json({
               success: true
             });

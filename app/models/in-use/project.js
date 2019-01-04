@@ -53,6 +53,9 @@ var projectStructure = {
   "project-avatar": {
     type: String
   },
+  avatarKey:{
+    type: String
+  },
   endDate: {
     type: Date,
     default: null

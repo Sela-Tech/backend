@@ -3,6 +3,15 @@ const sgMail = require('@sendgrid/mail');
 require("dotenv").config();
 const mongoose = require("mongoose"),
   User = mongoose.model("User");
+const AWS = require('aws-sdk');
+
+AWS.config = {
+    accessKeyId: process.env.AWSaccessKeyId,
+    secretAccessKey: process.env.AWSsecretAccessKey,
+    region: "us-east-2"
+  };
+
+let s3 = new AWS.S3({});
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
@@ -45,6 +54,20 @@ class Helper{
                 console.log(error)
             }
    } 
+
+   removeImgFBucket(object){
+    let params = {
+        Bucket: 'selamvp',
+        Delete: {
+            Objects: [{Key:object}]
+        },
+    }
+
+    s3.deleteObjects(params, function(err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+        else     console.log(data);           // successful response
+      });
+}
 }
 
 module.exports=Helper;
