@@ -8,6 +8,8 @@ const User = mongoose.model('User');
 
 const crypto = require('crypto');
 
+const emailTemplates= require('../helper/emailTemplates');
+
 
 const options = {
     apiKey: process.env.AFRICAS_TALKING_API,         
@@ -98,16 +100,19 @@ class ForgotPassword {
                 let updatedUser = await user.save();
 
             if (updatedUser) {
+                // const text='You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                // 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                // getHost(req) + '/password/reset?token=' + token + '\n\n' +
+                // 'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+
+                const host = getHost(req);
                 const msg = {
                     to: `${updatedUser.email}`,
                     from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
                     subject: "Password Reset",
-                    text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-                        'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                        getHost(req) + '/password/reset?token=' + token + '\n\n' +
-                        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
-                };
-
+                    html:emailTemplates.requestResetPassword(host, user.firstName,token)
+                    };
+                    
                 sgMail.send(msg, false, (error, result) => {
                     if (error) return console.log(error);
                     res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })

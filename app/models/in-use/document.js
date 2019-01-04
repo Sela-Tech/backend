@@ -19,6 +19,9 @@ var docStructure = {
   doc: {
     type: String,
     required: true
+  },
+  docKey:{
+    type: String
   }
 };
 

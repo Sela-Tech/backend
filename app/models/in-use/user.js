@@ -14,6 +14,9 @@ var userStructure = {
   profilePhoto: {
     type: String
   },
+  profilePhotoKey: {
+    type: String
+  },
   reputationScore: {
     type: Number,
     default: 0
@@ -68,7 +71,10 @@ var userStructure = {
   },
   activation: {
     type: String,
-    default: "approved"
+    default: "Pending"
+  },
+  verificationToken: {
+    type: String,
   },
   createdOn: {
     type: Date,

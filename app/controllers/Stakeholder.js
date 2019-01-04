@@ -78,7 +78,7 @@ const notify= require('../helper/notifications');
 
         if(project === null){
             return res.status(404).json({message:"This project doesn't exists on sela platform\n"+
-            "or you not associated with it"})
+            "or you are not associated with it"})
         }else{
             try {
 
@@ -138,7 +138,7 @@ const notify= require('../helper/notifications');
      * @static
      * @param {*} req
      * @param {*} res
-     * @returns {objecct}
+     * @returns { object }
      * @memberof Stakeholder
      */
     static async requestToJoinP(req, res){
