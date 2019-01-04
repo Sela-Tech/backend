@@ -3,6 +3,7 @@ let mongoose = require("mongoose");
 let Notification = mongoose.model("Notification"),
     User = mongoose.model("User");
 const Helper = require('../helper/helper');
+const EmailTemplates = require('../helper/emailTemplates');
 const { getHost } = require('../../in-use/utils')
 
 
@@ -33,15 +34,15 @@ class Notifications {
 
     welcomeMail(req, receiver, sender) {
         // const url = 'sela.now.sh';
-        const message = '<p>Welcome to Sela, ' + '<b>' + receiver.firstName + '</b>' + '! We\'re excited' +
-            ' to have you join our community of Sela Citizens.</p>' +
-            '<p><a href ="' + getHost(req) + '/signin' + '">Click here' + '</a> to visit your account.</p>' +
-            '<p>Have questions? We\'re happy to help! Feel free to reply to this email</p>'
+        // const message = '<p>Welcome to Sela, ' + '<b>' + receiver.firstName + '</b>' + '! We\'re excited' +
+        //     ' to have you join our community of Sela Citizens.</p>' +
+        //     '<p><a href ="' + getHost(req) + '/signin' + '">Click here' + '</a> to visit your account.</p>' +
+        //     '<p>Have questions? We\'re happy to help! Feel free to reply to this email</p>'
         const msg = {
             to: `${receiver.email}`,
             from: 'Sela Labs' + '<' + `${sender}` + '>',
             subject: "Welcome to Sela",
-            html: message
+            html: EmailTemplates.welcomeEmail(getHost(req), receiver.firstName)
         };
 
         sgMail.send(msg, false, (error, result) => {
