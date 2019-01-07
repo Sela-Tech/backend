@@ -73,8 +73,12 @@ var userStructure = {
     type: String,
     default: "Pending"
   },
-  verificationToken: {
+  emailVerificationToken: {
     type: String,
+  },
+  isEmailVerified:{
+    type:Boolean,
+    default:false
   },
   createdOn: {
     type: Date,

@@ -249,7 +249,8 @@ exports.add_stakeholder = async (req, res) => {
   });
     let project = await Project.findOne({ _id: req.body.id });
 
-
+  let shouldAddContractor= await helper.shouldAddContractor(req.body.stakeholders, project.stakeholders);
+   
     const old_stakeholders = project.stakeholders.map(s => ({
       user: {
         information: `${s.user.information._id}`,
@@ -284,6 +285,12 @@ exports.add_stakeholder = async (req, res) => {
         });
       }
 
+      if(!shouldAddContractor){
+        return res.status(401).json({
+          message: "You cannot add more than one Contractor to a project"
+        });
+      };
+  
       let new_stakeholders = [...old_stakeholders, ...stakeholders];
       
       let saveResponse = await Project.updateOne(
@@ -303,6 +310,7 @@ exports.add_stakeholder = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error)
     res.status(401).json({
       message: "Stakeholder could not be added"
     });
