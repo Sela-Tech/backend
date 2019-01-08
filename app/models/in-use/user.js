@@ -71,7 +71,8 @@ var userStructure = {
   },
   activation: {
     type: String,
-    default: "Pending"
+    enum:["pending", "approved"],
+    default: "approved"
   },
   emailVerificationToken: {
     type: String,

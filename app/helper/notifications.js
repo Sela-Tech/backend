@@ -27,12 +27,36 @@ class Notifications {
     /**
      *
      *
+     * @param {*} req
+     * @param {*} receiver
+     * @memberof Notifications
+     */
+
+    confirmEmail(req, receiver, token) {
+        const msg = {
+            to: `${receiver.email}`,
+            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+            subject: "Confirm Email",
+            html: EmailTemplates.confirmEmail(getHost(req), token)
+        };
+
+        sgMail.send(msg, false, (error, result) => {
+            if (error) return console.log(error);
+
+            // console.log(result);
+        });
+    } 
+
+
+    /**
+     *
+     *
      * @param {*} receiver
      * @param {*} sender
      * @memberof Notifications
      */
 
-    welcomeMail(req, receiver, sender) {
+    welcomeMail(req, receiver) {
         // const url = 'sela.now.sh';
         // const message = '<p>Welcome to Sela, ' + '<b>' + receiver.firstName + '</b>' + '! We\'re excited' +
         //     ' to have you join our community of Sela Citizens.</p>' +
@@ -40,7 +64,7 @@ class Notifications {
         //     '<p>Have questions? We\'re happy to help! Feel free to reply to this email</p>'
         const msg = {
             to: `${receiver.email}`,
-            from: 'Sela Labs' + '<' + `${sender}` + '>',
+            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
             subject: "Welcome to Sela",
             html: EmailTemplates.welcomeEmail(getHost(req), receiver.firstName)
         };
@@ -61,6 +85,7 @@ class Notifications {
      * @param {*} data
      * @memberof Notifications
      */
+
     static async notifyAcceptance(data) {
 
         let message = '';
