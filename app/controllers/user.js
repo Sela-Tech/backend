@@ -9,8 +9,9 @@ var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
 var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
-const Helper= require('../helper/helper');
-const Notifications= require('../helper/notifications');
+const crypto = require('crypto');
+const Helper = require('../helper/helper');
+const Notifications = require('../helper/notifications');
 
 const helper = new Helper();
 const notify = new Notifications();
@@ -77,10 +78,10 @@ exports.register = async (req, res) => {
     });
   }
 
- const type = (user)=>{
-    if(Boolean(user.isContractor) === true && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === false)  return {isContractor: true };   
-    if(Boolean(user.isContractor) === false && Boolean(user.isFunder) === true && Boolean(user.isEvaluator) === false)  return {isFunder: true };   
-    if( Boolean(user.isContractor) === false && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === true)  return {isEvaluator: true };   
+  const type = (user) => {
+    if (Boolean(user.isContractor) === true && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === false) return { isContractor: true };
+    if (Boolean(user.isContractor) === false && Boolean(user.isFunder) === true && Boolean(user.isEvaluator) === false) return { isFunder: true };
+    if (Boolean(user.isContractor) === false && Boolean(user.isFunder) === false && Boolean(user.isEvaluator) === true) return { isEvaluator: true };
   }
 
   var userObj = {
@@ -90,7 +91,7 @@ exports.register = async (req, res) => {
     lastName: req.body.lastName,
     password: req.body.password,
     phone: req.body.phone,
-    
+
     profilePhoto: req.body.profilePhoto
   };
 
@@ -98,62 +99,65 @@ exports.register = async (req, res) => {
 
     let org = req.body.organization, signThis = {};
 
-    if(org.id !== "" && org.id !== undefined){
+    if (org.id !== "" && org.id !== undefined) {
       let fetchOrg = await Organization.findOne({
         _id: req.body.organization.id
       });
-      userObj.organization = fetchOrg.id; 
-    }else if(Boolean(org.id) == false && org.name !== ""){
-      let obj = await new Organization({name: org.name}).save();
+      userObj.organization = fetchOrg.id;
+    } else if (Boolean(org.id) == false && org.name !== "") {
+      let obj = await new Organization({ name: org.name }).save();
       userObj.organization = obj._id;
     }
 
+    userObj.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+
     var newUser = await new User(userObj).save();
-    
-    if(Boolean(newUser.organization)){
-      signThis.organization =  {
-        name: newUser.organization.name,
-        id: newUser.organization._id
-      }
-    }else{
-      signThis.organization = {
-        name: "No Organization",
-        id:""
-      }
-    }
 
-    let { isFunder, isEvaluator, isContractor } = newUser;
+    // if(Boolean(newUser.organization)){
+    //   signThis.organization =  {
+    //     name: newUser.organization.name,
+    //     id: newUser.organization._id
+    //   }
+    // }else{
+    //   signThis.organization = {
+    //     name: "No Organization",
+    //     id:""
+    //   }
+    // }
 
-    signThis = {
-      ...signThis,
-      id: newUser._id,
-      isFunder,
-      isEvaluator,
-      isContractor,
+    // let { isFunder, isEvaluator, isContractor } = newUser;
+
+    // signThis = {
+    //   ...signThis,
+    //   id: newUser._id,
+    //   isFunder,
+    //   isEvaluator,
+    //   isContractor,
+    //   firstName: newUser.firstName,
+    //   phone: newUser.phone,
+    //   email: newUser.email,
+    //   lastName: newUser.lastName
+    // };
+
+    // var token = jwt.sign(signThis, process.env.SECRET, {
+    //   expiresIn: tokenValidityPeriod
+    // });
+
+    let emailData = {
       firstName: newUser.firstName,
-      phone: newUser.phone,
-      email: newUser.email,
-      lastName: newUser.lastName
-    };
-
-    var token = jwt.sign(signThis, process.env.SECRET, {
-      expiresIn: tokenValidityPeriod
-    });
-
-    let emailData={
-      firstName:newUser.firstName,
-      email:email.toLowerCase()
+      email: email.toLowerCase()
     }
-    
-  notify.welcomeMail(req, emailData, process.env.sela_email);
+
+    notify.confirmEmail(req, emailData, userObj.emailVerificationToken);
 
 
     return res.status(200).json({
       ...successRes,
-      ...signThis,
-      token
+      // ...signThis,
+      // token
+      message: "Registration successful. Please confirm your email"
     });
-    
+
   } catch (regErr) {
     console.log(regErr)
     failRes.message = regErr.name + ": " + regErr.message;
@@ -168,6 +172,9 @@ exports.verify = (req, res) => {
 exports.login = (req, res) => {
   let successRes = { success: true };
   let failRes = { success: false };
+  const inactiveAccountMsg="Your account has not been activated.\n",
+        unconfirmedEmailMsg="Your email has not been confirmed.\n";
+
   let signThis = {};
 
   const { email, phone } = req.body,
@@ -195,33 +202,33 @@ exports.login = (req, res) => {
         return res.status(401).json(failRes);
       }
 
-      if (user.activation === "approved") {
+      if (user.activation === "approved" && user.isEmailVerified === true) {
         const { isFunder, isEvaluator, isContractor } = user;
 
-          if(Boolean(user.organization)){
-            signThis.organization = {
-              name: user.organization.name,
-              id: user.organization._id
-            }
-          }else{
-            signThis.organization = {
-              name: "No Organization",
-              id:""
-            }
+        if (Boolean(user.organization)) {
+          signThis.organization = {
+            name: user.organization.name,
+            id: user.organization._id
           }
-        
-          signThis = {
-            ...signThis,
-            profilePhoto: user.profilePhoto,
-            id: user._id,
-            isFunder,
-            isEvaluator,
-            isContractor,
-            firstName: user.firstName,
-            phone: user.phone,
-            email: user.email,
-            lastName: user.lastName
-          };
+        } else {
+          signThis.organization = {
+            name: "No Organization",
+            id: ""
+          }
+        }
+
+        signThis = {
+          ...signThis,
+          profilePhoto: user.profilePhoto,
+          id: user._id,
+          isFunder,
+          isEvaluator,
+          isContractor,
+          firstName: user.firstName,
+          phone: user.phone,
+          email: user.email,
+          lastName: user.lastName
+        };
 
         var token = jwt.sign(signThis, process.env.SECRET, {
           expiresIn: tokenValidityPeriod
@@ -236,10 +243,20 @@ exports.login = (req, res) => {
           organization: user.organization,
           token
         });
-      } else {
-        failRes.message = "Your account has not been activated.";
+      } else if (user.activation === "pending" && user.isEmailVerified === true) {
+
+        failRes.message = inactiveAccountMsg;
+        return res.status(401).json(failRes);
+
+      } else if (user.activation === "approved" && user.isEmailVerified === false) {
+        failRes.message = unconfirmedEmailMsg;
+        return res.status(401).json(failRes);
+      }else if(user.activation === "pending" && user.isEmailVerified === false){
+        failRes.message=[unconfirmedEmailMsg,inactiveAccountMsg]
         return res.status(401).json(failRes);
       }
+
+
     });
   });
 
@@ -298,58 +315,58 @@ exports.update = async (req, res) => {
         delete objSearch.password;
       }
 
-     let check =  await User.findOne({
+      let check = await User.findOne({
         email: objSearch.email
       });
 
       // if(check){
-        check = check.toJSON();
+      check = check.toJSON();
       // }
-     
-      console.log(check , req.userId)
-      if( Boolean(check) === true && check._id.toString() === req.userId.toString() ){ 
 
-      finalUserObj = await User.findOneAndUpdate(
-        { _id: req.userId },
-        { $set: objSearch },
-        { new: true }
-      );
+      console.log(check, req.userId)
+      if (Boolean(check) === true && check._id.toString() === req.userId.toString()) {
+
+        finalUserObj = await User.findOneAndUpdate(
+          { _id: req.userId },
+          { $set: objSearch },
+          { new: true }
+        );
 
 
-      const { isFunder, isEvaluator, isContractor } = finalUserObj,
-        signThis = {
-          profilePhoto: finalUserObj.profilePhoto,
-          id: finalUserObj._id,
-          isFunder,
-          isEvaluator,
-          email: finalUserObj.email,
-          isContractor,
-          phone: finalUserObj.phone,
+        const { isFunder, isEvaluator, isContractor } = finalUserObj,
+          signThis = {
+            profilePhoto: finalUserObj.profilePhoto,
+            id: finalUserObj._id,
+            isFunder,
+            isEvaluator,
+            email: finalUserObj.email,
+            isContractor,
+            phone: finalUserObj.phone,
+            firstName: finalUserObj.firstName,
+            organization: {
+              name: finalUserObj.organization.name,
+              id: finalUserObj.organization._id
+            },
+            lastName: finalUserObj.lastName
+          };
+
+        var token = jwt.sign(signThis, process.env.SECRET, {
+          expiresIn: tokenValidityPeriod
+        });
+
+        return res.status(200).json({
+          ...successRes,
+          ...signThis,
           firstName: finalUserObj.firstName,
-          organization: {
-            name: finalUserObj.organization.name,
-            id: finalUserObj.organization._id
-          },
-          lastName: finalUserObj.lastName
-        };
-
-      var token = jwt.sign(signThis, process.env.SECRET, {
-        expiresIn: tokenValidityPeriod
-      });
-
-      return res.status(200).json({
-        ...successRes,
-        ...signThis,
-        firstName: finalUserObj.firstName,
-        lastName: finalUserObj.lastName,
-        organization: finalUserObj.organization,
-        token
-      });
-    }else{
-      return res.status(400).json({
-        message: "Email is in use."
-      })
-    }
+          lastName: finalUserObj.lastName,
+          organization: finalUserObj.organization,
+          token
+        });
+      } else {
+        return res.status(400).json({
+          message: "Email is in use."
+        })
+      }
     });
   } catch (error) {
     return res.status(401).json({
@@ -427,3 +444,126 @@ exports.findPStakeholders = async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+
+exports.verifyEmail = async (req, res) => {
+  let signThis = {};
+  let successRes = { success: true };
+  let failRes = { success: false };
+  try {
+    const vericationToken = req.query.token
+
+    if (!vericationToken || vericationToken == undefined) {
+      return res.status(400).json({ ...failRes, message: "Invalid verification token" })
+    }
+
+    let user = await User.findOne({ emailVerificationToken: vericationToken });
+
+    if (!user) {
+      return res.status(400).json({ ...failRes, message: "Invalid verification token" })
+    }
+
+
+    user.emailVerificationToken = null;
+    user.isEmailVerified = true;
+
+    let verifiedUser = await user.save();
+
+    if (verifiedUser) {
+      const { isFunder, isEvaluator, isContractor } = verifiedUser;
+
+      if (Boolean(verifiedUser.organization)) {
+        signThis.organization = {
+          name: verifiedUser.organization.name,
+          id: verifiedUser.organization._id
+        }
+      } else {
+        signThis.organization = {
+          name: "No Organization",
+          id: ""
+        }
+      }
+
+      signThis = {
+        ...signThis,
+        profilePhoto: verifiedUser.profilePhoto,
+        id: verifiedUser._id,
+        isFunder,
+        isEvaluator,
+        isContractor,
+        firstName: verifiedUser.firstName,
+        phone: verifiedUser.phone,
+        email: verifiedUser.email,
+        lastName: verifiedUser.lastName
+      };
+
+      var token = jwt.sign(signThis, process.env.SECRET, {
+        expiresIn: tokenValidityPeriod
+      });
+
+      let emailData = {
+        firstName: verifiedUser.firstName,
+        email: verifiedUser.email.toLowerCase()
+      }
+
+      notify.welcomeMail(req, emailData);
+
+      return res.status(200).json({
+        ...successRes,
+        ...signThis,
+        firstName: verifiedUser.firstName,
+        lastName: verifiedUser.lastName,
+        organization: verifiedUser.organization,
+        token
+      });
+    }
+
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ ...failRes, message: "internal server error" })
+  }
+}
+
+exports.resendEmailVerificationToken = async (req, res) => {
+  let successRes = { success: true };
+  let failRes = { success: false };
+
+  try {
+    const { body: { email } } = req;
+
+
+    if (!email || email === "" || email === undefined) {
+      return res.status(400).json({ ...failRes, message: "please provide a valid email" })
+    }
+
+    let user = await User.findOne({ email: email, isEmailVerified: false });
+
+    if (!user) {
+      return res.status(400).json({ ...failRes, message: `Sela does not have an account with the email ${email}. Please try another email.` })
+    }
+
+    user.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+    user.isEmailVerified = false;
+
+    let updatedUser = await user.save();
+
+    if (updatedUser) {
+      let emailData = {
+        firstName: updatedUser.firstName,
+        email: updatedUser.email
+      }
+
+      notify.confirmEmail(req, emailData, updatedUser.emailVerificationToken);
+
+      return res.status(200).json({
+        ...successRes,
+        message: `An email has been sent to ${email}. Please confirm your email`
+      });
+    }
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ ...failRes, message: "internal server error" })
+  }
+}

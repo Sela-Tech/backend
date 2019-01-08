@@ -17,4 +17,9 @@ module.exports = function(app) {
   // app.route("/users/s").post(user_controller.findPStakeholders);
 
   app.route("/verifyToken").post(verifyToken, user_controller.verify);
+
+  app.route("/email/verify?").put(user_controller.verifyEmail);
+
+  app.route("/verify/account/resend").put(user_controller.resendEmailVerificationToken);
+
 };
