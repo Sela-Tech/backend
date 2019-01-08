@@ -87,6 +87,9 @@ class Notifications {
      */
 
     static async notifyAcceptance(data) {
+        let type='';
+        let acceptInvite="ACCEPT_INVITE_TO_JOIN_PROJECT";
+        let rejectInvite="REJECT_INVITE_TO_JOIN_PROJECT";
 
         let message = '';
         let accepted = `${data.stakeholderName} has accepted your invite to join the "${data.projectName}" project`;
@@ -94,11 +97,14 @@ class Notifications {
 
         data.agreed === true ? message = accepted : message = rejected;
 
+        data.agreed === true ? type = acceptInvite : type = rejectInvite;
+
         const notifObj = {
             project: data.projectId,
             userId: data.projectOwner,
             message,
-            stakeholder: data.stakeholderId
+            stakeholder: data.stakeholderId,
+            type
         }
 
         try {
@@ -135,6 +141,7 @@ class Notifications {
     static async notifyRequestToJoinP(req, project) {
         const role = helper.getRole(req);
         let userRole;
+        let type="REQUEST_TO_JOIN_PROJECT";
         role == 'isFunder' ? userRole = 'a funder' : role == 'isContractor' ? userRole = 'a contractor' : userRole = 'an evaluator';
 
         const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} has requested to join your project "${project.name}" as ${userRole}`;
@@ -147,7 +154,8 @@ class Notifications {
             project: project._id,
             userId: project.owner._id,
             message,
-            stakeholder: req.userId
+            stakeholder: req.userId,
+            type
         }
 
         try {
@@ -173,8 +181,19 @@ class Notifications {
 
     }
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} usersData
+     * @param {*} project
+     * @memberof Notifications
+     */
     static async notifyAddedStakeholders(usersData, project) {
         try {
+          
             let users = await User.find({ _id: [...usersData] });
             const message1='<p><b>'+project.owner.firstName+' ' + project.owner.firstName+'</b>'+
             ' added you to the project ' + '<b>' + project.name + '</b>'+ '</p>';
@@ -184,7 +203,8 @@ class Notifications {
                 return {
                     project:project._id,
                     userId:u._id,
-                    message
+                    message,
+                    type:"INVITATION_TO_JOIN_PROJECT"
                 }
             })
 
@@ -194,7 +214,8 @@ class Notifications {
                     project: project._id,
                     userId: project.owner._id,
                     message,
-                    stakeholder: u._id
+                    stakeholder: u._id,
+                    type:"YOU_SENT_INVITATION_TO_JOIN"
                 }
                 
             })

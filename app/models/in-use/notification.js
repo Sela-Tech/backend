@@ -57,6 +57,11 @@ var notificationStructure = {
     type: String,
     required:true
   },
+  type:{
+    type:String,
+    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT",
+        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN"]
+  },
   read:{
     type:Boolean,
     default:false
