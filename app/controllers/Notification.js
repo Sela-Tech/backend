@@ -63,6 +63,16 @@ class Notifications {
 
     }
 
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Notifications
+     */
     static async markNotificationAsRead(req, res) {
         const ids = req.body.unreadNIds;
 
@@ -89,6 +99,16 @@ class Notifications {
 
     }
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} data
+     * @returns
+     * @memberof Notifications
+     */
     static async getUserNViaSocket(data){
         const user= data.userId;
         try {
