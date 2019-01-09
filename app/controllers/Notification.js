@@ -101,13 +101,17 @@ class Notifications {
                         read: n.read,
                         stakeholder: n.stakeholder,
                         message: n.message,
-                        userId: n.userId,
+                        user: n.user,
                         project: {
                             name: n.project.name,
                             id: n.project._id
-                        }
+                        },
+                        type:n.type,
+                        createdOn:n.createdOn,
+                        updatedOn:n.updatedOn
 
                     }
+
                 });
 
                 //extract unread notitifications
