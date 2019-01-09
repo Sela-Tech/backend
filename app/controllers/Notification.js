@@ -140,7 +140,7 @@ class Notifications {
                 return { notifications, unreadNIds }
 
             } else {
-                return { message: "you currently have no notifications" };
+                return { message: "You currently have no notifications" };
             }
 
         } catch (error) {
