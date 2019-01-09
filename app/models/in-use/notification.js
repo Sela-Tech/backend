@@ -50,7 +50,7 @@ var notificationStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "isFunder isContractor isEvaluator reputationScore firstName lastName email _id organization profilePhoto"
+        "firstName lastName _id organization profilePhoto"
     }
   },
   message: {

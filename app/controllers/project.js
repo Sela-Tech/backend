@@ -285,23 +285,27 @@ exports.add_stakeholder = async (req, res) => {
         });
       }
 
-      if(!shouldAddContractor){
+      console.log(shouldAddContractor)
+
+      if(shouldAddContractor){
+
+        let new_stakeholders = [...old_stakeholders, ...stakeholders];
+      
+        let saveResponse = await Project.updateOne(
+          { _id: req.body.id },
+          { $set: { stakeholders: new_stakeholders } }
+        );
+  
+        if (saveResponse.n === 1) {
+          await notify.notifyAddedStakeholders(req.body.stakeholders,project);
+           return res.status(200).json({
+            message: "Stakeholder Added Sucessfully"
+          });
+        }
+
+      }else{
         return res.status(401).json({
           message: "You cannot add more than one Contractor to a project"
-        });
-      };
-  
-      let new_stakeholders = [...old_stakeholders, ...stakeholders];
-      
-      let saveResponse = await Project.updateOne(
-        { _id: req.body.id },
-        { $set: { stakeholders: new_stakeholders } }
-      );
-
-      if (saveResponse.n === 1) {
-        await notify.notifyAddedStakeholders(req.body.stakeholders,project);
-         return res.status(200).json({
-          message: "Stakeholder Added Sucessfully"
         });
       }
     } else {
