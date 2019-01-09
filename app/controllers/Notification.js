@@ -63,6 +63,16 @@ class Notifications {
 
     }
 
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Notifications
+     */
     static async markNotificationAsRead(req, res) {
         const ids = req.body.unreadNIds;
 
@@ -89,6 +99,16 @@ class Notifications {
 
     }
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} data
+     * @returns
+     * @memberof Notifications
+     */
     static async getUserNViaSocket(data){
         const user= data.userId;
         try {
@@ -101,13 +121,17 @@ class Notifications {
                         read: n.read,
                         stakeholder: n.stakeholder,
                         message: n.message,
-                        userId: n.userId,
+                        user: n.user,
                         project: {
                             name: n.project.name,
                             id: n.project._id
-                        }
+                        },
+                        type:n.type,
+                        createdOn:n.createdOn,
+                        updatedOn:n.updatedOn
 
                     }
+
                 });
 
                 //extract unread notitifications
@@ -116,7 +140,7 @@ class Notifications {
                 return { notifications, unreadNIds }
 
             } else {
-                return { message: "you currently have no notifications" };
+                return { message: "You currently have no notifications" };
             }
 
         } catch (error) {
