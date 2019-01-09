@@ -23,9 +23,9 @@ class Notifications {
      * @memberof Notifications
      */
     static async getUserNotifications(req, res) {
-        let userId = req.userId
+        let user = req.userId
         try {
-            let notifications = await Notificate.find({ userId });
+            let notifications = await Notificate.find({ user });
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -87,9 +87,9 @@ class Notifications {
     }
 
     static async getUserNViaSocket(data){
-        const userId= data.userId;
+        const user= data.userId;
         try {
-            let notifications = await Notificate.find({ userId });
+            let notifications = await Notificate.find({ user });
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
