@@ -41,7 +41,7 @@ var notificationStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "_id firstName lastName"
+        " _id firstName lastName"
     }
   },
   stakeholder:{
