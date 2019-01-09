@@ -111,10 +111,9 @@ class Notifications {
                 });
 
                 //extract unread notitifications
-                // const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
+                const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
 
-                return { notifications }
-                // return { notifications, unreadNIds }
+                return { notifications, unreadNIds }
 
             } else {
                 return { message: "you currently have no notifications" };
