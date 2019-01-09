@@ -63,14 +63,10 @@ class Helper {
         let users = await User.find({_id:[...stakeHolders]});
         let newContractorsCount  = users.filter(u=>u.isContractor===true);
 
-        let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
-        console.log(pContractorCount)
 
-        console.log("problem 1");
-        if(pContractorCount.length < 0){
-            return true
-        }
-        console.log("problem 2");
+        let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
+        
+        if(pContractorCount.length > 0 && newContractorsCount.length>0){return false}
         if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
 
         return true;

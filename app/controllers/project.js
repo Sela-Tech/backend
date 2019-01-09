@@ -285,7 +285,6 @@ exports.add_stakeholder = async (req, res) => {
         });
       }
 
-      console.log(shouldAddContractor)
 
       if(shouldAddContractor){
 
@@ -297,7 +296,7 @@ exports.add_stakeholder = async (req, res) => {
         );
   
         if (saveResponse.n === 1) {
-          await notify.notifyAddedStakeholders(req.body.stakeholders,project);
+          await notify.notifyAddedStakeholders(req,req.body.stakeholders,project);
            return res.status(200).json({
             message: "Stakeholder Added Sucessfully"
           });
