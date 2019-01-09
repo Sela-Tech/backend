@@ -101,7 +101,7 @@ class Notifications {
 
         const notifObj = {
             project: data.projectId,
-            userId: data.projectOwner,
+            user: data.projectOwner,
             message,
             stakeholder: data.stakeholderId,
             type
@@ -152,7 +152,7 @@ class Notifications {
 
         const notifObj = {
             project: project._id,
-            userId: project.owner._id,
+            user: project.owner._id,
             message,
             stakeholder: req.userId,
             type
@@ -202,9 +202,10 @@ class Notifications {
                 const message = `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
                 return {
                     project:project._id,
-                    userId:u._id,
+                    user:u._id,
                     message,
-                    type:"INVITATION_TO_JOIN_PROJECT"
+                    type:"INVITATION_TO_JOIN_PROJECT",
+                    stakeholder:project.owner._id
                 }
             })
 

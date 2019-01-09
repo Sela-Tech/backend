@@ -23,9 +23,9 @@ class Notifications {
      * @memberof Notifications
      */
     static async getUserNotifications(req, res) {
-        let userId = req.userId
+        let user = req.userId
         try {
-            let notifications = await Notificate.find({ userId });
+            let notifications = await Notificate.find({ user});
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -34,11 +34,14 @@ class Notifications {
                         read: n.read,
                         stakeholder: n.stakeholder,
                         message: n.message,
-                        userId: n.userId,
+                        user: n.user,
                         project: {
                             name: n.project.name,
                             id: n.project._id
-                        }
+                        },
+                        type:n.type,
+                        createdOn:n.createdOn,
+                        updatedOn:n.updatedOn
 
                     }
                 });
@@ -87,9 +90,9 @@ class Notifications {
     }
 
     static async getUserNViaSocket(data){
-        const userId= data.userId;
+        const user= data.userId;
         try {
-            let notifications = await Notificate.find({ userId });
+            let notifications = await Notificate.find({ user, read:false });
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -108,9 +111,10 @@ class Notifications {
                 });
 
                 //extract unread notitifications
-                const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
+                // const unreadNIds = notifications.filter(n => n.read === false).map(n => n._id);
 
-                return { notifications, unreadNIds }
+                return { notifications }
+                // return { notifications, unreadNIds }
 
             } else {
                 return { message: "you currently have no notifications" };

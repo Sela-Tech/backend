@@ -33,15 +33,15 @@ var notificationStructure = {
     ref: "Project",
     autopopulate: {
       select:
-        "name activated _id "
+        "name activated _id, owner "
     }
   },
-  userId: {
+  user: {
     type: ObjectId,
     ref: "User",
     autopopulate: {
       select:
-        "_id"
+        " _id firstName lastName"
     }
   },
   stakeholder:{

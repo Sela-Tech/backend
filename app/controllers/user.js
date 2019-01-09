@@ -173,7 +173,7 @@ exports.login = (req, res) => {
   let successRes = { success: true };
   let failRes = { success: false };
   const inactiveAccountMsg = "Your account has not been activated.\n",
-    unconfirmedEmailMsg = "Your email has not been verified.\n";
+    unverifiedEmailMsg = "Your email has not been verified.\n";
 
   let signThis = {};
 
@@ -250,12 +250,12 @@ exports.login = (req, res) => {
 
       } else if (user.activation === "approved" && user.isEmailVerified === false) {
 
-        failRes.message = unconfirmedEmailMsg;
+        failRes.message = unverifiedEmailMsg;
         return res.status(401).json(failRes);
 
       } else if (user.activation === "pending" && user.isEmailVerified === false) {
 
-        failRes.message = [unconfirmedEmailMsg, inactiveAccountMsg]
+        failRes.message = [unverifiedEmailMsg, inactiveAccountMsg]
         return res.status(401).json(failRes);
       }
 
