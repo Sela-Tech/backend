@@ -191,13 +191,11 @@ class Notifications {
      * @param {*} project
      * @memberof Notifications
      */
-    static async notifyAddedStakeholders(usersData, project) {
+    static async notifyAddedStakeholders(req,usersData, project) {
         try {
           
             let users = await User.find({ _id: [...usersData] });
-            const message1='<p><b>'+project.owner.firstName+' ' + project.owner.firstName+'</b>'+
-            ' added you to the project ' + '<b>' + project.name + '</b>'+ '</p>';
-
+            
             let notifObjs = users.map((u) => {
                 const message = `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
                 return {
@@ -232,7 +230,7 @@ class Notifications {
                             to: `${user.email}`,
                             from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                             subject: "Congratulations!",
-                            html: message1
+                            html: EmailTemplates.inviteToJoinProject(getHost(req),project,user)
                         };
                         sgMail.send(msg, false, (error, result) => {
                             if (error) return console.log(error);
