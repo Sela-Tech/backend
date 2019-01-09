@@ -50,12 +50,17 @@ var notificationStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "isFunder isContractor isEvaluator reputationScore firstName lastName email _id organization profilePhoto"
+        "firstName lastName _id organization profilePhoto"
     }
   },
   message: {
     type: String,
     required:true
+  },
+  type:{
+    type:String,
+    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT",
+        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN"]
   },
   read:{
     type:Boolean,
