@@ -211,7 +211,7 @@ class Notifications {
                 const message = `You sent a request to ${u.firstName} ${u.lastName} to join this project "${project.name}".`;
                 return{
                     project: project._id,
-                    userId: project.owner._id,
+                    user: project.owner._id,
                     message,
                     stakeholder: u._id,
                     type:"YOU_SENT_INVITATION_TO_JOIN"
@@ -229,7 +229,7 @@ class Notifications {
                         const msg = {
                             to: `${user.email}`,
                             from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
-                            subject: "Congratulations!",
+                            subject: "Invitation to join project!",
                             html: EmailTemplates.inviteToJoinProject(getHost(req),project,user)
                         };
                         sgMail.send(msg, false, (error, result) => {

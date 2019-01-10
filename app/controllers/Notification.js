@@ -112,7 +112,7 @@ class Notifications {
     static async getUserNViaSocket(data){
         const user= data.userId;
         try {
-            let notifications = await Notificate.find({ user, read:false });
+            let notifications = await Notificate.find({ user, read:false});
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -140,7 +140,7 @@ class Notifications {
                 return { notifications, unreadNIds }
 
             } else {
-                return { message: "You currently have no notifications" };
+                return { message: "You have no new notifications" };
             }
 
         } catch (error) {
