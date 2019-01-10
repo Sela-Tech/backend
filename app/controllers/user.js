@@ -91,12 +91,10 @@ exports.register = async (req, res) => {
     lastName: req.body.lastName,
     password: req.body.password,
     phone: req.body.phone,
-
     profilePhoto: req.body.profilePhoto
   };
 
   try {
-
     let org = req.body.organization, signThis = {};
 
     if (org.id !== "" && org.id !== undefined) {
@@ -109,9 +107,42 @@ exports.register = async (req, res) => {
       userObj.organization = obj._id;
     }
 
-    userObj.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+    let medium;
 
-    var newUser = await new User(userObj).save();
+    // if(req.body.phone && req.body.phone !== "" && !req.body.email || req.body.email == ""){
+    //   userObj.verificationToken = crypto.randomBytes(3).toString('hex');
+    //   medium='Phone Number';
+
+    //   var newUser = await new User(userObj).save();
+
+    //   const receiver = '+234' + req.body.phone;
+    //   const to = [receiver];
+
+    //   const msg = {
+    //     to: to,
+    //     message: 'Please use this code to act your password: ' +
+    //         verificationCode 
+    // }
+
+
+    // let result = await sms.send(msg);
+
+
+    // }else if(req.body.email && req.body.email !== "" && !req.body.phone || req.body.phone == ""){
+      medium='Email';
+      userObj.verificationToken = crypto.randomBytes(20).toString('hex');
+
+      var newUser = await new User(userObj).save();
+
+      let emailData = {
+        firstName: newUser.firstName,
+        email: email.toLowerCase()
+      }
+  
+      notify.confirmEmail(req, emailData, userObj.verificationToken);
+  
+    // }
+
 
     // if(Boolean(newUser.organization)){
     //   signThis.organization =  {
@@ -143,19 +174,12 @@ exports.register = async (req, res) => {
     //   expiresIn: tokenValidityPeriod
     // });
 
-    let emailData = {
-      firstName: newUser.firstName,
-      email: email.toLowerCase()
-    }
-
-    notify.confirmEmail(req, emailData, userObj.emailVerificationToken);
-
-
+    
     return res.status(200).json({
       ...successRes,
       // ...signThis,
       // token
-      message: "Registration successful. Please confirm your email"
+      message: `Registration successful. Please verify your ${medium}`
     });
 
   } catch (regErr) {
@@ -202,7 +226,7 @@ exports.login = (req, res) => {
         return res.status(401).json(failRes);
       }
 
-      if (user.activation === "approved" && user.isEmailVerified === true) {
+      if (user.activation === "approved" && user.isVerified === true) {
         const { isFunder, isEvaluator, isContractor } = user;
 
         if (Boolean(user.organization)) {
@@ -243,17 +267,17 @@ exports.login = (req, res) => {
           organization: user.organization,
           token
         });
-      } else if (user.activation === "pending" && user.isEmailVerified === true) {
+      } else if (user.activation === "pending" && user.isVerified === true) {
 
         failRes.message = inactiveAccountMsg;
         return res.status(401).json(failRes);
 
-      } else if (user.activation === "approved" && user.isEmailVerified === false) {
+      } else if (user.activation === "approved" && user.isVerified === false) {
 
         failRes.message = unverifiedEmailMsg;
         return res.status(401).json(failRes);
 
-      } else if (user.activation === "pending" && user.isEmailVerified === false) {
+      } else if (user.activation === "pending" && user.isVerified === false) {
 
         failRes.message = [unverifiedEmailMsg, inactiveAccountMsg]
         return res.status(401).json(failRes);
@@ -460,15 +484,15 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
     }
 
-    let user = await User.findOne({ emailVerificationToken: vericationToken });
+    let user = await User.findOne({ verificationToken: vericationToken });
 
     if (!user) {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
     }
 
 
-    user.emailVerificationToken = null;
-    user.isEmailVerified = true;
+    user.verificationToken = null;
+    user.isVerified = true;
 
     let verifiedUser = await user.save();
 
@@ -528,7 +552,7 @@ exports.verifyEmail = async (req, res) => {
   }
 }
 
-exports.resendEmailVerificationToken = async (req, res) => {
+exports.resendVerificationToken = async (req, res) => {
   let successRes = { success: true };
   let failRes = { success: false };
 
@@ -540,14 +564,14 @@ exports.resendEmailVerificationToken = async (req, res) => {
       return res.status(400).json({ ...failRes, message: "please provide a valid email" })
     }
 
-    let user = await User.findOne({ email: email, isEmailVerified: false });
+    let user = await User.findOne({ email: email, isVerified: false });
 
     if (!user) {
       return res.status(400).json({ ...failRes, message: `Sela does not have an account with the email ${email}. Please try another email.` })
     }
 
-    user.emailVerificationToken = crypto.randomBytes(20).toString('hex');
-    user.isEmailVerified = false;
+    user.verificationToken = crypto.randomBytes(20).toString('hex');
+    user.isVerified = false;
 
     let updatedUser = await user.save();
 
@@ -557,7 +581,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
         email: updatedUser.email
       }
 
-      notify.confirmEmail(req, emailData, updatedUser.emailVerificationToken);
+      notify.confirmEmail(req, emailData, updatedUser.verificationToken);
 
       return res.status(200).json({
         ...successRes,

@@ -74,10 +74,10 @@ var userStructure = {
     enum:["pending", "approved"],
     default: "approved"
   },
-  emailVerificationToken: {
+  verificationToken: {
     type: String,
   },
-  isEmailVerified:{
+  isVerified:{
     type:Boolean,
     default:false
   },
