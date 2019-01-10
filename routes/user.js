@@ -20,6 +20,6 @@ module.exports = function(app) {
 
   app.route("/email/verify?").put(user_controller.verifyEmail);
 
-  app.route("/verify/account/resend").put(user_controller.resendEmailVerificationToken);
+  app.route("/verify/account/resend").put(user_controller.resendVerificationToken);
 
 };
