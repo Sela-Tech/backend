@@ -96,33 +96,35 @@ const emailTemplates = {
         </tr>
         
         <tr>
-        <td style='text-align: center;'>
-            <p style=" margin: 14px 0;
-            line-height: normal;
-            font-size: 14px;
-            color: #696F74;
-            width: 80%;
-            margin: auto;
-            ">
-                You are receiving this email because you signed up on <strong>Sela</strong>
-            </p>
-            <p 
-                style='
-            margin: 14px 0;
-            line-height: normal;
-            font-size: 12px;
-            color: #696F74;
-            '>Copyright &copy; Sela, All Rights Reserved</p>
-    
-            <p  style='
-            margin: 14px 0;
-            line-height: normal;
-            font-size: 12px;
-            color: #696F74;
-            '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+                <td style='text-align: center; background: #FAFAFA; height: 100px;'>
+                    <p style=" margin: 14px 0;
+                    line-height: normal;
+                    font-size: 14px;
+                    color: #696F74;
+                    width: 80%;
+                    margin: auto;
+                    ">
+                        You are receiving this email because you signed up on <strong>Sela</strong>
+                    </p>
+                    <p 
+                        style='
+                    margin: 14px 0;
+                    line-height: normal;
+                    font-size: 12px;
+                    color: #696F74;
+                    '>Copyright &copy; Sela, All Rights Reserved</p>
+            
+                    <p  style='
+                    margin: 14px 0;
+                    line-height: normal;
+                    font-size: 12px;
+                    color: #696F74;
+                    '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
 
-        </td>
-    </tr>
+                </td>
+            </tr>
+
+
             
             
     </table>  
@@ -325,10 +327,9 @@ const emailTemplates = {
         
                 </tr>
         
-                
         
                 <tr>
-                <td style='text-align: center;'>
+                <td style='text-align: center; background: #FAFAFA; height: 100px;'>
                     <p style=" margin: 14px 0;
                     line-height: normal;
                     font-size: 14px;
@@ -355,6 +356,8 @@ const emailTemplates = {
 
                 </td>
             </tr>
+
+
                     
         
             </table>  
@@ -563,7 +566,7 @@ const emailTemplates = {
         
             
             <tr>
-            <td style='text-align: center;'>
+            <td style='text-align: center; background: #FAFAFA; height: 100px;'>
                 <p style=" margin: 14px 0;
                 line-height: normal;
                 font-size: 14px;
@@ -590,6 +593,8 @@ const emailTemplates = {
 
             </td>
         </tr>
+
+
         
               
         
@@ -773,7 +778,7 @@ const emailTemplates = {
       
       
           <tr>
-          <td style='text-align: center;'>
+          <td style='text-align: center; background: #FAFAFA; height: 100px;'>
               <p style=" margin: 14px 0;
               line-height: normal;
               font-size: 14px;
@@ -800,6 +805,8 @@ const emailTemplates = {
 
           </td>
       </tr>
+
+
       
             
       
@@ -935,34 +942,36 @@ const emailTemplates = {
                 </td>
             </tr>
             
-                <tr>
-                    <td style='text-align: center;'>
-                        <p style=" margin: 14px 0;
-                        line-height: normal;
-                        font-size: 14px;
-                        color: #696F74;
-                        width: 80%;
-                        margin: auto;
-                        ">
-                            You are receiving this email because you signed up on <strong>Sela</strong>
-                        </p>
-                        <p 
-                            style='
-                        margin: 14px 0;
-                        line-height: normal;
-                        font-size: 12px;
-                        color: #696F74;
-                        '>Copyright &copy; Sela, All Rights Reserved</p>
-                
-                        <p  style='
-                        margin: 14px 0;
-                        line-height: normal;
-                        font-size: 12px;
-                        color: #696F74;
-                        '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
-    
-                    </td>
-                </tr>
+            <tr>
+            <td style='text-align: center; background: #FAFAFA; height: 100px;'>
+                <p style=" margin: 14px 0;
+                line-height: normal;
+                font-size: 14px;
+                color: #696F74;
+                width: 80%;
+                margin: auto;
+                ">
+                    You are receiving this email because you signed up on <strong>Sela</strong>
+                </p>
+                <p 
+                    style='
+                margin: 14px 0;
+                line-height: normal;
+                font-size: 12px;
+                color: #696F74;
+                '>Copyright &copy; Sela, All Rights Reserved</p>
+        
+                <p  style='
+                margin: 14px 0;
+                line-height: normal;
+                font-size: 12px;
+                color: #696F74;
+                '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+
+            </td>
+        </tr>
+
+
                 
         </table>  
     </body>
