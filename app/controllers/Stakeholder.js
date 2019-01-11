@@ -98,14 +98,11 @@ const notify= require('../helper/notifications');
                     const notificationData={
                         stakeholderName:req.decodedTokenData.firstName + ' ' + req.decodedTokenData.lastName,
                         stakeholderId:userId,
-                        projectOwner:project.owner._id,
-                        projectOwnerEmail:project.owner.email,
-                        projectId:project._id,
-                        projectName:project.name,
+                        project,
                         agreed
                     }
 
-                    await notify.notifyAcceptance(notificationData);
+                    await notify.notifyAcceptance(req, notificationData);
 
                     let message;
 
