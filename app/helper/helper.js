@@ -72,6 +72,17 @@ class Helper {
         return true;
 
     }
+
+    async tooManyContractors(stakeHolders){
+        const MAX_CONTRACTOR_ALLOWED = 1;
+        let users = await User.find({_id:[...stakeHolders]});
+        let newContractorsCount  = users.filter(u=>u.isContractor===true);
+
+        if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return true};
+
+        return false;
+
+    }
 }
 
 module.exports = Helper;
