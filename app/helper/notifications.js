@@ -4,7 +4,8 @@ let Notification = mongoose.model("Notification"),
     User = mongoose.model("User");
 const Helper = require('../helper/helper');
 const EmailTemplates = require('../helper/emailTemplates');
-const { getHost } = require('../../in-use/utils')
+const { getHost } = require('../../in-use/utils');
+const NotificationController = require('../controllers/Notification');
 
 
 const options = {
@@ -86,7 +87,7 @@ class Notifications {
      * @memberof Notifications
      */
 
-    static async notifyAcceptance(data) {
+    static async notifyAcceptance(req, data) {
         let type='';
         let acceptInvite="ACCEPT_INVITE_TO_JOIN_PROJECT";
         let rejectInvite="REJECT_INVITE_TO_JOIN_PROJECT";
@@ -162,6 +163,11 @@ class Notifications {
             let notification = await new Notification(notifObj).save();
 
             if (notification) {
+                
+                if (req.io.sockets.connected[project.owner.socket]) {
+                    const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
+                    req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                }
 
                 const msg = {
                     to: `${project.owner.email}`,
@@ -195,7 +201,7 @@ class Notifications {
         try {
           
             let users = await User.find({ _id: [...usersData] });
-            
+            console.log(users)
             let notifObjs = users.map((u) => {
                 const message = `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
                 return {
@@ -220,10 +226,27 @@ class Notifications {
             })
     
             if(notifObjs.length>0){
-                let notifications = await Notification.insertMany(notifObjs);
-                if(notifications){
+                let nots = await Notification.insertMany(notifObjs);
+                if(nots){
 
-                    await Notification.insertMany(notifyOwner);
+                    users.forEach(async(u)=>{
+                        if(u.socket !==null){
+                            if (req.io.sockets.connected[u.socket]) {
+                                const notifications = await NotificationController.getUserNViaSocket({userId:u._id})
+                                req.io.sockets.connected[u.socket].emit('notifications', {notifications});
+                            }
+                        }
+                    })
+                    
+                   
+                    let notOwner=await Notification.insertMany(notifyOwner);
+
+                    if(notOwner){
+                        if (req.io.sockets.connected[project.owner.socket]) {
+                            const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
+                            req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                        }
+                    }
 
                     users.forEach(user => {
                         const msg = {
