@@ -552,6 +552,7 @@ exports.verifyEmail = async (req, res) => {
   }
 }
 
+
 exports.resendVerificationToken = async (req, res) => {
   let successRes = { success: true };
   let failRes = { success: false };
