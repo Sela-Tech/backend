@@ -93,16 +93,16 @@ class Notifications {
         let rejectInvite="REJECT_INVITE_TO_JOIN_PROJECT";
 
         let message = '';
-        let accepted = `${data.stakeholderName} has accepted your invite to join the "${data.projectName}" project`;
-        let rejected = `${data.stakeholderName} declined your invite to join the "${data.projectName}" project`;
+        let accepted = `${data.stakeholderName} has accepted your invite to join the "${data.project.name}" project`;
+        let rejected = `${data.stakeholderName} declined your invite to join the "${data.project.name}" project`;
 
         data.agreed === true ? message = accepted : message = rejected;
 
         data.agreed === true ? type = acceptInvite : type = rejectInvite;
 
         const notifObj = {
-            project: data.projectId,
-            user: data.projectOwner,
+            project: data.project._id,
+            user: data.project.owner._id,
             message,
             stakeholder: data.stakeholderId,
             type
@@ -113,6 +113,13 @@ class Notifications {
 
             if (notification) {
 
+                if(project.owner.socket !==null){
+                    if (req.io.sockets.connected[project.owner.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
+                        req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                    }
+                }
+               
                 const msg = {
                     to: `${data.projectOwnerEmail}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
@@ -163,11 +170,14 @@ class Notifications {
             let notification = await new Notification(notifObj).save();
 
             if (notification) {
-                
-                if (req.io.sockets.connected[project.owner.socket]) {
-                    const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
-                    req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+
+                if(project.owner.socket !==null){
+                    if (req.io.sockets.connected[project.owner.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
+                        req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                    }
                 }
+               
 
                 const msg = {
                     to: `${project.owner.email}`,
@@ -201,7 +211,6 @@ class Notifications {
         try {
           
             let users = await User.find({ _id: [...usersData] });
-            console.log(users)
             let notifObjs = users.map((u) => {
                 const message = `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
                 return {
@@ -239,9 +248,9 @@ class Notifications {
                     })
                     
                    
-                    let notOwner=await Notification.insertMany(notifyOwner);
+                    let notiOwner=await Notification.insertMany(notifyOwner);
 
-                    if(notOwner){
+                    if(notiOwner){
                         if (req.io.sockets.connected[project.owner.socket]) {
                             const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
                             req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});

@@ -5,10 +5,10 @@ const mongoose = require("mongoose"),
   User = mongoose.model("User"),
   Location = mongoose.model("Location");
 
-  const notify=require('../helper/notifications');
-  const Helper=require('../helper/helper');
+const notify = require('../helper/notifications');
+const Helper = require('../helper/helper');
 
-  let helper= new Helper();
+let helper = new Helper();
 
 
 exports.new = async (req, res) => {
@@ -16,59 +16,87 @@ exports.new = async (req, res) => {
   var failRes = { success: false };
   var projectObj = req.body;
   projectObj.owner = req.userId;
- 
+  let SHs=[];
   var newLocation = new Location(req.body.location);
-if(projectObj.stakeholders){
-  projectObj.stakeholders = projectObj.stakeholders.map(s=>{
-    return {
-      user: {
-        information: s
+  try {
+
+    if(projectObj.stakeholders.length >0){
+      let tooManyContractors = await helper.tooManyContractors(projectObj.stakeholders)
+        if(!tooManyContractors){
+          SHs=[...projectObj.stakeholders];
+          projectObj.stakeholders = projectObj.stakeholders.map(s=>{
+            return {
+              user: {
+                information: s
+              }
+            }
+          });
+        }else{
+          failRes.message ="You cannot add more than one Contractor to a project";
+          console.log(failRes)
+          return res.status(400).json(failRes);
+        }
+       
+      }else{
+      
+        projectObj.stakeholders = [];
+      
       }
-    }
-  });
-}else{
+      
+        const saveProject = async projectObj => {
+          
+          if(typeof(projectObj.tags) === "string" || typeof(projectObj.tags ) === "String"){
+            projectObj.tags = [projectObj.tags]
+          }else if(Boolean(projectObj.tags) === false){
+            projectObj.tags = []
+          }
+      
+          var newProject = new Project(projectObj);
+          // newProject.save((err, project)=>{
+          //   if (err) {
+          //     failRes.message = err.name + ": " + err.message;
+          //     return res.status(400).json(failRes);
+          //   }
+            
+          //    notify.notifyAddedStakeholders(req, req.body.stakeholders, project)
+          //   return res.status(200).json(successRes);
+          // });
 
-  projectObj.stakeholders = [];
+          let newP = await newProject.save();
 
-}
-
-  const saveProject = projectObj => {
-    
-    if(typeof(projectObj.tags) === "string" || typeof(projectObj.tags ) === "String"){
-      projectObj.tags = [projectObj.tags]
-    }else if(Boolean(projectObj.tags) === false){
-      projectObj.tags = []
-    }
-
-    var newProject = new Project(projectObj);
-    newProject.save(projErr => {
-      if (projErr) {
-        failRes.message = projErr.name + ": " + projErr.message;
-        return res.status(400).json(failRes);
-      }
-      return res.status(200).json(successRes);
-    });
-  };
-
-  Location.findOne(
-    {
-      name: req.body.location.name,
-      lat: req.body.location.lat,
-      lng: req.body.location.lng
-    },
-    (err, single) => {
-      if (single === null) {
-        newLocation.save((err, l) => {
-          if (err) return res.status(500).json({ message: err.message });
-          projectObj.location = l._id;
-          saveProject(projectObj);
-        });
-      } else {
-        projectObj.location = single._id;
-        saveProject(projectObj);
-      }
-    }
-  );
+          if(newP){
+            let project = await Project.findById(newP._id);
+            if(SHs.length>0){
+              await notify.notifyAddedStakeholders(req, SHs, project)
+            }
+              return res.status(200).json(successRes);
+          }
+        };
+      
+        Location.findOne(
+          {
+            name: req.body.location.name,
+            lat: req.body.location.lat,
+            lng: req.body.location.lng
+          },
+          (err, single) => {
+            if (single === null) {
+              newLocation.save((err, l) => {
+                if (err) return res.status(500).json({ message: err.message });
+                projectObj.location = l._id;
+                saveProject(projectObj);
+              });
+            } else {
+              projectObj.location = single._id;
+              saveProject(projectObj);
+             
+            }
+          }
+        );
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({message:`internal server error`});
+  }
 };
 
 exports.find = async (req, res) => {
@@ -99,7 +127,7 @@ exports.find = async (req, res) => {
   Project.find(checkQuery)
     .skip(skip)
     .limit(limit)
-    .exec(function(err, projects) {
+    .exec(function (err, projects) {
       if (!req.tokenExists)
         projects = projects.filter(p => {
           return p.activated === true;
@@ -127,7 +155,7 @@ exports.find = async (req, res) => {
         }
         successRes.projects = projects;
       }
-      
+
 
       return res.json(successRes);
     });
@@ -176,12 +204,12 @@ exports.delete = async (req, res) => {
             });
           }
         } else {
-        return res.status(400).json({
+          return res.status(400).json({
             success: false
           });
         }
       } catch (error) {
-      return res.status(400).json({
+        return res.status(400).json({
           message: error.message
         });
       }
@@ -202,7 +230,7 @@ exports.delete = async (req, res) => {
           });
         }
       } catch (error) {
-       return res.status(400).json({
+        return res.status(400).json({
           message: error.message,
           success: false
         });
@@ -240,17 +268,17 @@ exports.find_one = async (req, res) => {
 exports.add_stakeholder = async (req, res) => {
   try {
 
-  let stakeholders = req.body.stakeholders.map(s=>{
-    return {
-      user: {
-        information: s
+    let stakeholders = req.body.stakeholders.map(s => {
+      return {
+        user: {
+          information: s
+        }
       }
-    }
-  });
+    });
     let project = await Project.findOne({ _id: req.body.id });
 
-  let shouldAddContractor= await helper.shouldAddContractor(req.body.stakeholders, project.stakeholders);
-   
+    let shouldAddContractor = await helper.shouldAddContractor(req.body.stakeholders, project.stakeholders);
+
     const old_stakeholders = project.stakeholders.map(s => ({
       user: {
         information: `${s.user.information._id}`,
@@ -286,23 +314,23 @@ exports.add_stakeholder = async (req, res) => {
       }
 
 
-      if(shouldAddContractor){
+      if (shouldAddContractor) {
 
         let new_stakeholders = [...old_stakeholders, ...stakeholders];
-      
+
         let saveResponse = await Project.updateOne(
           { _id: req.body.id },
           { $set: { stakeholders: new_stakeholders } }
         );
-  
+
         if (saveResponse.n === 1) {
-          await notify.notifyAddedStakeholders(req,req.body.stakeholders,project);
-           return res.status(200).json({
+          await notify.notifyAddedStakeholders(req, req.body.stakeholders, project);
+          return res.status(200).json({
             message: "Stakeholder Added Sucessfully"
           });
         }
 
-      }else{
+      } else {
         return res.status(401).json({
           message: "You cannot add more than one Contractor to a project"
         });
