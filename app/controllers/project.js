@@ -20,7 +20,7 @@ exports.new = async (req, res) => {
   var newLocation = new Location(req.body.location);
   try {
 
-    if(projectObj.stakeholders.length >0){
+    if(projectObj.stakeholders && projectObj.stakeholders.length >0){
       let tooManyContractors = await helper.tooManyContractors(projectObj.stakeholders)
         if(!tooManyContractors){
           SHs=[...projectObj.stakeholders];
