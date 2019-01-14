@@ -12,6 +12,7 @@ var bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const Helper = require('../helper/helper');
 const Notifications = require('../helper/notifications');
+const validator = require('validator');
 
 const helper = new Helper();
 const notify = new Notifications();
@@ -109,27 +110,34 @@ exports.register = async (req, res) => {
 
     let medium;
 
-    // if(req.body.phone && req.body.phone !== "" && !req.body.email || req.body.email == ""){
-    //   userObj.verificationToken = crypto.randomBytes(3).toString('hex');
-    //   medium='Phone Number';
+    if (req.body.phone && req.body.phone !== "" && !req.body.email || req.body.email == "") {
+      userObj.verificationToken = crypto.randomBytes(3).toString('hex');
+      medium = 'Phone Number';
 
-    //   var newUser = await new User(userObj).save();
+      var newUser = await new User(userObj).save();
 
-    //   const receiver = '+234' + req.body.phone;
-    //   const to = [receiver];
+      const receiver = '+234' + req.body.phone;
+      const to = [receiver];
 
-    //   const msg = {
-    //     to: to,
-    //     message: 'Please use this code to act your password: ' +
-    //         verificationCode 
-    // }
-
-
-    // let result = await sms.send(msg);
+      const msg = {
+        to: to,
+        message: 'Please verify your phone number with this code: ' +
+          userObj.verificationToken
+      }
 
 
-    // }else if(req.body.email && req.body.email !== "" && !req.body.phone || req.body.phone == ""){
-      medium='Email';
+      let result = await sms.send(msg);
+
+      return res.status(200).json({
+        ...successRes,
+        // ...signThis,
+        // token
+        message: `Registration successful. Please verify your ${medium}`
+      });
+
+
+    } else if (req.body.email && req.body.email !== "" && !req.body.phone || req.body.phone == "") {
+      medium = 'Email';
       userObj.verificationToken = crypto.randomBytes(20).toString('hex');
 
       var newUser = await new User(userObj).save();
@@ -138,10 +146,34 @@ exports.register = async (req, res) => {
         firstName: newUser.firstName,
         email: email.toLowerCase()
       }
-  
+
       notify.confirmEmail(req, emailData, userObj.verificationToken);
-  
-    // }
+      return res.status(200).json({
+        ...successRes,
+        // ...signThis,
+        // token
+        message: `Registration successful. Please verify your ${medium}`
+      });
+
+    } else if (req.body.email && req.body.email !== "" && req.body.phone && req.body.phone !== "") {
+      medium = 'Email';
+      userObj.verificationToken = crypto.randomBytes(20).toString('hex');
+
+      var newUser = await new User(userObj).save();
+
+      let emailData = {
+        firstName: newUser.firstName,
+        email: email.toLowerCase()
+      }
+
+      notify.confirmEmail(req, emailData, userObj.verificationToken);
+      return res.status(200).json({
+        ...successRes,
+        // ...signThis,
+        // token
+        message: `Registration successful. Please verify your ${medium}`
+      });
+    }
 
 
     // if(Boolean(newUser.organization)){
@@ -174,13 +206,6 @@ exports.register = async (req, res) => {
     //   expiresIn: tokenValidityPeriod
     // });
 
-    
-    return res.status(200).json({
-      ...successRes,
-      // ...signThis,
-      // token
-      message: `Registration successful. Please verify your ${medium}`
-    });
 
   } catch (regErr) {
     console.log(regErr)
@@ -197,7 +222,7 @@ exports.login = (req, res) => {
   let successRes = { success: true };
   let failRes = { success: false };
   const inactiveAccountMsg = "Your account has not been activated.\n",
-    unverifiedEmailMsg = "Your email has not been verified.\n";
+    unverifiedAccount = "Your email/phone Number has not been verified.\n";
 
   let signThis = {};
 
@@ -274,12 +299,12 @@ exports.login = (req, res) => {
 
       } else if (user.activation === "approved" && user.isVerified === false) {
 
-        failRes.message = unverifiedEmailMsg;
+        failRes.message = unverifiedAccount;
         return res.status(401).json(failRes);
 
       } else if (user.activation === "pending" && user.isVerified === false) {
 
-        failRes.message = [unverifiedEmailMsg, inactiveAccountMsg]
+        failRes.message = [unverifiedAccount, inactiveAccountMsg]
         return res.status(401).json(failRes);
       }
 
@@ -473,18 +498,18 @@ exports.findPStakeholders = async (req, res) => {
 };
 
 
-exports.verifyEmail = async (req, res) => {
+exports.verifyAccountToken = async (req, res) => {
   let signThis = {};
   let successRes = { success: true };
   let failRes = { success: false };
   try {
-    const vericationToken = req.query.token
+    const verificationToken = req.query.token
 
-    if (!vericationToken || vericationToken == undefined) {
+    if (!verificationToken || verificationToken == undefined) {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
     }
 
-    let user = await User.findOne({ verificationToken: vericationToken });
+    let user = await User.findOne({ verificationToken: verificationToken });
 
     if (!user) {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
@@ -528,12 +553,29 @@ exports.verifyEmail = async (req, res) => {
         expiresIn: tokenValidityPeriod
       });
 
-      let emailData = {
-        firstName: verifiedUser.firstName,
-        email: verifiedUser.email.toLowerCase()
+
+      if (verificationToken.length < 10) {
+        const receiver = '+234' + verifiedUser.phone;
+
+        // send sms
+        const msg = {
+          to: [receiver],
+          message: 'Thank you for verifying your Phone Number'
+          // from: '75111'
+        }
+
+
+        let result = await sms.send(msg);
+
+      } else {
+        let emailData = {
+          firstName: verifiedUser.firstName,
+          email: verifiedUser.email.toLowerCase()
+        }
+
+        notify.welcomeMail(req, emailData);
       }
 
-      notify.welcomeMail(req, emailData);
 
       return res.status(200).json({
         ...successRes,
@@ -558,36 +600,70 @@ exports.resendVerificationToken = async (req, res) => {
   let failRes = { success: false };
 
   try {
-    const { body: { email } } = req;
+    const { body: { field } } = req;
 
-
-    if (!email || email === "" || email === undefined) {
-      return res.status(400).json({ ...failRes, message: "please provide a valid email" })
+    if (!field || field === "" || field === undefined) {
+      return res.status(400).json({ ...failRes, message: "invalid information" })
     }
 
-    let user = await User.findOne({ email: email, isVerified: false });
+    if (validator.isEmail(field)) {
+      let user = await User.findOne({ email: field, isVerified: false });
 
-    if (!user) {
-      return res.status(400).json({ ...failRes, message: `Sela does not have an account with the email ${email}. Please try another email.` })
-    }
-
-    user.verificationToken = crypto.randomBytes(20).toString('hex');
-    user.isVerified = false;
-
-    let updatedUser = await user.save();
-
-    if (updatedUser) {
-      let emailData = {
-        firstName: updatedUser.firstName,
-        email: updatedUser.email
+      if (!user) {
+        return res.status(400).json({ ...failRes, message: `Sela does not have an account with the email ${field}. Please try another email.` })
       }
 
-      notify.confirmEmail(req, emailData, updatedUser.verificationToken);
+      user.verificationToken = crypto.randomBytes(20).toString('hex');
+      user.isVerified = false;
 
-      return res.status(200).json({
-        ...successRes,
-        message: `An email has been sent to ${email}. Please confirm your email`
-      });
+      let updatedUser = await user.save();
+
+      if (updatedUser) {
+        let emailData = {
+          firstName: updatedUser.firstName,
+          email: updatedUser.email
+        }
+
+        notify.confirmEmail(req, emailData, updatedUser.verificationToken);
+
+        return res.status(200).json({
+          ...successRes,
+          message: `An email has been sent to ${field}. Please confirm your email`
+        });
+      }
+
+    }else if(validator.isMobilePhone(field,"any")){
+      
+      let user = await User.findOne({ phone: field, isVerified: false });
+
+      if (!user) {
+        return res.status(400).json({ ...failRes, message: `Sela does not have an account with the phone Number ${field}. Please try another Phone Number.` })
+      }
+
+      user.verificationToken = crypto.randomBytes(3).toString('hex');
+      user.isVerified = false;
+
+      let updatedUser = await user.save();
+
+      if (updatedUser) {
+        
+        const receiver = '+234' + field;
+        const to = [receiver];
+  
+        const msg = {
+          to: to,
+          message: 'Please verify your phone number with this code: ' +
+          updatedUser.verificationToken
+        }
+
+        let result = await sms.send(msg);
+  
+        return res.status(200).json({
+          ...successRes,
+          message: `An verification code has been sent to ${field}.`
+        });
+      }
+
     }
 
   } catch (error) {

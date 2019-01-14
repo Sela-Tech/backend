@@ -18,7 +18,7 @@ module.exports = function(app) {
 
   app.route("/verifyToken").post(verifyToken, user_controller.verify);
 
-  app.route("/email/verify?").put(user_controller.verifyEmail);
+  app.route("/account/verify?").put(user_controller.verifyAccountToken);
 
   app.route("/verify/account/resend").put(user_controller.resendVerificationToken);
 
