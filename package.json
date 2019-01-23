@@ -67,7 +67,7 @@
     "react-s3-uploader": "^4.8.0",
     "request-param": "^1.0.1",
     "session": "0.1.0",
-    "socket.io": "^2.0.4",
+    "socket.io": "^2.2.0",
     "stellar-sdk": "^0.8.0",
     "supertest": "^3.3.0",
     "telegram-node-bot": "^4.0.5",
