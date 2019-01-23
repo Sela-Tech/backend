@@ -113,6 +113,10 @@ var projectStructure = {
     enum: ["DORMANT", "ACCEPTED", "STARTED", "TERMINATED", "COMPLETED"],
     default: "DORMANT"
   },
+  numOfevaluators:{
+    type:Number,
+    default:20
+  },
   createdOn: {
     type: Date,
     default: Date.now()

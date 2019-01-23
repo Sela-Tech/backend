@@ -1,4 +1,3 @@
-var moment = require("moment");
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -36,11 +35,12 @@ var taskStructure = {
     type: ObjectId,
     ref: "User"
   },
-  assignedTo: {
+  assignedTo: [{
     type: ObjectId,
     ref: "User",
     default: null
-  },
+  }],
+  evaluators:[],
   completedBy: {
     type: ObjectId,
     ref: "User",
