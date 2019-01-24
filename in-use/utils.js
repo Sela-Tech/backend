@@ -39,12 +39,19 @@ exports.verifyToken = (req, res, next) => {
         });
       } else {
         
-        req.roles={
+        const userRoles={
           isFunder:decoded.isFunder,
            isEvaluator:decoded.isEvaluator, 
            isContractor:decoded.isContractor,
            isAdmin:decoded.isAdmin || false
         }
+
+        req.roles = Object.keys(userRoles).filter(k => userRoles[k] === true);
+
+        // if (req.roles.length > 1) {
+        //   req.roles;
+        // }
+
         req.tokenExists = true;
         req.userId = decoded.id;
         req.decodedTokenData = decoded;

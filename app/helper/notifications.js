@@ -147,7 +147,8 @@ class Notifications {
      */
 
     static async notifyRequestToJoinP(req, project) {
-        const role = helper.getRole(req);
+        const role = req.roles[0];
+        
         let userRole;
         let type="REQUEST_TO_JOIN_PROJECT";
         role == 'isFunder' ? userRole = 'a funder' : role == 'isContractor' ? userRole = 'a contractor' : userRole = 'an evaluator';

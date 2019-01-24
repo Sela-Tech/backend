@@ -53,7 +53,7 @@ var projectStructure = {
   "project-avatar": {
     type: String
   },
-  avatarKey:{
+  avatarKey: {
     type: String
   },
   endDate: {
@@ -76,6 +76,7 @@ var projectStructure = {
   tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
+  milestones: [{ type: ObjectId, ref: "Milestones", autopopulate: true }],
   stakeholders: [
     {
       user: {
@@ -94,7 +95,7 @@ var projectStructure = {
         },
         status: {
           type: String,
-          enum:['PENDING','ACCEPTED', 'DECLINED'],
+          enum: ['PENDING', 'ACCEPTED', 'DECLINED'],
           default: "PENDING"
         }
       }
@@ -113,9 +114,9 @@ var projectStructure = {
     enum: ["DORMANT", "ACCEPTED", "STARTED", "TERMINATED", "COMPLETED"],
     default: "DORMANT"
   },
-  numOfevaluators:{
-    type:Number,
-    default:20
+  numOfevaluators: {
+    type: Number,
+    default: 20
   },
   createdOn: {
     type: Date,
@@ -140,7 +141,7 @@ var projectSchemaOptions = _.extend({}, schemaOptions, {
 
 var ProjectSchema = new Schema(projectStructure, projectSchemaOptions);
 
-ProjectSchema.pre("save", true, function(next, done) {
+ProjectSchema.pre("save", true, function (next, done) {
   next();
 
   this.updatedOn = new Date();
@@ -148,7 +149,7 @@ ProjectSchema.pre("save", true, function(next, done) {
   done();
 });
 
-ProjectSchema.pre("update", true, function(next, done) {
+ProjectSchema.pre("update", true, function (next, done) {
   next();
 
   this.update(
