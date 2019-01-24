@@ -47,7 +47,7 @@ io.on('connection', (socket)=>{
   // setInterval(() => socket.emit('message', 'you are still connected...initiating attack on client'), 10000);
 
   socket.on('disconnect',(data)=>{
-    console.log('user disconnected', data);
+    console.log(`user ${socket.id} disconnected,`, data);
   })
 });
 
