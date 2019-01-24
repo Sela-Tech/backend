@@ -29,7 +29,6 @@ const mongoose = require("mongoose"),
 
 exports.new = async (req, res) => {
 
-  return console.log(req.roles.includes('isContractor'));
 
   try {
     let taskObj = {
