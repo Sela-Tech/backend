@@ -4,7 +4,33 @@ const mongoose = require("mongoose"),
   Task = mongoose.model("Task"),
   Project = mongoose.model("Project");
 
+// class Task{
+
+//   static newTask = async(req, res)=>{
+//     try {
+//       let taskObj = {
+//         name: req.body.name,
+//         description: req.body.description,
+//         dueDate: req.body.dueDate,
+//         project: req.body.projectId
+//       };
+
+
+
+//     } catch (error) {
+//       console.log(error);
+//       return res.status(401).json({
+//         message: error.message
+//       });
+//     }
+//   }
+
+// }
+
 exports.new = async (req, res) => {
+
+  return console.log(req.roles.includes('isContractor'));
+
   try {
     let taskObj = {
       name: req.body.name,

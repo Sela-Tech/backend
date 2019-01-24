@@ -16,7 +16,8 @@ var taskStructure = {
   // TODO: Should the due date be required when creating a task?
   project: {
     type: ObjectId,
-    ref: "Project"
+    ref: "Project",
+    required:true
   }, // reference to associated project
   dueDate: {
     type: Date,
@@ -40,11 +41,50 @@ var taskStructure = {
     ref: "User",
     default: null
   }],
-  evaluators:[],
+  evaluators: [{
+    type: ObjectId,
+    ref: "User",
+    default: null
+  }],
   completedBy: {
     type: ObjectId,
     ref: "User",
     default: null
+  },
+  contractorAgreed: {
+    type: Boolean,
+    default: false
+  },
+  ownerAgreed: {
+    type: Boolean,
+    default: false
+  },
+  agentEvaluations: [
+    {
+      type: ObjectId,
+      ref: "Evaluations",
+      default: null
+    }
+  ],
+  contractorEvaluations: [
+    {
+      text: {
+        type: String,
+        default: null
+      },
+      isCompleted: {
+        type: Boolean,
+        default: false
+      },
+      proof: {
+        type: String,
+        default: ''
+      }
+    }
+  ],
+  budget: {
+    type: Number,
+    default: 0
   },
   createdOn: {
     type: Date,
@@ -125,7 +165,7 @@ var LocationSchema = new Schema(locationStructure, schemaOptions);
 
 var TaskSchema = new Schema(taskStructure, schemaOptions);
 
-TaskSchema.pre("save", true, function(next, done) {
+TaskSchema.pre("save", true, function (next, done) {
   next();
 
   this.updatedOn = new Date();
@@ -133,7 +173,7 @@ TaskSchema.pre("save", true, function(next, done) {
   done();
 });
 
-TaskSchema.pre("update", true, function(next, done) {
+TaskSchema.pre("update", true, function (next, done) {
   next();
 
   this.update(

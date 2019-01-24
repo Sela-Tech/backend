@@ -8,5 +8,6 @@ module.exports = function(connection) {
   require("./in-use/upload.js")(connection);
   require("./in-use/document.js")(connection);
   require("./in-use/notification.js")(connection);
-  // require("./in-use/stakeholder.js")(connection);
+  require("./in-use/evaluation.js")(connection);
+  require("./in-use/milestone.js")(connection);
 };
