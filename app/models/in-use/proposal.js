@@ -27,7 +27,7 @@ var schemaOptions = {
     strict: process.env.NODE_ENV !== "development"
 };
 
-var evaluationStructure = {
+var proposalStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
@@ -36,33 +36,37 @@ var evaluationStructure = {
                 "name activated _id, owner "
         }
     },
-    // TODO: uncomment when needed
-    task: {
-        type: ObjectId,
-        ref: "Task",
-        autopopulate: {
-            select:
-                "name description _id assignedTo status"
-        }
-    },
 
-    evaluator: {
+    milestones: [ {
+        milestone: {
+            type: ObjectId,
+            ref: "Milestone",
+            autopopulate: {
+                select:
+                    "title createdBy completed budget _id"
+            }
+        }
+    }],
+
+    tasks:[ {
+        task: {
+            type: ObjectId,
+            ref: "Task",
+            autopopulate: {
+                select:
+                    "name description _id assignedTo status"
+            }
+        }
+    }],
+    proposedBy: {
         type: ObjectId,
         ref: "User",
         default: null
     },
-    text: {
-        type: String,
-        default: null
-    },
-    isCompleted: {
+    approved: {
         type: Boolean,
         default: false
     },
-    proof: {
-        type: String,
-        default: ''
-    }
 };
 
 
@@ -74,7 +78,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var evaluationSchema = new Schema(evaluationStructure, { timestamps: true });
-evaluationSchema.plugin(autoPopulate);
+var proposalSchema = new Schema(proposalStructure, { timestamps: true });
+proposalSchema.plugin(autoPopulate);
 
-module.exports = mongoose.model("Evaluation", evaluationSchema);
+module.exports = mongoose.model("Proposal", proposalSchema);

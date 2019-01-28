@@ -7,12 +7,23 @@ var Organization = mongoose.model("Organization");
 var Project = mongoose.model("Project");
 var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
-var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
+// var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
+var tokenValidityPeriod = 604800; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const Helper = require('../helper/helper');
 const Notifications = require('../helper/notifications');
 const validator = require('validator');
+
+const options = {
+  apiKey: process.env.AFRICAS_TALKING_API,         
+  username: process.env.AFRICAS_TALKING_APP_USERNAME
+};
+
+const AfricasTalking = require('africastalking')(options);
+
+
+let sms = AfricasTalking.SMS;
 
 const helper = new Helper();
 const notify = new Notifications();

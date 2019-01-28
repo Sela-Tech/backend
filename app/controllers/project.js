@@ -21,8 +21,9 @@ exports.new = async (req, res) => {
   try {
 
     if(projectObj.stakeholders && projectObj.stakeholders.length >0){
-      let tooManyContractors = await helper.tooManyContractors(projectObj.stakeholders)
-        if(!tooManyContractors){
+      // let tooManyContractors = await helper.tooManyContractors(projectObj.stakeholders)
+      let shouldAddContractor = await helper.shouldAddContractor(projectObj.stakeholders, null)
+        if(shouldAddContractor){
           SHs=[...projectObj.stakeholders];
           projectObj.stakeholders = projectObj.stakeholders.map(s=>{
             return {

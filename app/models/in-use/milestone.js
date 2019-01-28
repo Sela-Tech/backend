@@ -37,19 +37,19 @@ var milestoneStructure = {
         }
     },
 
-    milestones: [
+    tasks: [
         {
             task: {
                 type: ObjectId,
                 ref: "Task",
                 autopopulate: {
                     select:
-                        "name description _id assignedTo status"
+                        "name description _id assignedTo status,estimatedCost"
                 }
             }
         }
     ],
-    name: {
+    title: {
         type: String,
         require: true
     },
@@ -61,7 +61,11 @@ var milestoneStructure = {
     },
     completed: {
         type: Boolean
-    }
+    },
+    estimatedCost: {
+        type: Number,
+        default: 0
+    },
 };
 
 
@@ -76,4 +80,4 @@ if (process.env.NODE_ENV === "development") {
 var milestoneSchema = new Schema(milestoneStructure, { timestamps: true });
 milestoneSchema.plugin(autoPopulate);
 
-module.exports = mongoose.model("Milestones", milestoneSchema);
+module.exports = mongoose.model("Milestone", milestoneSchema);

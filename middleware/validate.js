@@ -41,14 +41,25 @@ const validator = {
   },
 
 
-  
-  // validates id
-  validateId(id) {
-    if (isNaN(id)) {
-      return false
-    }
-    return true
+  validateAddTask(req, res){
+    req
+    .checkBody("name",
+      "Task name can't be empty."
+    )
+    .notEmpty();
+  req
+    .checkBody("dueDate", "please specify due date")
+    .notEmpty();
+
+    req
+    .checkBody("description", "Decription cannot empty")
+    .notEmpty();
+
+    req
+    .checkBody("estimatedCost", "Please enter an estimated cost")
+    .notEmpty();
   },
+  
 
   // capitalize First letter
   capitalizeFirst(name) {
