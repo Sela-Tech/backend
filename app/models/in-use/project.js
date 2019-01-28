@@ -76,7 +76,7 @@ var projectStructure = {
   tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
-  milestones: [{ type: ObjectId, ref: "Milestones", autopopulate: true }],
+  milestones: [{ type: ObjectId, ref: "Milestone", autopopulate: true }],
   stakeholders: [
     {
       user: {

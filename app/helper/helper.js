@@ -59,17 +59,30 @@ class Helper {
     * @memberof Helpers
     */
    async shouldAddContractor(stakeHolders, pStakeholder){
-        const MAX_CONTRACTOR_ALLOWED = 1;
-        let users = await User.find({_id:[...stakeHolders]});
-        let newContractorsCount  = users.filter(u=>u.isContractor===true);
+         const MAX_CONTRACTOR_ALLOWED = 1;
 
+        if (pStakeholder ===null){
+            let users = await User.find({_id:[...stakeHolders]});
+            let newContractorsCount  = users.filter(u=>u.isContractor===true);
 
-        let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
+            if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
+
+            return true;
+
+        }else{
+            let users = await User.find({_id:[...stakeHolders]});
+            let newContractorsCount  = users.filter(u=>u.isContractor===true);
+    
+    
+            let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
+            
+            if(pContractorCount.length > 0 && newContractorsCount.length>0){return false}
+            if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
+    
+            return true;
+        }
+
         
-        if(pContractorCount.length > 0 && newContractorsCount.length>0){return false}
-        if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
-
-        return true;
 
     }
 

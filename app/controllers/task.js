@@ -3,142 +3,125 @@ require("dotenv").config();
 const mongoose = require("mongoose"),
   Task = mongoose.model("Task"),
   Project = mongoose.model("Project");
+const validate = require('../../middleware/validate');
+class Tasks {
 
-// class Task{
+  static async newTask(req, res) {
+    let userRole = req.roles;
 
-//   static newTask = async(req, res)=>{
-//     try {
-//       let taskObj = {
-//         name: req.body.name,
-//         description: req.body.description,
-//         dueDate: req.body.dueDate,
-//         project: req.body.projectId
-//       };
+    let successRes = { success: true };
+    let failRes = { success: false };
 
+    validate.validateAddTask(req, res)
+    const errors = req.validationErrors();
 
-
-//     } catch (error) {
-//       console.log(error);
-//       return res.status(401).json({
-//         message: error.message
-//       });
-//     }
-//   }
-
-// }
-
-exports.new = async (req, res) => {
-
-
-  try {
-    let taskObj = {
-      name: req.body.name,
-      description: req.body.description,
-      dueDate: req.body.dueDate,
-      project: req.body.projectId
-    };
-
-    let saveTask = await new Task(taskObj).save();
-
-    if (Boolean(saveTask)) {
-      console.log("saved tasks");
-
-      let project = await Project.findOne({
-        _id: req.body.projectId,
-        owner: req.userId
-      });
-
-      // console.log("fetched project we want task to belong to");
-
-      project = project.toJSON();
-      let collectionOfTaskIds = project.tasks;
-
-      if (collectionOfTaskIds.length > 0) {
-        collectionOfTaskIds = collectionOfTaskIds.map(t => {
-          return t._id;
+    if (errors) {
+        return res.status(400).json({
+            message: errors
         });
+    }
+
+    try {
+      let taskObj = {
+        name: req.body.name,
+        description: req.body.description,
+        dueDate: req.body.dueDate,
+        project: req.body.projectId,
+        estimatedCost:req.body.estimatedCost,
+        createdBy:req.userId
+      };
+
+      // check of project exist
+
+      let project = await Project.findById(taskObj.project);
+
+      if (!project) {
+        return res.status(404).json({message:'Project Not Found.'})
       }
 
-      console.log(" task belonging to project", collectionOfTaskIds);
+      let available_contractor;
+      let assignedTo;
 
-      let check = collectionOfTaskIds.find(elem => {
-        return elem == saveTask._id;
+      // check available contractor
+      if(project.stakeholders.length>0){
+         available_contractor= project.stakeholders.filter(s=>s.user.information.isContractor===true);
+      }
+      else{
+        // there are not stakeholders, do something
+        assignedTo=null
+      }
+
+      if(available_contractor.length<1){
+          return res.status(404).json({message:'No contractor has been added to this project'});
+      }
+      
+
+      // check if who is adding the task is a contractor
+      // check if he is part of the project
+      let isProjectContractor = available_contractor.some(c=>c.user.information._id === req.userId);
+      if(userRole.includes('isContractor') && !isProjectContractor){
+        return res.status(401).json({message:'Sorry, You are not a contractor on this project'})
+      }else if(userRole.includes('isContractor') && isProjectContractor){
+        assignedTo= req.userId;
+      }else{
+        assignedTo = available_contractor[0].user.information._id;
+      }
+
+      taskObj.assignedTo=assignedTo;
+      taskObj.status='ASSIGNED';
+
+      let newTask = await new Task(taskObj).save();
+
+      if(newTask){
+        successRes.message="Task has been added";
+        successRes.newTask=newTask;
+        return res.status(201).json({successRes});
+      }
+      
+    } catch (error) {
+      console.log(error);
+      return res.status(501).json({
+        message: error.message
       });
+    }
+  }
 
-      console.log("check if task id exists already", { check });
 
-      if (Boolean(check) === false) {
-        let updateRequest = await Project.update(
-          { _id: req.body.projectId, owner: req.userId },
-          {
-            $set: {
-              tasks: [...collectionOfTaskIds, saveTask._id]
-            }
-          }
-        );
+  static async singleTask(req, res){
+    try {
+      let task = await Task.findById(req.params.id);
 
-        console.log("what i expect to update", {
-          tasks: [...collectionOfTaskIds, saveTask._id]
-        });
+      if(task){
+        return res.status(200).json({task})
+      }
+      return res.status(404).json({message:"Task Not Found"})
+    } catch (error) {
+      console.log(error);
+      return res.status(501).json({
+        message: error.message
+      });
+    }
+  }
 
-        if (Boolean(updateRequest.n)) {
-          return res.status(200).json({ message: "Task Saved Successfully" });
+  static async allTasks(req, res){
+    let projectId = req.query.project;
+      try {
+        let tasks = await Task.find({ project: projectId });
+    
+        if (Boolean(tasks) && Boolean(tasks.length>0)) {
+          return res.status(200).json(tasks);
         } else {
-          return res.status(401).json({
-            message: "Could Not Add New Task"
+          return res.status(200).json({
+            message: "No Tasks Found"
           });
         }
+      } catch (error) {
+        return res.status(401).json({
+          message: error.message
+        });
       }
-    } else {
-      return res.status(200).json({
-        message: "No Tasks Found"
-      });
-    }
-  } catch (error) {
-    return res.status(401).json({
-      message: error.message
-    });
   }
-};
+}
 
-exports.findAll = async (req, res) => {
-  let projectId = req.body.projectId;
-  try {
-    let tasks = await Task.find({ project: projectId });
+module.exports = { Tasks };
 
-    if (Boolean(tasks) && Boolean(tasks.length)) {
-      return res.status(200).json(tasks);
-    } else {
-      return res.status(200).json({
-        message: "No Tasks Found"
-      });
-    }
-  } catch (error) {
-    return res.status(401).json({
-      message: error.message
-    });
-  }
-};
-
-exports.find = async (req, res) => {
-  try {
-    let findReq = await Task.findOne({ _id: req.params.id });
-    findReq = findReq.toJSON();
-
-    if (Boolean(findReq)) {
-      return res.status(200).json({
-        success: true,
-        info: findReq
-      });
-    } else {
-      return res.status(200).json({
-        message: "No Task Found",
-        success: false
-      });
-    }
-  } catch (error) {
-    res.status(401).json({
-      message: error.message
-    });
-  }
-};
