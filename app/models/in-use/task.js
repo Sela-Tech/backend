@@ -48,7 +48,7 @@ var taskStructure = {
     default: null, 
     autopopulate: {
       select:
-        "isFunder isContractor isEvaluator  firstName lastName email"
+        "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
   }],
   evaluators: [{
@@ -96,14 +96,14 @@ var taskStructure = {
     type: Number,
     default: 0
   },
-  createdOn: {
-    type: Date,
-    default: Date.now()
-  },
-  updatedOn: {
-    type: Date,
-    default: Date.now()
-  }
+  // createdOn: {
+  //   type: Date,
+  //   default: Date.now()
+  // },
+  // updatedOn: {
+  //   type: Date,
+  //   default: Date.now()
+  // }
 };
 
 var schemaOptions = {
@@ -124,6 +124,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
+  timestamps:true,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -138,28 +139,28 @@ if (process.env.NODE_ENV === "development") {
 
 var TaskSchema = new Schema(taskStructure, schemaOptions);
 
-TaskSchema.pre("save", true, function (next, done) {
-  next();
+// TaskSchema.pre("save", true, function (next, done) {
+//   next();
 
-  this.updatedOn = new Date();
+//   this.updatedOn = new Date();
 
-  done();
-});
+//   done();
+// });
 
-TaskSchema.pre("update", true, function (next, done) {
-  next();
+// TaskSchema.pre("update", true, function (next, done) {
+//   next();
 
-  this.update(
-    {},
-    {
-      $set: {
-        updatedOn: new Date()
-      }
-    }
-  );
+//   this.update(
+//     {},
+//     {
+//       $set: {
+//         updatedOn: new Date()
+//       }
+//     }
+//   );
 
-  done();
-});
+//   done();
+// });
 
 TaskSchema.plugin(autoPopulate);
 module.exports = mongoose.model("Task", TaskSchema);

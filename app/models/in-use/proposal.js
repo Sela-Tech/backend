@@ -37,25 +37,21 @@ var proposalStructure = {
         }
     },
 
-    milestones: [ {
-        milestone: {
-            type: ObjectId,
-            ref: "Milestone",
-            autopopulate: {
-                select:
-                    "title createdBy completed budget _id"
-            }
+    milestones: [{
+        type: ObjectId,
+        ref: "Milestone",
+        autopopulate: {
+            select:
+                "title createdBy completed estimastedCost _id"
         }
     }],
 
-    tasks:[ {
-        task: {
-            type: ObjectId,
-            ref: "Task",
-            autopopulate: {
-                select:
-                    "name description _id assignedTo status"
-            }
+    tasks: [{
+        type: ObjectId,
+        ref: "Task",
+        autopopulate: {
+            select:
+                "name description _id assignedTo status"
         }
     }],
     proposedBy: {

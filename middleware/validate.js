@@ -59,6 +59,25 @@ const validator = {
     .checkBody("estimatedCost", "Please enter an estimated cost")
     .notEmpty();
   },
+
+  validateAddMilestone(req, res){
+    req
+    .checkBody("title",
+      "Milestone title can't be empty."
+    )
+    .notEmpty()
+
+    req
+    .checkBody("projectId",
+      "Invalid projectId."
+    )
+    .notEmpty()
+   
+    req
+    .checkBody("tasks", "You must add atleast one task")
+    .isArray()
+    .notEmpty();
+  },
   
 
   // capitalize First letter

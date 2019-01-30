@@ -23,6 +23,7 @@ var schemaOptions = {
         versionKey: false,
         retainKeyOrder: true
     },
+    timestamps: true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
@@ -31,36 +32,40 @@ var milestoneStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
-        autopopulate: {
-            select:
-                "name activated _id, owner "
-        }
+        // autopopulate: {
+        //     select:
+        //         "name activated _id owner"
+        // }
     },
 
     tasks: [
         {
-            task: {
-                type: ObjectId,
-                ref: "Task",
-                autopopulate: {
-                    select:
-                        "name description _id assignedTo status,estimatedCost"
-                }
+            type: ObjectId,
+            ref: "Task",
+            autopopulate: {
+                select:
+                    " name description assignedTo status estimatedCost _id createdOn updatedOn dueDate"
             }
         }
     ],
     title: {
         type: String,
-        require: true
+        required: true,
+        unique: true
     },
 
     createdBy: {
         type: ObjectId,
         ref: "User",
-        default: null
+        default: null,
+        autopopulate: {
+            select:
+                "isFunder isContractor isEvaluator firstName lastName email _id"
+        }
     },
     completed: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     estimatedCost: {
         type: Number,
@@ -77,7 +82,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var milestoneSchema = new Schema(milestoneStructure, { timestamps: true });
+var milestoneSchema = new Schema(milestoneStructure, schemaOptions);
 milestoneSchema.plugin(autoPopulate);
 
 module.exports = mongoose.model("Milestone", milestoneSchema);

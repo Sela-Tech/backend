@@ -61,7 +61,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(cors());
 
-app.use(validator());
+app.use(validator({
+  customValidators: {
+     isArray: function(value) {
+        return Array.isArray(value);
+     },
+     notEmpty: function(array) {
+        return array.length > 0;
+     },
+     gte: function(param, num) {
+        return param >= num;
+     }
+  }
+}));
 
 app.use(function(req, res, next) {
   req.io = io;
