@@ -67,7 +67,7 @@ class Tasks {
         assignedTo = available_contractor[0].user.information._id;
       }
 
-      taskObj.assignedTo=assignedTo;
+      taskObj.assignedTo=[assignedTo];
       taskObj.status='ASSIGNED';
 
       let newTask = await new Task(taskObj).save();
@@ -103,6 +103,17 @@ class Tasks {
     }
   }
 
+
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Tasks
+   */
   static async allTasks(req, res){
     let projectId = req.query.project;
       try {
@@ -120,6 +131,14 @@ class Tasks {
           message: error.message
         });
       }
+  }
+
+  static async updateTask(req, res){
+
+  }
+
+  static async deleteTask(req, res){
+
   }
 }
 

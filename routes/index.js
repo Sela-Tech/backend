@@ -9,6 +9,7 @@ const trn = require("./transaction");
 const forgotPassword = require("./forgot_password");
 const stakeholder = require("./stakeholder");
 const notification = require("./notifications")
+const milestone = require('./milestone');
 
 module.exports = function(app) {
   user(app);
@@ -22,4 +23,5 @@ module.exports = function(app) {
   forgotPassword(app);
   stakeholder(app);
   notification(app);
+  milestone(app);
 };
