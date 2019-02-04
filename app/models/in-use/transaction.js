@@ -3,6 +3,8 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 
+const mongoosePaginate=require('mongoose-paginate'); 
+
 var transactionStructure = {
   hash: {
     type: String,
@@ -149,4 +151,6 @@ TransactionSchema.pre("update", true, function(next, done) {
     }
     connection.model('Transaction', TransactionSchema);
 };*/
+
+TransactionSchema.plugin(mongoosePaginate);
 module.exports = mongoose.model("Transaction", TransactionSchema);

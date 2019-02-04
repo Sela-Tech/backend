@@ -5,6 +5,7 @@ var mongoose = require("mongoose");
 var User = mongoose.model("User");
 var Organization = mongoose.model("Organization");
 var Project = mongoose.model("Project");
+var Save = mongoose.model("Save");
 var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
 // var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
@@ -14,9 +15,12 @@ const crypto = require('crypto');
 const Helper = require('../helper/helper');
 const Notifications = require('../helper/notifications');
 const validator = require('validator');
+const validate = require('../../middleware/validate');
+const _ = require('lodash');
+const async = require('async');
 
 const options = {
-  apiKey: process.env.AFRICAS_TALKING_API,         
+  apiKey: process.env.AFRICAS_TALKING_API,
   username: process.env.AFRICAS_TALKING_APP_USERNAME
 };
 
@@ -287,7 +291,9 @@ exports.login = (req, res) => {
           firstName: user.firstName,
           phone: user.phone,
           email: user.email,
-          lastName: user.lastName
+          lastName: user.lastName,
+          areasOfInterest: user.areasOfInterest,
+
         };
 
         var token = jwt.sign(signThis, process.env.SECRET, {
@@ -557,7 +563,9 @@ exports.verifyAccountToken = async (req, res) => {
         firstName: verifiedUser.firstName,
         phone: verifiedUser.phone,
         email: verifiedUser.email,
-        lastName: verifiedUser.lastName
+        lastName: verifiedUser.lastName,
+        areasOfInterest: user.areasOfInterest,
+
       };
 
       var token = jwt.sign(signThis, process.env.SECRET, {
@@ -643,8 +651,8 @@ exports.resendVerificationToken = async (req, res) => {
         });
       }
 
-    }else if(validator.isMobilePhone(field,"any")){
-      
+    } else if (validator.isMobilePhone(field, "any")) {
+
       let user = await User.findOne({ phone: field, isVerified: false });
 
       if (!user) {
@@ -657,18 +665,18 @@ exports.resendVerificationToken = async (req, res) => {
       let updatedUser = await user.save();
 
       if (updatedUser) {
-        
+
         const receiver = '+234' + field;
         const to = [receiver];
-  
+
         const msg = {
           to: to,
           message: 'Please verify your phone number with this code: ' +
-          updatedUser.verificationToken
+            updatedUser.verificationToken
         }
 
         let result = await sms.send(msg);
-  
+
         return res.status(200).json({
           ...successRes,
           message: `An verification code has been sent to ${field}.`
@@ -682,3 +690,79 @@ exports.resendVerificationToken = async (req, res) => {
     res.status(500).json({ ...failRes, message: "internal server error" })
   }
 }
+
+exports.updateAreaOfInterest = async (req, res) => {
+  validate.validateAddAreaOfInterest(req, res)
+  const errors = req.validationErrors();
+
+  if (errors) {
+    return res.status(400).json({
+      message: errors
+    });
+  }
+  try {
+    const { body: { areasOfInterest } } = req;
+
+    let user = await User.findById(req.userId);
+
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "Bad Data" })
+    }
+
+    let existingInterests = user.areasOfInterest;
+
+    let newInterests = [...existingInterests, ...areasOfInterest];
+    newInterests = _.uniq(newInterests);
+
+    let updateInterest = await User.update({ _id: req.userId }, { $set: { areasOfInterest: newInterests } })
+    if (Boolean(updateInterest)) return res.status(200).json({ message: "Area of interest updated successfully" });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "internal server error" })
+  }
+}
+
+exports.savePrject=async(req, res)=>{
+  const projectId = req.params.id;
+  try {
+    const project = await Save.findOne({project:projectId, user:req.userId});
+    if(project){
+      return res.status(409).json({message:"You have already saved this project"})
+    }
+
+    let saveObj={
+      project:projectId,
+      user:req.userId
+    }
+
+    let savedProject = await new Save(saveObj).save();
+    if(savedProject){
+      return res.status(201).json({message:"Project has been saved", savedProject})
+    }
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "internal server error" })
+  }
+}
+
+// exports.getDashboard = async (req, res) => {
+  
+//   try {
+//     // let projects = await Project.find({ tags: { $elemMatch: {...req.decodedTokenData.areasOfInterest} } });
+//     // if (projects.length > 0) {
+//     //   return res.json(projects)
+//     // } else {
+//     //   return res.json({ projects: [] })
+
+//     // }
+
+//     let savedProjects,createdProjects, 
+
+//   } catch (error) {
+//     console.log(error)
+//     res.status(500).json({ message: "internal server error" })
+//   }
+
+
+//}

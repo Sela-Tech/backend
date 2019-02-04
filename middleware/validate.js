@@ -80,6 +80,13 @@ const validator = {
   },
   
 
+  validateAddAreaOfInterest(req, res){
+    req
+    .checkBody("areasOfInterest", "Add atleast one area of interest")
+    .isArray()
+    .notEmpty();
+  },
+
   // capitalize First letter
   capitalizeFirst(name) {
     return name.charAt(0).toUpperCase() + name.slice(1)

@@ -54,11 +54,10 @@ class Tasks {
       if(available_contractor.length<1){
           return res.status(404).json({message:'No contractor has been added to this project'});
       }
-      
 
       // check if who is adding the task is a contractor
       // check if he is part of the project
-      let isProjectContractor = available_contractor.some(c=>c.user.information._id === req.userId);
+      let isProjectContractor = available_contractor.some(c=>c.user.information._id.toString() === req.userId && c.user.status==='ACCEPTED' );
       if(userRole.includes('isContractor') && !isProjectContractor){
         return res.status(401).json({message:'Sorry, You are not a contractor on this project'})
       }else if(userRole.includes('isContractor') && isProjectContractor){

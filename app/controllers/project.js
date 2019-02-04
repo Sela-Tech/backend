@@ -70,7 +70,7 @@ exports.new = async (req, res) => {
             if(SHs.length>0){
               await notify.notifyAddedStakeholders(req, SHs, project)
             }
-              return res.status(200).json(successRes);
+              return res.status(200).json({successRes, project});
           }
         };
       
