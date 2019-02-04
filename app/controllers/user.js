@@ -727,7 +727,8 @@ exports.savePrject=async(req, res)=>{
   try {
     const project = await Save.findOne({project:projectId, user:req.userId});
     if(project){
-      return res.status(409).json({message:"You have already saved this project"})
+      await project.remove();
+      return res.status(200).json({message:"Project removed from saved projects"})
     }
 
     let saveObj={
