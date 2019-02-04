@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 var autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -161,6 +162,6 @@ var TaskSchema = new Schema(taskStructure, schemaOptions);
 
 //   done();
 // });
-
+TaskSchema.plugin(mongoosePaginate);
 TaskSchema.plugin(autoPopulate);
 module.exports = mongoose.model("Task", TaskSchema);

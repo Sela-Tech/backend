@@ -4,6 +4,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 var userStructure = {
   organization: {
@@ -113,6 +114,10 @@ var userStructure = {
     type:Date,
     default:null
   },
+  areasOfInterest:{ 
+    type: Array,
+    default: []
+  },
 
   socket:{
     type:String,
@@ -193,5 +198,6 @@ UserSchema.methods.comparePassword = function(password, cb) {
 };
 
 UserSchema.plugin(autoPopulate);
+UserSchema.plugin(mongoosePaginate);
 //Export model
 module.exports = mongoose.model("User", UserSchema);

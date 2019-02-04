@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 
 
@@ -84,5 +85,6 @@ if (process.env.NODE_ENV === "development") {
 
 var milestoneSchema = new Schema(milestoneStructure, schemaOptions);
 milestoneSchema.plugin(autoPopulate);
+milestoneSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Milestone", milestoneSchema);

@@ -2,6 +2,7 @@ var _ = require("underscore");
 // var moment = require("moment");
 var mongoose = require("mongoose");
 var autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -51,7 +52,8 @@ var projectStructure = {
     required: true
   },
   "project-avatar": {
-    type: String
+    type: String,
+    default:"http://placehold.it/50"
   },
   avatarKey: {
     type: String
@@ -164,5 +166,12 @@ ProjectSchema.pre("update", true, function (next, done) {
   done();
 });
 
+ProjectSchema.post('remove', function(next){
+  this.model('Save').remove({ project: this._id }, next);
+  this.model('Notification').remove({project:this._id}, next);
+  next();
+})
+
 ProjectSchema.plugin(autoPopulate);
+ProjectSchema.plugin(mongoosePaginate);
 module.exports = mongoose.model("Project", ProjectSchema);

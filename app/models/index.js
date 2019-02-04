@@ -10,4 +10,5 @@ module.exports = function(connection) {
   require("./in-use/notification.js")(connection);
   require("./in-use/evaluation.js")(connection);
   require("./in-use/milestone.js")(connection);
+  require("./in-use/save_project")(connection);
 };

@@ -4,6 +4,8 @@ var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
 
+const mongoosePaginate=require('mongoose-paginate'); 
+
 
 
 var schemaOptions = {
@@ -23,6 +25,7 @@ var schemaOptions = {
         versionKey: false,
         retainKeyOrder: true
     },
+    timestamps:true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
@@ -46,14 +49,14 @@ var proposalStructure = {
         }
     }],
 
-    tasks: [{
-        type: ObjectId,
-        ref: "Task",
-        autopopulate: {
-            select:
-                "name description _id assignedTo status"
-        }
-    }],
+    // tasks: [{
+    //     type: ObjectId,
+    //     ref: "Task",
+    //     autopopulate: {
+    //         select:
+    //             "name description _id assignedTo status"
+    //     }
+    // }],
     proposedBy: {
         type: ObjectId,
         ref: "User",
@@ -74,7 +77,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var proposalSchema = new Schema(proposalStructure, { timestamps: true });
+var proposalSchema = new Schema(proposalStructure,schemaOptions);
 proposalSchema.plugin(autoPopulate);
+proposalSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Proposal", proposalSchema);
