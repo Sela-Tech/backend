@@ -279,12 +279,12 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
         let all = req.query.all;
-        let interests = req.decodedTokenData.areasOfInterest[0];
+        let interests = req.decodedTokenData.areasOfInterest;
 
         try {
 
             if (all && typeof (all) === 'string' && all === 'true') {
-                let projects = await Project.find({ tags: { $all: interests } });
+                let projects = await Project.find({ tags: { $in: [...interests] } });
                 if (projects.length > 0) {
                     projects = projects.map((p) => {
                         return {
@@ -306,7 +306,7 @@ class Dashboard {
             }
 
             // // interests = Object.assign({}, [...interests]);
-            let projects = await Project.paginate({ tags: { $all: interests } }, { page: Number(page), limit: Number(limit) });
+            let projects = await Project.paginate({ tags: { $in: [...interests] } }, { page: Number(page), limit: Number(limit) });
             // console.log(projects);
             let docs = projects.docs;
             if (docs.length > 0) {
