@@ -412,6 +412,7 @@ exports.update = async (req, res) => {
             isContractor,
             phone: finalUserObj.phone,
             firstName: finalUserObj.firstName,
+            areasOfInterest:finalUserObj.areasOfInterest,
             organization: {
               name: finalUserObj.organization.name,
               id: finalUserObj.organization._id

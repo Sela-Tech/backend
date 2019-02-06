@@ -80,43 +80,7 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var locationStructure = {
-  name: {
-    type: String,
-    required: true
-  },
-  lat: {
-    type: Number,
-    required: true
-  },
-  long: {
-    type: Number,
-    required: true
-  }
-};
 
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
-
-var locationSchema = new Schema(locationStructure, schemaOptions);
 
 var TransactionSchema = new Schema(transactionStructure, schemaOptions);
 

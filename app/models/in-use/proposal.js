@@ -6,6 +6,7 @@ var _ = require("underscore");
 
 const mongoosePaginate=require('mongoose-paginate'); 
 
+const Project = require('./project');
 
 
 var schemaOptions = {
@@ -66,6 +67,11 @@ var proposalStructure = {
         type: Boolean,
         default: false
     },
+    status:{
+        type:String,
+        enum:["IN-REVIEW", "DECLINED", "APPROVED"],
+        default:"IN-REVIEW"
+    }
 };
 
 
@@ -78,6 +84,15 @@ if (process.env.NODE_ENV === "development") {
 
 
 var proposalSchema = new Schema(proposalStructure,schemaOptions);
+
+proposalSchema.post('remove', async (next) => {
+    try {
+        await Project.update({}, { $pull: { proposals: { _id: this._id } } })
+    } catch (error) {
+        next(error)
+    }
+});
+
 proposalSchema.plugin(autoPopulate);
 proposalSchema.plugin(mongoosePaginate);
 

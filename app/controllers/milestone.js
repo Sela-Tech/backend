@@ -40,6 +40,11 @@ class Milestones {
         }
 
         try {
+
+            //use access control instead of the block of code immediately below
+            if(!req.roles.includes('isContractor')){
+                return res.status(403).json({message:"forbidden"})
+            }
             const { body: { title, tasks, projectId } } = req;
             let uniqTasks = _.uniq(tasks);
             let taskDetails = await Task.find({ _id: [...uniqTasks], project: projectId, createdBy: req.userId });
@@ -111,9 +116,9 @@ class Milestones {
                             estimatedCost: t.estimatedCost,
                             dueDate: t.dueDate,
                             assignedTo: {
-                                _id: t.assignedTo[0]._id,
-                                firstName: t.assignedTo[0].firstName,
-                                lastName: t.assignedTo[0].lastName
+                                _id: t.assignedTo._id,
+                                firstName: t.assignedTo.firstName,
+                                lastName: t.assignedTo.lastName
                             },
                             createdBy: {
                                 _id: t.createdBy._id,
@@ -176,9 +181,9 @@ class Milestones {
                                 estimatedCost: t.estimatedCost,
                                 dueDate: t.dueDate,
                                 assignedTo: {
-                                    _id: t.assignedTo[0]._id,
-                                    firstName: t.assignedTo[0].firstName,
-                                    lastName: t.assignedTo[0].lastName
+                                    _id: t.assignedTo._id,
+                                    firstName: t.assignedTo.firstName,
+                                    lastName: t.assignedTo.lastName
                                 },
                                 createdBy: {
                                     _id: t.createdBy._id,

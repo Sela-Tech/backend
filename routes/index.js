@@ -10,9 +10,10 @@ const forgotPassword = require("./forgot_password");
 const stakeholder = require("./stakeholder");
 const notification = require("./notifications")
 const milestone = require('./milestone');
-const dashboard= require("./dashboard");
+const dashboard = require("./dashboard");
+const proposal = require("./proposal");
 
-module.exports = function(app) {
+module.exports = function (app) {
   user(app);
   admin(app);
   project(app);
@@ -26,4 +27,5 @@ module.exports = function(app) {
   notification(app);
   milestone(app);
   dashboard(app);
+  proposal(app);
 };

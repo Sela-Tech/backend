@@ -66,7 +66,7 @@ class Tasks {
         assignedTo = available_contractor[0].user.information._id;
       }
 
-      taskObj.assignedTo=[assignedTo];
+      taskObj.assignedTo=assignedTo;
       taskObj.status='ASSIGNED';
 
       let newTask = await new Task(taskObj).save();

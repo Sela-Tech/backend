@@ -5,6 +5,12 @@ const mongoosePaginate=require('mongoose-paginate');
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 
+// import related models
+
+const Project=require("./project")
+const Milestone=require("./milestone")
+const Evaluation = require("./evaluation")
+
 var taskStructure = {
   name: {
     type: String,
@@ -43,7 +49,7 @@ var taskStructure = {
         "isFunder isContractor isEvaluator  firstName lastName email"
     }
   },
-  assignedTo: [{
+  assignedTo: {
     type: ObjectId,
     ref: "User",
     default: null, 
@@ -51,7 +57,7 @@ var taskStructure = {
       select:
         "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
-  }],
+  },
   evaluators: [{
     type: ObjectId,
     ref: "User",

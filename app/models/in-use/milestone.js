@@ -3,9 +3,13 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
-const mongoosePaginate=require('mongoose-paginate'); 
+const mongoosePaginate = require('mongoose-paginate');
 
 
+
+//import related models
+const Project = require('./project');
+const Proposal = require('./proposal');
 
 var schemaOptions = {
     minimize: false,
@@ -84,6 +88,15 @@ if (process.env.NODE_ENV === "development") {
 
 
 var milestoneSchema = new Schema(milestoneStructure, schemaOptions);
+
+milestoneSchema.post('remove', async (next) => {
+    try {
+        await Project.update({}, { $pull: { milestones: { _id: this._id } } })
+        await Proposal.update({}, { $pull: { milestones: { _id: this._id } } })
+    } catch (error) {
+        next(error)
+    }
+});
 milestoneSchema.plugin(autoPopulate);
 milestoneSchema.plugin(mongoosePaginate);
 
