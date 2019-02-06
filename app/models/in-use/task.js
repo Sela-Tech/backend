@@ -5,6 +5,12 @@ const mongoosePaginate=require('mongoose-paginate');
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 
+// import related models
+
+const Project=require("./project")
+const Milestone=require("./milestone")
+const Evaluation = require("./evaluation")
+
 var taskStructure = {
   name: {
     type: String,
