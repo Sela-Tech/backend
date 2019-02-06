@@ -35,7 +35,7 @@ exports.new = async (req, res) => {
         }else{
           failRes.message ="You cannot add more than one Contractor to a project";
           console.log(failRes)
-          return res.status(400).json(failRes.success);
+          return res.status(400).json(failRes);
         }
        
       }else{
@@ -70,7 +70,8 @@ exports.new = async (req, res) => {
             if(SHs.length>0){
               await notify.notifyAddedStakeholders(req, SHs, project)
             }
-              return res.status(200).json({successRes, project});
+            successRes.project = project;
+              return res.status(200).json(successRes);
           }
         };
       
