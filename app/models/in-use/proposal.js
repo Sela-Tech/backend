@@ -66,6 +66,11 @@ var proposalStructure = {
         type: Boolean,
         default: false
     },
+    status:{
+        type:String,
+        enum:["IN-REVIEW", "DECLINED", "APPROVED"],
+        default:"IN-REVIEW"
+    }
 };
 
 

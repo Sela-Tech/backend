@@ -43,7 +43,7 @@ var taskStructure = {
         "isFunder isContractor isEvaluator  firstName lastName email"
     }
   },
-  assignedTo: [{
+  assignedTo: {
     type: ObjectId,
     ref: "User",
     default: null, 
@@ -51,7 +51,7 @@ var taskStructure = {
       select:
         "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
-  }],
+  },
   evaluators: [{
     type: ObjectId,
     ref: "User",

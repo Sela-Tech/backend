@@ -3,6 +3,7 @@ require("dotenv").config();
 var jwt = require("jsonwebtoken");
 var mongoose = require("mongoose");
 var User = mongoose.model("User");
+var Project = mongoose.model("Project");
 var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 
 exports.login = (req, res) => {
@@ -62,7 +63,7 @@ exports.login = (req, res) => {
   });
 };
 
-exports.activate_user = async (req, res) => {};
+exports.activate_user = async (req, res) => { };
 
 exports.find = async (req, res) => {
   let users = await User.find(
@@ -119,3 +120,22 @@ exports.revoke = async (req, res) => {
     });
   }
 };
+
+
+exports.deleteProject = async (req, res) => {
+  let projectId = req.params.id;
+
+  try {
+    let project= await Project.findById(projectId);
+    if(!project){
+      return res.status(404).json({ message: `Project doesn't exist` });
+    }
+
+    await project.remove();
+    return res.status(200).json({message:"Project deleted successfully"})
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: `internal server error` })
+
+  }
+}

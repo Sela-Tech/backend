@@ -2,7 +2,17 @@ var _ = require("underscore");
 // var moment = require("moment");
 var mongoose = require("mongoose");
 var autoPopulate = require("mongoose-autopopulate");
-const mongoosePaginate=require('mongoose-paginate'); 
+const mongoosePaginate = require('mongoose-paginate');
+
+//import related models
+const Save = require('./save_project');
+const Notifications = require('./notification');
+const Proposal = require('./proposal');
+const Documents = require("./document");
+const Evaluation = require("./evaluation");
+const Milestone = require("./milestone");
+const Task = require("./task");
+const Transaction = require("./transaction");
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -53,7 +63,7 @@ var projectStructure = {
   },
   "project-avatar": {
     type: String,
-    default:"http://placehold.it/50"
+    default: "http://placehold.it/50"
   },
   avatarKey: {
     type: String
@@ -75,10 +85,11 @@ var projectStructure = {
     type: Number,
     default: 0
   },
-  tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
+  // tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
   milestones: [{ type: ObjectId, ref: "Milestone", autopopulate: true }],
+  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: true }],
   stakeholders: [
     {
       user: {
@@ -166,10 +177,23 @@ ProjectSchema.pre("update", true, function (next, done) {
   done();
 });
 
-ProjectSchema.post('remove', function(next){
-  this.model('Save').remove({ project: this._id }, next);
-  this.model('Notification').remove({project:this._id}, next);
-  next();
+ProjectSchema.post('remove', async function (next) {
+
+  try {
+    //all methods below are for development purpose, project never really gets deleted from the platform
+    //comment all methods below before pushing to production
+    await Save.remove({ project: this._id });
+    await Proposal.remove({ project: this._id });
+    await Notifications.remove({ project: this._id });
+    await Documents.remove({ project: this._id });
+    await Evaluation.remove({ project: this._id });
+    await Milestone.remove({ project: this._id });
+    await Task.remove({ project: this._id });
+    await Transaction.remove({ project: this._id });
+    next();
+  } catch (error) {
+    next(error);
+  }
 })
 
 ProjectSchema.plugin(autoPopulate);
