@@ -710,13 +710,13 @@ exports.updateAreaOfInterest = async (req, res) => {
       return res.status(404).json({ message: "Bad Data" })
     }
 
-    let existingInterests = user.areasOfInterest;
+    // let existingInterests = user.areasOfInterest;
 
-    let newInterests = [...existingInterests, ...areasOfInterest];
+    let newInterests = [...areasOfInterest];
     newInterests = _.uniq(newInterests);
 
     let updateInterest = await User.update({ _id: req.userId }, { $set: { areasOfInterest: newInterests } })
-    if (Boolean(updateInterest)) return res.status(200).json({ message: "Area of interest updated successfully" });
+    if (Boolean(updateInterest)) return res.status(200).json({ message: "Areas of interest updated successfully" });
   } catch (error) {
     console.log(error)
     res.status(500).json({ message: "internal server error" })
