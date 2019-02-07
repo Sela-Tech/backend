@@ -1,14 +1,14 @@
 var mongoose = require("mongoose");
 var autoPopulate = require("mongoose-autopopulate");
-const mongoosePaginate=require('mongoose-paginate'); 
+const mongoosePaginate = require('mongoose-paginate');
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 
 // import related models
 
-const Project=require("./project")
-const Milestone=require("./milestone")
+const Project = require("./project")
+const Milestone = require("./milestone")
 const Evaluation = require("./evaluation")
 
 var taskStructure = {
@@ -26,7 +26,7 @@ var taskStructure = {
   project: {
     type: ObjectId,
     ref: "Project",
-    required:true
+    required: true
   }, // reference to associated project
   dueDate: {
     type: Date,
@@ -52,7 +52,7 @@ var taskStructure = {
   assignedTo: {
     type: ObjectId,
     ref: "User",
-    default: null, 
+    default: null,
     autopopulate: {
       select:
         "isFunder isContractor isEvaluator  firstName lastName email _id"
@@ -131,7 +131,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
-  timestamps:true,
+  timestamps: true,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -145,6 +145,16 @@ if (process.env.NODE_ENV === "development") {
 
 
 var TaskSchema = new Schema(taskStructure, schemaOptions);
+
+TaskSchema.post('remove', async (req, res) => {
+  try {
+    // await Project.update({}, { $pull: {} })
+    await Evaluation.remove({ task: this._id });
+    await Milestone.update({}, { $pull: { tasks: { _id: this._id } } });
+  } catch (error) {
+    next(error)
+  }
+})
 
 // TaskSchema.pre("save", true, function (next, done) {
 //   next();

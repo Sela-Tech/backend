@@ -23,7 +23,8 @@ var userStructure = {
     autopopulate: { select: "name _id" }
   },
   profilePhoto: {
-    type: String
+    type: String,
+    default:"http://placehold.it/200"
   },
   profilePhotoKey: {
     type: String

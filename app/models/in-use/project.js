@@ -63,7 +63,7 @@ var projectStructure = {
   },
   "project-avatar": {
     type: String,
-    default: "http://placehold.it/50"
+    default: "http://placehold.it/200"
   },
   avatarKey: {
     type: String
@@ -192,7 +192,8 @@ ProjectSchema.post('remove', async function (next) {
     await Transaction.remove({ project: this._id });
     next();
   } catch (error) {
-    next(error);
+    // next(error);
+    console.log(error)
   }
 })
 

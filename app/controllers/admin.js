@@ -123,16 +123,23 @@ exports.revoke = async (req, res) => {
 
 
 exports.deleteProject = async (req, res) => {
-  let projectId = req.params.id;
+  let projectId = req.query.id;
 
   try {
-    let project= await Project.findById(projectId);
-    if(!project){
-      return res.status(404).json({ message: `Project doesn't exist` });
-    }
+    if(projectId && projectId!==null){
+      let project= await Project.findById(projectId);
+      if(!project){
+        return res.status(404).json({ message: `Project doesn't exist` });
+      }
+  
+      await project.remove();
+      return res.status(200).json({message:"Project deleted successfully"})
+    }else{
+      await Project.remove({});
+      return res.status(200).json({message:"Projects deleted successfully"})
 
-    await project.remove();
-    return res.status(200).json({message:"Project deleted successfully"})
+    }
+    
   } catch (error) {
     console.log(error)
     return res.status(500).json({ message: `internal server error` })
