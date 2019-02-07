@@ -63,7 +63,7 @@ var projectStructure = {
   },
   "project-avatar": {
     type: String,
-    default: "http://placehold.it/50"
+    default: "http://placehold.it/200"
   },
   avatarKey: {
     type: String
