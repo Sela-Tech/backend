@@ -748,23 +748,3 @@ exports.savePrject=async(req, res)=>{
   }
 }
 
-// exports.getDashboard = async (req, res) => {
-  
-//   try {
-//     // let projects = await Project.find({ tags: { $elemMatch: {...req.decodedTokenData.areasOfInterest} } });
-//     // if (projects.length > 0) {
-//     //   return res.json(projects)
-//     // } else {
-//     //   return res.json({ projects: [] })
-
-//     // }
-
-//     let savedProjects,createdProjects, 
-
-//   } catch (error) {
-//     console.log(error)
-//     res.status(500).json({ message: "internal server error" })
-//   }
-
-
-//}

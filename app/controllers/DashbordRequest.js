@@ -305,9 +305,7 @@ class Dashboard {
                 return this.areaOfInterest;
             }
 
-            // // interests = Object.assign({}, [...interests]);
             let projects = await Project.paginate({ tags: { $in: [...interests] } }, { page: Number(page), limit: Number(limit) });
-            // console.log(projects);
             let docs = projects.docs;
             if (docs.length > 0) {
                 docs = docs.map((d) => {

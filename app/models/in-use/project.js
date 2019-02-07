@@ -192,7 +192,8 @@ ProjectSchema.post('remove', async function (next) {
     await Transaction.remove({ project: this._id });
     next();
   } catch (error) {
-    next(error);
+    // next(error);
+    console.log(error)
   }
 })
 
