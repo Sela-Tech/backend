@@ -693,14 +693,14 @@ exports.resendVerificationToken = async (req, res) => {
 }
 
 exports.updateAreaOfInterest = async (req, res) => {
-  validate.validateAddAreaOfInterest(req, res)
-  const errors = req.validationErrors();
+  // validate.validateAddAreaOfInterest(req, res)
+  // const errors = req.validationErrors();
 
-  if (errors) {
-    return res.status(400).json({
-      message: errors
-    });
-  }
+  // if (errors) {
+  //   return res.status(400).json({
+  //     message: errors
+  //   });
+  // }
   try {
     const { body: { areasOfInterest } } = req;
 
