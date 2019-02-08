@@ -34,9 +34,10 @@ class Stakeholder {
     static async getCollaboratedProjects(req, res) {
         let userId = req.userId
         try {
-            let projects = await Project.find({ 'stakeholders.user.information': userId, 
-            'stakeholders.user.status':'ACCEPTED', 'stakeholders.user.agreed':true
-        });
+            let projects = await Project.find({
+                'stakeholders.user.information': userId,
+                'stakeholders.user.status': 'ACCEPTED', 'stakeholders.user.agreed': true
+            });
 
             if (projects.length > 0) {
                 return res.status(200).json({ projects })
@@ -67,7 +68,6 @@ class Stakeholder {
         let userId = req.userId;
         let projectId = req.params.id
         let agreed = req.body.agreed
-        let role = new Helper().getRole(req);
 
         let success = true,
             failure = false;
@@ -76,7 +76,7 @@ class Stakeholder {
             _id: projectId,
             activated: true,
             'stakeholders.user.information': userId
-        })
+        });
 
         if (project === null) {
             return res.status(404).json({
@@ -84,8 +84,21 @@ class Stakeholder {
                     "or you are not associated with it"
             })
         } else {
-            try {
 
+            try {
+                let user = project.stakeholders.find(u => u.user.information._id.toString() === userId)
+
+                if (user.status === "ACCEPTED" && agreed === true) {
+                    return res.status(409).json({ message: "You have already joined this Project." })
+                } else if (user.status === "ACCEPTED" && agreed === false) {
+                    return res.status(403).json({ message: "Please contact project owner." })
+                }
+                else if (user.status === "DECLINED" && agreed === true) {
+                    return res.status(403).json({ message: "You previously declined this invitation. \n Please contact the project owner to invite you again" });
+                }
+                else if (user.status === "DECLINED" && agreed === false) {
+                    return res.status(403).json({ message: "You have previously declined this invitation." });
+                }
                 let status;
 
                 agreed === true ? status = 'ACCEPTED' : status = 'DECLINED';
@@ -193,7 +206,7 @@ class Stakeholder {
 
     }
 
-    acceptRequestToJoinProject(req, res){
+    acceptRequestToJoinProject(req, res) {
 
     }
 }

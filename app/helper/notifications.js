@@ -113,19 +113,21 @@ class Notifications {
 
             if (notification) {
 
-                if(project.owner.socket !==null){
-                    if (req.io.sockets.connected[project.owner.socket]) {
-                        const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
-                        req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                if(data.project.owner.socket !==null){
+                    if (req.io.sockets.connected[data.project.owner.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({userId:data.project.owner._id})
+                        req.io.sockets.connected[data.project.owner.socket].emit('notifications', {notifications});
                     }
                 }
                
                 const msg = {
-                    to: `${data.projectOwnerEmail}`,
+                    to: `${data.project.owner.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                     subject: "Project Invitation Status",
                     text: message
                 };
+
+                return console.log(data.project)
 
                 await sgMail.send(msg);
             }

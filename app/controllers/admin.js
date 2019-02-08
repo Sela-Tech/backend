@@ -146,3 +146,27 @@ exports.deleteProject = async (req, res) => {
 
   }
 }
+
+exports.deleteUser= async (req, res)=>{
+  let userId = req.query.id;
+
+  try {
+    if(userId && userId!==null){
+      let user= await User.findById(userId);
+      if(!user){
+        return res.status(404).json({ message: `User doesn't exist` });
+      }
+  
+      await user.remove();
+      return res.status(200).json({message:"User deleted successfully"})
+    }else{
+      await user.remove({});
+      return res.status(200).json({message:"Users deleted successfully"})
+    }
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: `internal server error` })
+
+  }
+}

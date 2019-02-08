@@ -16,4 +16,5 @@ module.exports = function(app) {
     .post(verifyToken, admin_controller.activate_user);
 
   app.route("/a/delete-project").delete(verifyToken, admin_controller.deleteProject);
+  app.route("/a/delete-user").delete(verifyToken, admin_controller.deleteUser);
 };

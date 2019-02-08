@@ -40,8 +40,8 @@ class Notifications {
                             id: n.project._id
                         },
                         type:n.type,
-                        createdOn:n.createdOn,
-                        updatedOn:n.updatedOn
+                        createdOn:n.createdAt,
+                        updatedOn:n.updatedAt
 
                     }
                 });
@@ -127,8 +127,8 @@ class Notifications {
                             id: n.project._id
                         },
                         type:n.type,
-                        createdOn:n.createdOn,
-                        updatedOn:n.updatedOn
+                        createdOn:n.createdAt,
+                        updatedOn:n.updatedAt
 
                     }
 
