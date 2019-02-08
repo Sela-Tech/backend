@@ -354,10 +354,10 @@ class Dashboard {
         let areasOfInterest = await this.fetchAreaOfInterestP(req, res);
 
         if (req.roles.includes('isFunder')) {
-            return this.result = { createdProjects, savedProjects, fundedProjects: joinedProjects, areasOfInterest };
+            return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
         } else if (req.roles.includes('isContractor') || req.roles.includes('isEvaluator')) {
-            return this.result = { createdProjects, savedProjects, joinedProjects, areasOfInterest };
+            return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
         }
 
