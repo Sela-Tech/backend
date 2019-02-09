@@ -68,6 +68,10 @@ var notificationStructure = {
     type:Boolean,
     default:false
   },
+  isHandled:{
+    type:Boolean,
+    default:true
+  }
   
 };
 
