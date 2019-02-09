@@ -52,7 +52,7 @@ class Dashboard {
                                 _id: p.project.owner._id
                             }
                         }
-                    });
+                    }).reverse();
                 }
 
                 this.savedProjects = {
@@ -74,7 +74,7 @@ class Dashboard {
                             _id: d.project.owner._id
                         }
                     }
-                });
+                }).reverse();
             }
 
             this.savedProjects = {
@@ -122,7 +122,7 @@ class Dashboard {
                                     _id: p.owner._id
                                 }
                             }
-                        });
+                        }).reverse();
                     }
 
                     this.createdProjects = {
@@ -144,7 +144,7 @@ class Dashboard {
                                 _id: d.owner._id
                             }
                         }
-                    });
+                    }).reverse();
                 }
 
                 this.createdProjects = {
@@ -196,7 +196,7 @@ class Dashboard {
                                 _id: p.owner._id
                             }
                         }
-                    });
+                    }).reverse();
                 }
 
 
@@ -234,7 +234,7 @@ class Dashboard {
                             _id: d.owner._id
                         }
                     }
-                });
+                }).reverse();
 
             }
 
@@ -297,7 +297,7 @@ class Dashboard {
                                 _id: p.owner._id
                             }
                         }
-                    });
+                    }).reverse();
                 }
 
                 this.areaOfInterest = {
@@ -320,7 +320,7 @@ class Dashboard {
                             _id: d.owner._id
                         }
                     }
-                });
+                }).reverse();
             }
 
             this.areaOfInterest = {
