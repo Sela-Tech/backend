@@ -66,8 +66,9 @@ class Stakeholder {
 
     static async confirmAccpetance(req, res) {
         let userId = req.userId;
-        let projectId = req.params.id
-        let agreed = req.body.agreed
+        let projectId = req.params.id;
+        let notificationId = req.query.notification;
+        let agreed = req.body.agreed;
 
         let success = true,
             failure = false;
@@ -86,7 +87,9 @@ class Stakeholder {
         } else {
 
             try {
+
                 let user = project.stakeholders.find(u => u.user.information._id.toString() === userId)
+                user = user.user;
 
                 if (user.status === "ACCEPTED" && agreed === true) {
                     return res.status(409).json({ message: "You have already joined this Project." })
@@ -118,7 +121,8 @@ class Stakeholder {
                         stakeholderName: req.decodedTokenData.firstName + ' ' + req.decodedTokenData.lastName,
                         stakeholderId: userId,
                         project,
-                        agreed
+                        agreed,
+                        notificationId
                     }
 
                     await notify.notifyAcceptance(req, notificationData);

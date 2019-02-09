@@ -46,7 +46,7 @@ class Notifications {
 
             // console.log(result);
         });
-    } 
+    }
 
 
     /**
@@ -88,9 +88,9 @@ class Notifications {
      */
 
     static async notifyAcceptance(req, data) {
-        let type='';
-        let acceptInvite="ACCEPT_INVITE_TO_JOIN_PROJECT";
-        let rejectInvite="REJECT_INVITE_TO_JOIN_PROJECT";
+        let type = '';
+        let acceptInvite = "ACCEPT_INVITE_TO_JOIN_PROJECT";
+        let rejectInvite = "REJECT_INVITE_TO_JOIN_PROJECT";
 
         let message = '';
         let accepted = `${data.stakeholderName} has accepted your invite to join the "${data.project.name}" project`;
@@ -109,17 +109,21 @@ class Notifications {
         }
 
         try {
+            //update user existing notification
+            if (data.notificationId) {
+                await Notification.updateOne({ _id: data.notificationId, user:req.userId }, { $set: {isHandled:true} });
+            }
             let notification = await new Notification(notifObj).save();
 
             if (notification) {
 
-                if(data.project.owner.socket !==null){
+                if (data.project.owner.socket !== null) {
                     if (req.io.sockets.connected[data.project.owner.socket]) {
-                        const notifications = await NotificationController.getUserNViaSocket({userId:data.project.owner._id})
-                        req.io.sockets.connected[data.project.owner.socket].emit('notifications', {notifications});
+                        const notifications = await NotificationController.getUserNViaSocket({ userId: data.project.owner._id })
+                        req.io.sockets.connected[data.project.owner.socket].emit('notifications', { notifications });
                     }
                 }
-               
+
                 const msg = {
                     to: `${data.project.owner.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
@@ -127,7 +131,6 @@ class Notifications {
                     text: message
                 };
 
-                return console.log(data.project)
 
                 await sgMail.send(msg);
             }
@@ -150,9 +153,9 @@ class Notifications {
 
     static async notifyRequestToJoinP(req, project) {
         const role = req.roles[0];
-        
+
         let userRole;
-        let type="REQUEST_TO_JOIN_PROJECT";
+        let type = "REQUEST_TO_JOIN_PROJECT";
         role == 'isFunder' ? userRole = 'a funder' : role == 'isContractor' ? userRole = 'a contractor' : userRole = 'an evaluator';
 
         const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} has requested to join your project "${project.name}" as ${userRole}`;
@@ -166,7 +169,8 @@ class Notifications {
             user: project.owner._id,
             message,
             stakeholder: req.userId,
-            type
+            type,
+            isHandled:false
         }
 
         try {
@@ -174,13 +178,13 @@ class Notifications {
 
             if (notification) {
 
-                if(project.owner.socket !==null){
+                if (project.owner.socket !== null) {
                     if (req.io.sockets.connected[project.owner.socket]) {
-                        const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
-                        req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                        const notifications = await NotificationController.getUserNViaSocket({ userId: project.owner._id })
+                        req.io.sockets.connected[project.owner.socket].emit('notifications', { notifications });
                     }
                 }
-               
+
 
                 const msg = {
                     to: `${project.owner.email}`,
@@ -210,53 +214,54 @@ class Notifications {
      * @param {*} project
      * @memberof Notifications
      */
-    static async notifyAddedStakeholders(req,usersData, project) {
+    static async notifyAddedStakeholders(req, usersData, project) {
         try {
-          
+
             let users = await User.find({ _id: [...usersData] });
             let notifObjs = users.map((u) => {
                 const message = `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
                 return {
-                    project:project._id,
-                    user:u._id,
+                    project: project._id,
+                    user: u._id,
                     message,
-                    type:"INVITATION_TO_JOIN_PROJECT",
-                    stakeholder:project.owner._id
+                    type: "INVITATION_TO_JOIN_PROJECT",
+                    stakeholder: project.owner._id,
+                    isHandled:false
                 }
             })
 
-            let notifyOwner = users.map((u)=>{
+            let notifyOwner = users.map((u) => {
                 const message = `You sent a request to ${u.firstName} ${u.lastName} to join this project "${project.name}".`;
-                return{
+                return {
                     project: project._id,
                     user: project.owner._id,
                     message,
                     stakeholder: u._id,
-                    type:"YOU_SENT_INVITATION_TO_JOIN"
+                    type: "YOU_SENT_INVITATION_TO_JOIN"
                 }
-                
-            })
-    
-            if(notifObjs.length>0){
-                let nots = await Notification.insertMany(notifObjs);
-                if(nots){
 
-                    users.forEach(async(u)=>{
-                        if(u.socket !==null){
+            })
+
+            if (notifObjs.length > 0) {
+                let nots = await Notification.insertMany(notifObjs);
+                if (nots) {
+
+                    users.forEach(async (u) => {
+                        if (u.socket !== null) {
                             if (req.io.sockets.connected[u.socket]) {
-                                const notifications = await NotificationController.getUserNViaSocket({userId:u._id})
-                                req.io.sockets.connected[u.socket].emit('notifications', {notifications});
+                                const notifications = await NotificationController.getUserNViaSocket({ userId: u._id })
+                                req.io.sockets.connected[u.socket].emit('notifications', { notifications });
                             }
                         }
                     })
-                    
-                   
-                    let notiOwner=await Notification.insertMany(notifyOwner);
 
-                    if(notiOwner){
+
+                    let notiOwner = await Notification.insertMany(notifyOwner);
+
+                    if (notiOwner) {
                         if (req.io.sockets.connected[project.owner.socket]) {
-                            const notifications = await NotificationController.getUserNViaSocket({userId:project.owner._id})
-                            req.io.sockets.connected[project.owner.socket].emit('notifications', {notifications});
+                            const notifications = await NotificationController.getUserNViaSocket({ userId: project.owner._id })
+                            req.io.sockets.connected[project.owner.socket].emit('notifications', { notifications });
                         }
                     }
 
@@ -265,11 +270,11 @@ class Notifications {
                             to: `${user.email}`,
                             from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                             subject: "Invitation to join project!",
-                            html: EmailTemplates.inviteToJoinProject(getHost(req),project,user)
+                            html: EmailTemplates.inviteToJoinProject(getHost(req), project, user)
                         };
                         sgMail.send(msg, false, (error, result) => {
                             if (error) return console.log(error);
-                
+
                             // console.log(result);
                         });
                     });
@@ -278,7 +283,7 @@ class Notifications {
         } catch (error) {
             console.log(error)
         }
-       
+
 
     }
 
