@@ -284,8 +284,9 @@ class Dashboard {
         try {
 
             if (all && typeof (all) === 'string' && all === 'true') {
-                let projects = await Project.find({ tags: { $in: [...interests] } });
+                let projects = await Project.find({ owner: { $ne: req.userId }, tags: { $in: [...interests] } });
                 if (projects.length > 0) {
+                    // projects= projects.filter(p=>p.owner._id.toString() !== req.userId);
                     projects = projects.map((p) => {
                         return {
                             _id: p._id,
@@ -305,9 +306,10 @@ class Dashboard {
                 return this.areaOfInterest;
             }
 
-            let projects = await Project.paginate({ tags: { $in: [...interests] } }, { page: Number(page), limit: Number(limit) });
+            let projects = await Project.paginate({ owner: { $ne: req.userId }, tags: { $in: [...interests] } }, { page: Number(page), limit: Number(limit) });
             let docs = projects.docs;
             if (docs.length > 0) {
+                // docs= docs.filter(d=>d.owner._id.toString() !== req.userId);
                 docs = docs.map((d) => {
                     return {
                         _id: d._id,
@@ -354,10 +356,10 @@ class Dashboard {
         let areasOfInterest = await this.fetchAreaOfInterestP(req, res);
 
         // if (req.roles.includes('isFunder')) {
-            return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
+        return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
         // } else if (req.roles.includes('isContractor') || req.roles.includes('isEvaluator')) {
-            // return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
+        // return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
         // }
 
