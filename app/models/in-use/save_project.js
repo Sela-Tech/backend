@@ -13,7 +13,7 @@ var saveProjectStructure = {
     required: true,
     autopopulate: {
       select:
-        "name activated _id owner "
+        "name activated _id owner location goal status"
     }
   },
   user: {

@@ -229,8 +229,51 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.verify = (req, res) => {
-  return res.json(req.decodedTokenData);
+exports.verify = async (req, res) => {
+  let user = await User.findById(req.userId);
+  let signThis = {};
+
+  const { isFunder, isEvaluator, isContractor } = user;
+        if (Boolean(user.organization)) {
+          signThis.organization = {
+            name: user.organization.name,
+            id: user.organization._id
+          }
+        } else {
+          signThis.organization = {
+            name: "No Organization",
+            id: ""
+          }
+        }
+
+        signThis = {
+          ...signThis,
+          profilePhoto: user.profilePhoto,
+          id: user._id,
+          isFunder,
+          isEvaluator,
+          isContractor,
+          firstName: user.firstName,
+          phone: user.phone,
+          email: user.email,
+          lastName: user.lastName,
+          areasOfInterest: user.areasOfInterest,
+
+        };
+
+        var token = jwt.sign(signThis, process.env.SECRET, {
+          expiresIn: tokenValidityPeriod
+        });
+
+
+        return res.status(200).json({
+          ...signThis,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          organization: user.organization,
+          token
+        });
+
 };
 
 exports.login = (req, res) => {

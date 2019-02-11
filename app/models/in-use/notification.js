@@ -68,9 +68,10 @@ var notificationStructure = {
     type:Boolean,
     default:false
   },
-  isHandled:{
-    type:Boolean,
-    default:true
+  action:{
+    type:String,
+    enum:["ACCEPTED","REJECTED", "APPROVED", "REQUIRED", "NOT_REQUIRED"],
+    default:"NOT_REQUIRED"
   }
   
 };

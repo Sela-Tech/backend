@@ -46,6 +46,11 @@ class Dashboard {
                         return {
                             _id: p.project._id,
                             name: p.project.name,
+                            status:p.project.status,
+                            goal:p.project.goal,
+                            location:{
+                                name:p.project.location.name
+                            },
                             avatar: p.project["project-avatar"],
                             owner: {
                                 fullName: `${p.project.owner.firstName} ${p.project.owner.lastName}`,
@@ -68,6 +73,11 @@ class Dashboard {
                     return {
                         _id: d.project._id,
                         name: d.project.name,
+                        status:d.project.status,
+                        goal:d.project.goal,
+                        location:{
+                            name:d.project.location.name
+                        },
                         avatar: d.project["project-avatar"],
                         owner: {
                             fullName: `${d.project.owner.firstName} ${d.project.owner.lastName}`,
@@ -116,6 +126,11 @@ class Dashboard {
                             return {
                                 _id: p._id,
                                 name: p.name,
+                                status:p.status,
+                                goal:p.goal,
+                                location:{
+                                    name:p.location.name
+                                },
                                 avatar: p["project-avatar"],
                                 owner: {
                                     fullName: `${p.owner.firstName} ${p.owner.lastName}`,
@@ -138,6 +153,11 @@ class Dashboard {
                         return {
                             _id: d._id,
                             name: d.name,
+                            status:d.status,
+                            goal:d.goal,
+                            location:{
+                                name:d.location.name
+                            },
                             avatar: d["project-avatar"],
                             owner: {
                                 fullName: `${d.owner.firstName} ${d.owner.lastName}`,
@@ -190,6 +210,11 @@ class Dashboard {
                         return {
                             _id: p._id,
                             name: p.name,
+                            status:p.status,
+                            goal:p.goal,
+                            location:{
+                                name:p.location.name
+                            },
                             avatar: p["project-avatar"],
                             owner: {
                                 fullName: `${p.owner.firstName} ${p.owner.lastName}`,
@@ -228,6 +253,11 @@ class Dashboard {
                     return {
                         _id: d._id,
                         name: d.name,
+                        status:d.status,
+                        goal:d.goal,
+                        location:{
+                            name:d.location.name
+                        },
                         avatar: d["project-avatar"],
                         owner: {
                             fullName: `${d.owner.firstName} ${d.owner.lastName}`,
@@ -291,6 +321,11 @@ class Dashboard {
                         return {
                             _id: p._id,
                             name: p.name,
+                            status:p.status,
+                            goal:p.goal,
+                            location:{
+                                name:p.location.name
+                            },
                             avatar: p["project-avatar"],
                             owner: {
                                 fullName: `${p.owner.firstName} ${p.owner.lastName}`,
@@ -314,6 +349,11 @@ class Dashboard {
                     return {
                         _id: d._id,
                         name: d.name,
+                        status:d.status,
+                        goal:d.goal,
+                        location:{
+                            name:d.location.name
+                        },
                         avatar: d["project-avatar"],
                         owner: {
                             fullName: `${d.owner.firstName} ${d.owner.lastName}`,

@@ -111,7 +111,9 @@ class Notifications {
         try {
             //update user existing notification
             if (data.notificationId) {
-                await Notification.updateOne({ _id: data.notificationId, user:req.userId }, { $set: {isHandled:true} });
+                let action;
+                data.agreed === true ? action = "ACCEPTED" : action = "REJECTED";
+                await Notification.updateOne({ _id: data.notificationId, user: req.userId }, { $set: { action: action } });
             }
             let notification = await new Notification(notifObj).save();
 
@@ -170,7 +172,7 @@ class Notifications {
             message,
             stakeholder: req.userId,
             type,
-            isHandled:false
+            action: "REQUIRED"
         }
 
         try {
@@ -226,7 +228,7 @@ class Notifications {
                     message,
                     type: "INVITATION_TO_JOIN_PROJECT",
                     stakeholder: project.owner._id,
-                    isHandled:false
+                    action: "REQUIRED"
                 }
             })
 
