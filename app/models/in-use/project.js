@@ -124,8 +124,8 @@ var projectStructure = {
   },
   status: {
     type: String,
-    enum: ["DORMANT", "ACCEPTED", "STARTED", "TERMINATED", "COMPLETED"],
-    default: "DORMANT"
+    enum: ["PROPOSED","DORMANT", "STARTED", "TERMINATED", "COMPLETED"],
+    default: "PROPOSED"
   },
   numOfevaluators: {
     type: Number,
