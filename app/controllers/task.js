@@ -43,13 +43,12 @@ class Tasks {
       let assignedTo;
 
       // check available contractor
-      if(project.stakeholders.length>0){
-         available_contractor= project.stakeholders.filter(s=>s.user.information.isContractor===true);
+      if(project.stakeholders.length<1){
+        return res.status(403).json({ message: "Become a stakeholder by joining the project" })
       }
-      else{
-        // there are not stakeholders, do something
-        assignedTo=null
-      }
+      
+      available_contractor= project.stakeholders.filter(s=>s.user.information.isContractor===true);
+
 
       if(available_contractor.length<1){
           return res.status(404).json({message:'No contractor has been added to this project'});
@@ -74,7 +73,7 @@ class Tasks {
       if(newTask){
         successRes.message="Task has been added";
         successRes.newTask=newTask;
-        return res.status(201).json({successRes});
+        return res.status(201).json(successRes)
       }
       
     } catch (error) {
