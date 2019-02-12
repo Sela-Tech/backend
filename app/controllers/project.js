@@ -423,17 +423,15 @@ class Projects {
     try {
       // check if project exists
       let project = await Project.findById(req.params.id)
-        .populate({
-          path: 'documents',
-          match: { project: { $eq: req.params.id } },
-          select: 'name _id doc filetype'
-        })
+        
 
       if (!project) {
         return res.status(404).json({ message: "Project does not exist" });
       }
+
       // check if he a stakeholder on the project
       let isProjectStakeholder = project.stakeholders.some(c => c.user.information._id.toString() === req.userId && c.user.status === 'ACCEPTED')
+     
       // check if contractor has submitted a proposal already
 
       let hasSubmitted;

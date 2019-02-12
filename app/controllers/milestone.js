@@ -52,12 +52,12 @@ class Milestones {
                 return res.status(404).json({ message: "Tasks not found" });
             }
 
-            let estimatedCost = taskDetails.map(t => t.estimatedCost).reduce((x, y) => { return x + y }),
-                taskIds = taskDetails.map(t => t._id);
+            // let estimatedCost = taskDetails.map(t => t.estimatedCost).reduce((x, y) => { return x + y });
+            let taskIds = taskDetails.map(t => t._id);
 
             let milestoneObj = {
                 createdBy: req.userId,
-                estimatedCost,
+                // estimatedCost,
                 title,
                 project: projectId,
                 tasks: [...taskIds]
@@ -104,7 +104,7 @@ class Milestones {
                         lastName: milestone.createdBy.lastName
                     },
                     completed: milestone.completed,
-                    estimatedCost: milestone.estimatedCost,
+                    // estimatedCost: milestone.estimatedCost,
                     createdAt: milestone.createdAt,
                     updatedAt: milestone.updatedAt,
                     tasks: milestone.tasks.map((t) => {
@@ -169,7 +169,7 @@ class Milestones {
                             lastName: m.createdBy.lastName
                         },
                         completed: m.completed,
-                        estimatedCost: m.estimatedCost,
+                        // estimatedCost: m.estimatedCost,
                         createdAt: m.createdAt,
                         updatedAt: m.updatedAt,
                         tasks: m.tasks.map((t) => {
