@@ -60,8 +60,10 @@ var proposalStructure = {
     // }],
     proposedBy: {
         type: ObjectId,
-        ref: "User",
-        default: null
+        ref: "User", autopopulate: {
+            select:
+                "firstName lastName _id"
+        }
     },
     approved: {
         type: Boolean,

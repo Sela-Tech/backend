@@ -26,6 +26,9 @@ var docStructure = {
   },
   docKey: {
     type: String
+  },
+  size:{
+    type:String
   }
 };
 

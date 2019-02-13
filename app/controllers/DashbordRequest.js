@@ -309,9 +309,13 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
         let all = req.query.all;
-        let interests = req.decodedTokenData.areasOfInterest;
+        // let interests = req.decodedTokenData.areasOfInterest;
 
         try {
+
+            let user = await User.findById(req.userId);
+
+            let interests = user.areasOfInterest;
 
             if (all && typeof (all) === 'string' && all === 'true') {
                 let projects = await Project.find({ owner: { $ne: req.userId }, tags: { $in: [...interests] } });
