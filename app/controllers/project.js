@@ -459,7 +459,7 @@ class Projects {
         initiated_by: {
           id: project.owner._id,
           name: `${project.owner.firstName} ${project.owner.lastName}`,
-          user_type: "Funder",
+          user_type: helper.getRole(project.owner),
           avatar: project.owner.profilePhoto
         },
         expected_duration: `${moment(project.startDate).format("DD MMM YY")} - ${moment(project.endDate).format("DD MMM YY")}`,
