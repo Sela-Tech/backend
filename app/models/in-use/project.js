@@ -119,7 +119,7 @@ var projectStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "organization firstName reputationScore lastName _id activated profilePhoto email socket"
+        "organization firstName reputationScore lastName _id activated profilePhoto email socket isFunder isContractor isEvaluator"
     }
   },
   status: {

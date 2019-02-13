@@ -17,14 +17,21 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 class Helper {
 
-    getRole(req) {
-        const roles = req.roles;
+    getRole(data) {
+        const roles= ['Funder', 'Contractor', 'Evaluator']
 
-        let role = Object.keys(roles).filter(k => roles[k] === true);
-
-        if (role.length > 1) {
-            return role[0];
+        let user ={
+            isFunder:data.isFunder,
+            isContractor:data.isContractor,
+            isEvaluator :data.isEvaluator
         }
+
+        let role = Object.keys(user).filter(k => user[k] === true);
+
+      let userRole = roles.find((r)=>{
+            return r = role[0].includes(r);
+        });
+        return userRole;
 
     }
 
