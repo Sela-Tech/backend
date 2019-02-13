@@ -8,4 +8,6 @@ module.exports = function (app) {
         .route("/proposals")
         .post(verifyToken, Proposals.sendProposal);
 
+        app.route("/project/:id/proposals").get(verifyToken, Proposals.getprojectProposals);
+
 };

@@ -79,6 +79,55 @@ class Proposals {
 
     }
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns {object}
+     * @memberof Proposals
+     * @description returns an array of proposals submitted against a project
+     */
+    static async getprojectProposals(req, res){
+        let project= req.params.id;
+
+        try {
+            let proposals = await Proposal.find({project});
+            if(proposals.length<1){
+                return res.status(200).json({proposals:[]})
+            }
+
+            proposals = proposals.map((p)=>{
+                return {
+                    totalMilestones:p.milestones.length,
+
+                    totalTasks:p.milestones.map((m)=>{
+                       return m.tasks.length
+                    }).reduce((x, y)=>x+y),
+
+                    totalBudget:p.milestones.map((m)=>{
+                        return m.tasks.map((t)=>{
+                            return t.estimatedCost
+                        }).reduce((x, y)=>x+y);
+                    }).reduce((a,b)=>a+b),
+
+                    proposedBy:{
+                       fullName: `${p.proposedBy.firstName} ${p.proposedBy.lastName}`,
+                       _id:p.proposedBy._id
+                    },
+                }
+            })
+            return res.status(200).json({proposals})
+        } catch (error) {
+            console.log(error);
+            return res.status(501).json({
+                message: error.message
+            });
+        }
+    }
     /**
      *
      *
