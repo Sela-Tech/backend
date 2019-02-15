@@ -31,7 +31,7 @@ class Stakeholder {
      * @returns {object}
      * @memberof Stakeholder
      */
-    static async getCollaboratedProjects(req, res) {
+    static async getStakeHolderJoinedProjects(req, res) {
         let userId = req.userId
         try {
             let projects = await Project.find({
@@ -64,7 +64,7 @@ class Stakeholder {
      * @memberof Stakeholder
      */
 
-    static async confirmAccpetance(req, res) {
+    static async acceptOrRejectInvitationToJoinProject(req, res) {
         let userId = req.userId;
         let projectId = req.params.id;
         let notificationId = req.query.notification;
@@ -92,15 +92,23 @@ class Stakeholder {
                 user = user.user;
 
                 if (user.status === "ACCEPTED" && agreed === true) {
-                    return res.status(409).json({ message: "You have already joined this Project." })
+
+                    return res.status(409).json({ message: "You have already joined this Project." });
+
                 } else if (user.status === "ACCEPTED" && agreed === false) {
-                    return res.status(403).json({ message: "Please contact project owner." })
+
+                    return res.status(403).json({ message: "Please contact project owner." });
+
                 }
                 else if (user.status === "DECLINED" && agreed === true) {
+
                     return res.status(403).json({ message: "You previously declined this invitation. \n Please contact the project owner to invite you again" });
+
                 }
                 else if (user.status === "DECLINED" && agreed === false) {
+
                     return res.status(403).json({ message: "You have previously declined this invitation." });
+
                 }
                 let status;
 

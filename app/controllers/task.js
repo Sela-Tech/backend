@@ -39,40 +39,41 @@ class Tasks {
         return res.status(404).json({message:'Project Not Found.'})
       }
 
-      let available_contractor;
+      // let available_contractor;
       let assignedTo;
 
       // check available contractor
-      if(project.stakeholders.length<1){
-        return res.status(403).json({ message: "Become a stakeholder by joining the project" })
-      }
+      // if(project.stakeholders.length<1){
+      //   return res.status(403).json({ message: "Become a stakeholder by joining the project" })
+      // }
       
-      available_contractor= project.stakeholders.filter(s=>s.user.information.isContractor===true);
+      // available_contractor= project.stakeholders.filter(s=>s.user.information.isContractor===true);
 
 
-      if(available_contractor.length<1){
-          return res.status(404).json({message:'No contractor has been added to this project'});
-      }
+      // if(available_contractor.length<1){
+      //     return res.status(404).json({message:'No contractor has been added to this project'});
+      // }
 
       // check if who is adding the task is a contractor
       // check if he is part of the project
-      let isProjectContractor = available_contractor.some(c=>c.user.information._id.toString() === req.userId && c.user.status==='ACCEPTED' );
-      if(userRole.includes('isContractor') && !isProjectContractor){
-        return res.status(401).json({message:'Sorry, You are not a contractor on this project'})
-      }else if(userRole.includes('isContractor') && isProjectContractor){
+      // let isProjectContractor = available_contractor.some(c=>c.user.information._id.toString() === req.userId && c.user.status==='ACCEPTED' );
+      // if(userRole.includes('isContractor') && !isProjectContractor){
+      //   return res.status(401).json({message:'Sorry, You are not a contractor on this project'})
+      // }else 
+      if(userRole.includes('isContractor')){
         assignedTo= req.userId;
       }else{
-        assignedTo = available_contractor[0].user.information._id;
+        return res.status(403).json({message:'You are not allowed to perform this operation'})
       }
 
       taskObj.assignedTo=assignedTo;
       taskObj.status='ASSIGNED';
 
-      let newTask = await new Task(taskObj).save();
+      let task = await new Task(taskObj).save();
 
-      if(newTask){
+      if(task){
         successRes.message="Task has been added";
-        successRes.newTask=newTask;
+        successRes.task=task;
         return res.status(201).json(successRes)
       }
       

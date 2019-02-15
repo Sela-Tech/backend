@@ -9,5 +9,6 @@ module.exports = function (app) {
         .post(verifyToken, Proposals.sendProposal);
 
         app.route("/project/:id/proposals").get(verifyToken, Proposals.getprojectProposals);
+        app.route("/proposal/:id").put(verifyToken, Proposals.acceptOrRejectProposal);
 
 };
