@@ -41,13 +41,50 @@ const validator = {
   },
 
 
+  validateAddTask(req, res){
+    req
+    .checkBody("name",
+      "Task name can't be empty."
+    )
+    .notEmpty();
+  req
+    .checkBody("dueDate", "please specify due date")
+    .notEmpty();
+
+    req
+    .checkBody("description", "Decription cannot empty")
+    .notEmpty();
+
+    req
+    .checkBody("estimatedCost", "Please enter an estimated cost")
+    .notEmpty();
+  },
+
+  validateAddMilestone(req, res){
+    req
+    .checkBody("title",
+      "Milestone title can't be empty."
+    )
+    .notEmpty()
+
+    req
+    .checkBody("projectId",
+      "Invalid projectId."
+    )
+    .notEmpty()
+   
+    req
+    .checkBody("tasks", "You must add atleast one task")
+    .isArray()
+    .notEmpty();
+  },
   
-  // validates id
-  validateId(id) {
-    if (isNaN(id)) {
-      return false
-    }
-    return true
+
+  validateAddAreaOfInterest(req, res){
+    req
+    .checkBody("areasOfInterest", "Add atleast one area of interest")
+    .isArray()
+    .notEmpty();
   },
 
   // capitalize First letter

@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
+const mongoosePaginate=require('mongoose-paginate'); 
 
 var locationStructure = {
   name: {

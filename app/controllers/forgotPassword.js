@@ -25,7 +25,6 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 let sms = AfricasTalking.SMS;
 
-// const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
 
 /**
  *

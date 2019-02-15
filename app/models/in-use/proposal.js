@@ -3,8 +3,10 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
+
 const mongoosePaginate=require('mongoose-paginate'); 
 
+const Project = require('./project');
 
 
 var schemaOptions = {
@@ -24,45 +26,53 @@ var schemaOptions = {
         versionKey: false,
         retainKeyOrder: true
     },
+    timestamps:true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
 
-var evaluationStructure = {
+var proposalStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
         autopopulate: {
             select:
-                "name activated _id, owner "
-        }
-    },
-    // TODO: uncomment when needed
-    task: {
-        type: ObjectId,
-        ref: "Task",
-        autopopulate: {
-            select:
-                "name description _id assignedTo status"
+                "name activated _id, owner stakeholders"
         }
     },
 
-    evaluator: {
+    milestones: [{
         type: ObjectId,
-        ref: "User",
-        default: null
+        ref: "Milestone",
+        autopopulate: {
+            select:
+                "title createdBy completed estimastedCost _id"
+        }
+    }],
+
+    // tasks: [{
+    //     type: ObjectId,
+    //     ref: "Task",
+    //     autopopulate: {
+    //         select:
+    //             "name description _id assignedTo status"
+    //     }
+    // }],
+    proposedBy: {
+        type: ObjectId,
+        ref: "User", autopopulate: {
+            select:
+                "firstName lastName _id"
+        }
     },
-    text: {
-        type: String,
-        default: null
-    },
-    isCompleted: {
+    approved: {
         type: Boolean,
         default: false
     },
-    proof: {
-        type: String,
-        default: ''
+    status:{
+        type:String,
+        enum:["IN-REVIEW", "DECLINED", "APPROVED","REVERTED"],
+        default:"IN-REVIEW"
     }
 };
 
@@ -75,8 +85,17 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var evaluationSchema = new Schema(evaluationStructure, { timestamps: true });
-evaluationSchema.plugin(autoPopulate);
-evaluationSchema.plugin(mongoosePaginate);
+var proposalSchema = new Schema(proposalStructure,schemaOptions);
 
-module.exports = mongoose.model("Evaluation", evaluationSchema);
+proposalSchema.post('remove', async (next) => {
+    try {
+        await Project.update({}, { $pull: { proposals: { _id: this._id } } })
+    } catch (error) {
+        next(error)
+    }
+});
+
+proposalSchema.plugin(autoPopulate);
+proposalSchema.plugin(mongoosePaginate);
+
+module.exports = mongoose.model("Proposal", proposalSchema);

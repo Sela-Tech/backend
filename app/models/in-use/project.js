@@ -2,6 +2,17 @@ var _ = require("underscore");
 // var moment = require("moment");
 var mongoose = require("mongoose");
 var autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate = require('mongoose-paginate');
+
+//import related models
+const Save = require('./save_project');
+const Notifications = require('./notification');
+const Proposal = require('./proposal');
+const Documents = require("./document");
+const Evaluation = require("./evaluation");
+const Milestone = require("./milestone");
+const Task = require("./task");
+const Transaction = require("./transaction");
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -51,7 +62,8 @@ var projectStructure = {
     required: true
   },
   "project-avatar": {
-    type: String
+    type: String,
+    default: "http://placehold.it/200"
   },
   avatarKey: {
     type: String
@@ -73,10 +85,11 @@ var projectStructure = {
     type: Number,
     default: 0
   },
-  tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
+  // tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
-  milestones: [{ type: ObjectId, ref: "Milestones", autopopulate: true }],
+  milestones: [{ type: ObjectId, ref: "Milestone", autopopulate: true }],
+  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: true }],
   stakeholders: [
     {
       user: {
@@ -106,13 +119,13 @@ var projectStructure = {
     ref: "User",
     autopopulate: {
       select:
-        "organization firstName reputationScore lastName _id activated profilePhoto email, socket"
+        "organization firstName reputationScore lastName _id activated profilePhoto email socket isFunder isContractor isEvaluator"
     }
   },
   status: {
     type: String,
-    enum: ["DORMANT", "ACCEPTED", "STARTED", "TERMINATED", "COMPLETED"],
-    default: "DORMANT"
+    enum: ["PROPOSED","DORMANT", "STARTED", "TERMINATED", "COMPLETED"],
+    default: "PROPOSED"
   },
   numOfevaluators: {
     type: Number,
@@ -164,5 +177,26 @@ ProjectSchema.pre("update", true, function (next, done) {
   done();
 });
 
+ProjectSchema.post('remove', async function (next) {
+
+  try {
+    //all methods below are for development purpose, project never really gets deleted from the platform
+    //comment all methods below before pushing to production
+    await Save.remove({ project: this._id });
+    await Proposal.remove({ project: this._id });
+    await Notifications.remove({ project: this._id });
+    await Documents.remove({ project: this._id });
+    await Evaluation.remove({ project: this._id });
+    await Milestone.remove({ project: this._id });
+    await Task.remove({ project: this._id });
+    await Transaction.remove({ project: this._id });
+    next();
+  } catch (error) {
+    // next(error);
+    console.log(error)
+  }
+})
+
 ProjectSchema.plugin(autoPopulate);
+ProjectSchema.plugin(mongoosePaginate);
 module.exports = mongoose.model("Project", ProjectSchema);

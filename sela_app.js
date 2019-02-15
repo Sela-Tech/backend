@@ -3,7 +3,7 @@ FRONTEND = __dirname + "/public";
 
 var express = require("express");
 var app = express();
-var port = process.env.PORT || 3009;
+var port = process.env.PORT || 3001;
 var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
@@ -61,7 +61,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(cors());
 
-app.use(validator());
+app.use(validator({
+  customValidators: {
+     isArray: function(value) {
+        return Array.isArray(value);
+     },
+     notEmpty: function(array) {
+        return array.length > 0;
+     },
+     gte: function(param, num) {
+        return param >= num;
+     }
+  }
+}));
 
 app.use(function(req, res, next) {
   req.io = io;

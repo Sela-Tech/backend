@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 
 
@@ -23,6 +24,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
+  timestamps: true ,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -33,7 +35,7 @@ var notificationStructure = {
     ref: "Project",
     autopopulate: {
       select:
-        "name activated _id, owner "
+        "name activated _id owner "
     }
   },
   user: {
@@ -66,14 +68,12 @@ var notificationStructure = {
     type:Boolean,
     default:false
   },
-  createdOn: {
-    type: Date,
-    default: Date.now()
-  },
-  updatedOn: {
-    type: Date,
-    default: Date.now()
+  action:{
+    type:String,
+    enum:["ACCEPTED","REJECTED", "APPROVED", "REQUIRED", "NOT_REQUIRED"],
+    default:"NOT_REQUIRED"
   }
+  
 };
 
 
@@ -88,7 +88,8 @@ if (process.env.NODE_ENV === "development") {
 //   collection: "notifications"
 // });
   
-var notificationSchema = new Schema(notificationStructure,{ timestamps: true });
+var notificationSchema = new Schema(notificationStructure,schemaOptions);
 notificationSchema.plugin(autoPopulate);
+notificationSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Notification", notificationSchema);

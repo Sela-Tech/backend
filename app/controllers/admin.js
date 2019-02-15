@@ -3,6 +3,7 @@ require("dotenv").config();
 var jwt = require("jsonwebtoken");
 var mongoose = require("mongoose");
 var User = mongoose.model("User");
+var Project = mongoose.model("Project");
 var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 
 exports.login = (req, res) => {
@@ -62,7 +63,7 @@ exports.login = (req, res) => {
   });
 };
 
-exports.activate_user = async (req, res) => {};
+exports.activate_user = async (req, res) => { };
 
 exports.find = async (req, res) => {
   let users = await User.find(
@@ -119,3 +120,53 @@ exports.revoke = async (req, res) => {
     });
   }
 };
+
+
+exports.deleteProject = async (req, res) => {
+  let projectId = req.query.id;
+
+  try {
+    if(projectId && projectId!==null){
+      let project= await Project.findById(projectId);
+      if(!project){
+        return res.status(404).json({ message: `Project doesn't exist` });
+      }
+  
+      await project.remove();
+      return res.status(200).json({message:"Project deleted successfully"})
+    }else{
+      await Project.remove({});
+      return res.status(200).json({message:"Projects deleted successfully"})
+
+    }
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: `internal server error` })
+
+  }
+}
+
+exports.deleteUser= async (req, res)=>{
+  let userId = req.query.id;
+
+  try {
+    if(userId && userId!==null){
+      let user= await User.findById(userId);
+      if(!user){
+        return res.status(404).json({ message: `User doesn't exist` });
+      }
+  
+      await user.remove();
+      return res.status(200).json({message:"User deleted successfully"})
+    }else{
+      await user.remove({});
+      return res.status(200).json({message:"Users deleted successfully"})
+    }
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: `internal server error` })
+
+  }
+}

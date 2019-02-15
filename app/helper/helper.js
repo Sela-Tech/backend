@@ -17,14 +17,21 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 class Helper {
 
-    getRole(req) {
-        const roles = req.roles;
+    getRole(data) {
+        const roles= ['Funder', 'Contractor', 'Evaluator']
 
-        let role = Object.keys(roles).filter(k => roles[k] === true);
-
-        if (role.length > 1) {
-            return role[0];
+        let user ={
+            isFunder:data.isFunder,
+            isContractor:data.isContractor,
+            isEvaluator :data.isEvaluator
         }
+
+        let role = Object.keys(user).filter(k => user[k] === true);
+
+      let userRole = roles.find((r)=>{
+            return r = role[0].includes(r);
+        });
+        return userRole;
 
     }
 
@@ -59,17 +66,30 @@ class Helper {
     * @memberof Helpers
     */
    async shouldAddContractor(stakeHolders, pStakeholder){
-        const MAX_CONTRACTOR_ALLOWED = 1;
-        let users = await User.find({_id:[...stakeHolders]});
-        let newContractorsCount  = users.filter(u=>u.isContractor===true);
+         const MAX_CONTRACTOR_ALLOWED = 1;
 
+        if (pStakeholder ===null){
+            let users = await User.find({_id:[...stakeHolders]});
+            let newContractorsCount  = users.filter(u=>u.isContractor===true);
 
-        let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
+            if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
+
+            return true;
+
+        }else{
+            let users = await User.find({_id:[...stakeHolders]});
+            let newContractorsCount  = users.filter(u=>u.isContractor===true);
+    
+    
+            let pContractorCount = pStakeholder.filter(s=>s.user.information.isContractor === true );
+            
+            if(pContractorCount.length > 0 && newContractorsCount.length>0){return false}
+            if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
+    
+            return true;
+        }
+
         
-        if(pContractorCount.length > 0 && newContractorsCount.length>0){return false}
-        if(newContractorsCount.length > MAX_CONTRACTOR_ALLOWED){return false};
-
-        return true;
 
     }
 

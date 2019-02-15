@@ -2,7 +2,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose"),
     Notificate = mongoose.model("Notification");
-  const User = mongoose.model("User");
+const User = mongoose.model("User");
 
 
 /**
@@ -25,7 +25,7 @@ class Notifications {
     static async getUserNotifications(req, res) {
         let user = req.userId
         try {
-            let notifications = await Notificate.find({ user});
+            let notifications = await Notificate.find({ user }).sort({ createdAt: -1 });
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -39,9 +39,10 @@ class Notifications {
                             name: n.project.name,
                             id: n.project._id
                         },
-                        type:n.type,
-                        createdOn:n.createdOn,
-                        updatedOn:n.updatedOn
+                        type: n.type,
+                        action: n.action,
+                        createdOn: n.createdAt,
+                        updatedOn: n.updatedAt
 
                     }
                 });
@@ -82,10 +83,10 @@ class Notifications {
         try {
             if (ids && ids.length > 0) {
 
-                let notifications = await Notificate.updateMany({_id: [...ids] }, { $set: { read: true } });
+                let notifications = await Notificate.updateMany({ _id: [...ids] }, { $set: { read: true } });
 
                 if (Boolean(notifications.n)) {
-                    return res.status(200).json({successRes});
+                    return res.status(200).json({ successRes });
                 }
 
             } else {
@@ -93,8 +94,8 @@ class Notifications {
             }
         } catch (error) {
             console.log(error)
-            failRes.message="Internal server error"
-            return res.status(500).json({failRes});
+            failRes.message = "Internal server error"
+            return res.status(500).json({ failRes });
         }
 
     }
@@ -109,10 +110,10 @@ class Notifications {
      * @returns
      * @memberof Notifications
      */
-    static async getUserNViaSocket(data){
-        const user= data.userId;
+    static async getUserNViaSocket(data) {
+        const user = data.userId;
         try {
-            let notifications = await Notificate.find({ user, read:false });
+            let notifications = await Notificate.find({ user, read: false });
 
             if (notifications.length > 0) {
                 notifications = notifications.map((n) => {
@@ -126,9 +127,10 @@ class Notifications {
                             name: n.project.name,
                             id: n.project._id
                         },
-                        type:n.type,
-                        createdOn:n.createdOn,
-                        updatedOn:n.updatedOn
+                        type: n.type,
+                        action: n.action,
+                        createdOn: n.createdAt,
+                        updatedOn: n.updatedAt
 
                     }
 
