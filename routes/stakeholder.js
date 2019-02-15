@@ -7,9 +7,9 @@ module.exports = function(app) {
   //real routes
   app
     .route("/stakeholder/projects")
-    .get(verifyToken, stakeholder.getCollaboratedProjects);
+    .get(verifyToken, stakeholder.getStakeHolderJoinedProjects);
 
-    app.route("/project/:id/accept").put(verifyToken, stakeholder.confirmAccpetance);
+    app.route("/project/:id/accept").put(verifyToken, stakeholder.acceptOrRejectInvitationToJoinProject);
 
     app.route("/project/request-to-join").post(verifyToken, stakeholder.requestToJoinP);
 };

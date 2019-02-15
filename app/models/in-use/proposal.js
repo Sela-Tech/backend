@@ -37,7 +37,7 @@ var proposalStructure = {
         ref: "Project",
         autopopulate: {
             select:
-                "name activated _id, owner "
+                "name activated _id, owner stakeholders"
         }
     },
 
@@ -71,7 +71,7 @@ var proposalStructure = {
     },
     status:{
         type:String,
-        enum:["IN-REVIEW", "DECLINED", "APPROVED"],
+        enum:["IN-REVIEW", "DECLINED", "APPROVED","REVERTED"],
         default:"IN-REVIEW"
     }
 };

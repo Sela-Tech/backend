@@ -423,7 +423,7 @@ class Projects {
     try {
       // check if project exists
       let project = await Project.findById(req.params.id)
-        
+
 
       if (!project) {
         return res.status(404).json({ message: "Project does not exist" });
@@ -431,7 +431,7 @@ class Projects {
 
       // check if he a stakeholder on the project
       let isProjectStakeholder = project.stakeholders.some(c => c.user.information._id.toString() === req.userId && c.user.status === 'ACCEPTED')
-     
+
       // check if contractor has submitted a proposal already
 
       let hasSubmitted;

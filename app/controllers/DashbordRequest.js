@@ -399,13 +399,8 @@ class Dashboard {
         let joinedProjects = await this.fetchJoinedProjects(req, res);
         let areasOfInterest = await this.fetchAreaOfInterestP(req, res);
 
-        // if (req.roles.includes('isFunder')) {
         return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
-        // } else if (req.roles.includes('isContractor') || req.roles.includes('isEvaluator')) {
-        // return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
-
-        // }
 
     }
 
@@ -437,8 +432,8 @@ class Dashboard {
                 return res.status(200).json({ result: joinedProjects });
 
             case 'i':
-                let areaOfInterest = await new Dashboard().fetchAreaOfInterestP(req, res);
-                return res.status(200).json({ result: { areaOfInterest: areaOfInterest } })
+                let areasOfInterest = await new Dashboard().fetchAreaOfInterestP(req, res);
+                return res.status(200).json({ result: { areasOfInterest: areasOfInterest } })
 
             default:
                 break;
