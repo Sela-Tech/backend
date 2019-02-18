@@ -1072,7 +1072,7 @@ const emailTemplates = {
                           margin: 25px 0;
                           color: #222829;
                           font-weight: 500;
-                          "> Hello, Dotun </p>
+                          "> Hello, ${project.owner.firstName} </p>
                         
                         <div class="img-container">
                           <img src=${user.photo || "http://placehold.it/50"} alt='50'/>
