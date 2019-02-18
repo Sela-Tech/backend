@@ -921,7 +921,7 @@ const emailTemplates = {
                       
                       <div style="margin: 15px auto; text-align: center;">
                             <a 
-                            href="${host}/projects/${project._id}/description"
+                            href="${host}/dashboard/notifications"
                             style="
                                 width: auto;
                                 height: 40px;
@@ -978,7 +978,7 @@ const emailTemplates = {
     </html>`
   },
 
-  acceptInvite:()=>{
+  stakeholderInvitationStatus:(host,msg, project, user)=>{
       return `<!DOCTYPE html>
       <html lang="en">
       <head>
@@ -1075,14 +1075,13 @@ const emailTemplates = {
                           "> Hello, Dotun </p>
                         
                         <div class="img-container">
-                          <img src="http://placehold.it/50" alt='50'/>
+                          <img src=${user.photo || "http://placehold.it/50"} alt='50'/>
                         </div>
-                        // beginning of difference
-                        <p  class='text'> <strong>Timothy Keller</strong> has accepted your invite to join the <strong>Lagos 250 Housing Units Project</strong></p>
+                        <p  class='text'> <strong>${user.name}</strong> ${msg} <strong>${project.name}</strong></p>
                         
                         <div style="margin: 15px auto; text-align: center;">
                               <a 
-                              href='#'
+                              href="${host}/dashboard/project/${project._id}/overview"
                               style="
                                   width: auto;
                                   height: 40px;
@@ -1098,7 +1097,6 @@ const emailTemplates = {
                                   font-weight: 300;
                               ">View Project</a>
                           </div>
-                          //end of difference
                        
                   </td>
               </tr>

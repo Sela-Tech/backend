@@ -50,12 +50,12 @@ var proposalStructure = {
         }
     }],
 
-    // tasks: [{
+    // tasksNotInMilestone: [{
     //     type: ObjectId,
     //     ref: "Task",
     //     autopopulate: {
     //         select:
-    //             "name description _id assignedTo status"
+    //             "name description _id assignedTo status estimatedCost"
     //     }
     // }],
     proposedBy: {

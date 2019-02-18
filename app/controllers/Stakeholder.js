@@ -127,6 +127,7 @@ class Stakeholder {
 
                     const notificationData = {
                         stakeholderName: req.decodedTokenData.firstName + ' ' + req.decodedTokenData.lastName,
+                        stakeHolderPhoto:req.decodedTokenData.profilePhoto,
                         stakeholderId: userId,
                         project,
                         agreed,

@@ -96,9 +96,15 @@ class Notifications {
         let accepted = `${data.stakeholderName} has accepted your invite to join the "${data.project.name}" project`;
         let rejected = `${data.stakeholderName} declined your invite to join the "${data.project.name}" project`;
 
+        let msgTemplate = '';
+        let msgTemplateAccepted = 'has accepted your invite to join the'
+        let msgTemplateRejected = 'declined your invite to join the';
+
         data.agreed === true ? message = accepted : message = rejected;
 
         data.agreed === true ? type = acceptInvite : type = rejectInvite;
+
+        data.agreed === true ? msgTemplate = msgTemplateAccepted : msgTemplate = msgTemplateRejected;
 
         const notifObj = {
             project: data.project._id,
@@ -126,11 +132,15 @@ class Notifications {
                     }
                 }
 
+                const user={
+                    name:data.stakeholderName,
+                    photo:data.stakeHolderPhoto
+                };
                 const msg = {
                     to: `${data.project.owner.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                     subject: "Project Invitation Status",
-                    text: message
+                    text: EmailTemplates.stakeholderInvitationStatus(getHost(req), msgTemplate, data.project, user)
                 };
 
 
@@ -286,6 +296,10 @@ class Notifications {
             console.log(error)
         }
 
+
+    }
+
+    static async notifyOnSubmitProposal(req, project, proposal) {
 
     }
 
