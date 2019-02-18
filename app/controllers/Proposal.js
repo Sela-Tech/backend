@@ -49,13 +49,35 @@ class Proposals {
                 }
 
                 let milestones = await Milestone.find({ project: projectId, createdBy: req.userId });
-                if (milestones.length < 1) {
+                let tasks = await Task.find({project: projectId, createdBy:req.userId });
+                
+
+                if (milestones.length < 1 || tasks.length<1) {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
                 }
 
 
-                let milestonesIds = milestones.map(milstone => milstone._id)
+                let taskIds = tasks.map(task=>task._id.toString());
 
+                let tasksIdFromMilestones = milestones.map((m)=>{
+                     return m.tasks.map((t)=>{
+                       return t._id.toString();
+                    });
+                });
+                
+                 tasksIdFromMilestones= Array.prototype.concat.apply([], tasksIdFromMilestones);
+
+                // const difference = taskIds.filter(t=>!tasksIdFromMilestones.includes(t));
+
+                //check if all tasks has been added to milestones
+                const difference = _.difference(taskIds, tasksIdFromMilestones);
+
+                // cannot submit a proposal if tasks are yet to be groupd to milestones
+                if(difference.length>0){
+                    return res.status(403).json({message:"All tasks should be grouped into milestones"})
+                }
+
+                let milestonesIds = milestones.map(milestone => milestone._id);
                 const proposalObj = {
                     project: projectId,
                     milestones: [...milestonesIds],
@@ -65,7 +87,7 @@ class Proposals {
                 let proposal = await new Proposal(proposalObj).save();
 
                 // send notification to project owner
-                return res.status(200).json({ proposal });
+                return res.status(201).json({ proposal });
             }
             return res.status(403).json({ message: "Only contractors are allowed to submit proposals" })
             // }

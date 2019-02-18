@@ -104,7 +104,7 @@ class Milestones {
                         lastName: milestone.createdBy.lastName
                     },
                     completed: milestone.completed,
-                    // estimatedCost: milestone.estimatedCost,
+                    estimatedCost: milestone.tasks.map(t=>t.estimatedCost).reduce((y,z)=>y+z),
                     createdAt: milestone.createdAt,
                     updatedAt: milestone.updatedAt,
                     tasks: milestone.tasks.map((t) => {
@@ -155,6 +155,12 @@ class Milestones {
     static async allMilestones(req, res) {
         let projectId = req.query.project;
         try {
+            let project = await Project.findById(projectId);
+            if(!project || project ===null){
+                return res.status(404).json({message:'Project Not found.'});
+            }
+
+
             let milestones = await Milestone.find({ project: projectId });
 
             if (Boolean(milestones) && Boolean(milestones.length > 0)) {
@@ -169,7 +175,7 @@ class Milestones {
                             lastName: m.createdBy.lastName
                         },
                         completed: m.completed,
-                        // estimatedCost: m.estimatedCost,
+                        estimatedCost: m.tasks.map(t=>t.estimatedCost).reduce((y,z)=>y+z),
                         createdAt: m.createdAt,
                         updatedAt: m.updatedAt,
                         tasks: m.tasks.map((t) => {
