@@ -921,7 +921,7 @@ const emailTemplates = {
                       
                       <div style="margin: 15px auto; text-align: center;">
                             <a 
-                            href="${host}/projects/${project._id}/description"
+                            href="${host}/dashboard/notifications"
                             style="
                                 width: auto;
                                 height: 40px;
