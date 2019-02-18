@@ -24,7 +24,7 @@ var userStructure = {
   },
   profilePhoto: {
     type: String,
-    default:"http://placehold.it/200"
+    default:"http://placehold.it/50"
   },
   profilePhotoKey: {
     type: String
