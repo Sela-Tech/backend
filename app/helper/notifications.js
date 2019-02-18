@@ -140,7 +140,7 @@ class Notifications {
                     to: `${data.project.owner.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                     subject: "Project Invitation Status",
-                    text: EmailTemplates.stakeholderInvitationStatus(getHost(req), msgTemplate, data.project, user)
+                    html: EmailTemplates.stakeholderInvitationStatus(getHost(req), msgTemplate, data.project, user)
                 };
 
 
@@ -300,7 +300,11 @@ class Notifications {
     }
 
     static async notifyOnSubmitProposal(req, project, proposal) {
-
+        try {
+            
+        } catch (error) {
+            console.log(error);
+        }
     }
 
 }
