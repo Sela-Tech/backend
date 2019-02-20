@@ -103,6 +103,10 @@ var taskStructure = {
     type: Number,
     default: 0
   },
+  isInMilestone:{
+    type:Boolean,
+    default:false
+  }
   // createdOn: {
   //   type: Date,
   //   default: Date.now()

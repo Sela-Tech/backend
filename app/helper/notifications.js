@@ -132,9 +132,9 @@ class Notifications {
                     }
                 }
 
-                const user={
-                    name:data.stakeholderName,
-                    photo:data.stakeHolderPhoto
+                const user = {
+                    name: data.stakeholderName,
+                    photo: data.stakeHolderPhoto
                 };
                 const msg = {
                     to: `${data.project.owner.email}`,
@@ -299,9 +299,117 @@ class Notifications {
 
     }
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} project
+     * @param {*} proposal
+     * @memberof Notifications
+     */
     static async notifyOnSubmitProposal(req, project, proposal) {
+
+        const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} submitted a proposal for your project, "${project.name}"`;
+        const type = "NEW_PROPOSAL";
+
+        const notificationObj = {
+            project: project._id,
+            user: project.owner._id,
+            message,
+            stakeholder: req.userId,
+            type,
+            model: proposal._id,
+            onModel: "Proposal"
+        }
+
+        const msg = {
+            to: `${project.owner.email}`,
+            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+            subject: "New Proposal",
+            html: EmailTemplates.newProposal(getHost(req), project, req.decodedTokenData)
+        };
+
         try {
-            
+            let notification = await new Notification(notificationObj).save();
+
+            if (notification) {
+                if (project.owner.socket !== null) {
+                    if (req.io.sockets.connected[project.owner.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({ userId: project.owner._id })
+                        req.io.sockets.connected[project.owner.socket].emit('notifications', { notifications });
+                    }
+                }
+
+                await sgMail.send(msg);
+
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    static async acceptOrRejectProposal(req, project, proposal, isApproved, option) {
+        let type = '';
+        let approveProposal = "PROPOSAL_APPROVED";
+        let revertProposal = "PROPOSAL_REVERTED";
+
+        let message = '';
+        let approved = `${project.owner.firstName} ${project.owner.lastName} approved your proposal for the "${project.name}" project`;
+        let reverted = `${project.owner.firstName} ${project.owner.lastName} reverted your proposal for the "${project.name}" project`;
+
+        let msgTemplate = '';
+        let msgTemplateApproved = 'approved your proposal for the'
+        let msgTemplateReverted = 'reverted your proposal for the';
+
+        isApproved === true ? message = approved : message = reverted;
+
+        isApproved === true ? type = approveProposal : type = revertProposal;
+
+        isApproved === true ? msgTemplate = msgTemplateApproved : msgTemplate = msgTemplateReverted;
+
+        const notifObj = {
+            project: project._id,
+            user: proposal.proposedBy._id,
+            message,
+            stakeholder: project.owner._id,
+            type,
+            model: proposal._id,
+            onModel: "Proposal"
+        }
+
+        try {
+            if (option !== null) {
+                await Notification.updateOne({ project: project._id, user: proposal.proposedBy._id, stakeholder: project.owner._id, type: "INVITATION_TO_JOIN_PROJECT" },
+                    { $set: { action: "ACCEPTED" } }
+                )
+                // console.log('ran this code');
+            }
+
+            let notification = await new Notification(notifObj).save();
+            if (notification) {
+                if (proposal.proposedBy.socket !== null) {
+                    if (req.io.sockets.connected[proposal.proposedBy.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({ userId: proposal.proposedBy._id })
+                        req.io.sockets.connected[proposal.proposedBy.socket].emit('notifications', { notifications });
+                    }
+                }
+
+
+                const msg = {
+                    to: `${proposal.proposedBy.email}`,
+                    from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+                    subject: "Proposal Status",
+                    html: EmailTemplates.proposalStatus(getHost(req), msgTemplate, project, proposal.proposedBy)
+                };
+
+
+                await sgMail.send(msg);
+
+            }
         } catch (error) {
             console.log(error);
         }

@@ -39,6 +39,8 @@ class Notifications {
                             name: n.project.name,
                             id: n.project._id
                         },
+                        model:n.model,
+                        onModel:n.onModel,
                         type: n.type,
                         action: n.action,
                         createdOn: n.createdAt,
@@ -129,6 +131,8 @@ class Notifications {
                         },
                         type: n.type,
                         action: n.action,
+                        model:n.model,
+                        onModel:n.onModel,
                         createdOn: n.createdAt,
                         updatedOn: n.updatedAt
 

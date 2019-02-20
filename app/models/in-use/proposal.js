@@ -46,7 +46,7 @@ var proposalStructure = {
         ref: "Milestone",
         autopopulate: {
             select:
-                "title createdBy completed estimastedCost _id"
+                "title createdBy completed _id"
         }
     }],
 
@@ -58,11 +58,12 @@ var proposalStructure = {
     //             "name description _id assignedTo status estimatedCost"
     //     }
     // }],
+
     proposedBy: {
         type: ObjectId,
         ref: "User", autopopulate: {
             select:
-                "firstName lastName _id"
+                "firstName lastName _id socket email "
         }
     },
     approved: {
@@ -73,7 +74,28 @@ var proposalStructure = {
         type:String,
         enum:["IN-REVIEW", "DECLINED", "APPROVED","REVERTED"],
         default:"IN-REVIEW"
-    }
+    },
+    comments: [
+        {
+          actor: {
+              type: ObjectId,
+              ref: "User",
+              required: true,
+              autopopulate: {
+                select:
+                  "isFunder isContractor isEvaluator firstName lastName  _id  profilePhoto "
+              }
+            },
+            comment: {
+              type: String,
+              default: ""
+            },
+            createdAt:{
+                type:Date,
+                default:Date.now()
+            }
+          }
+      ],
 };
 
 

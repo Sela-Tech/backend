@@ -7,7 +7,7 @@ const mongoose = require("mongoose"),
     Milestone = mongoose.model('Milestone');
 const validate = require('../../middleware/validate');
 const _ = require('lodash');
-
+const noticate = require('../helper/notifications');
 
 class Proposals {
 
@@ -49,23 +49,23 @@ class Proposals {
                 }
 
                 let milestones = await Milestone.find({ project: projectId, createdBy: req.userId });
-                let tasks = await Task.find({project: projectId, createdBy:req.userId });
-                
+                let tasks = await Task.find({ project: projectId, createdBy: req.userId });
 
-                if (milestones.length < 1 || tasks.length<1) {
+
+                if (milestones.length < 1 || tasks.length < 1) {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
                 }
 
 
-                let taskIds = tasks.map(task=>task._id.toString());
+                let taskIds = tasks.map(task => task._id.toString());
 
-                let tasksIdFromMilestones = milestones.map((m)=>{
-                     return m.tasks.map((t)=>{
-                       return t._id.toString();
+                let tasksIdFromMilestones = milestones.map((m) => {
+                    return m.tasks.map((t) => {
+                        return t._id.toString();
                     });
                 });
-                
-                 tasksIdFromMilestones= Array.prototype.concat.apply([], tasksIdFromMilestones);
+
+                tasksIdFromMilestones = Array.prototype.concat.apply([], tasksIdFromMilestones);
 
                 // const difference = taskIds.filter(t=>!tasksIdFromMilestones.includes(t));
 
@@ -73,8 +73,8 @@ class Proposals {
                 const difference = _.difference(taskIds, tasksIdFromMilestones);
 
                 // cannot submit a proposal if tasks are yet to be groupd to milestones
-                if(difference.length>0){
-                    return res.status(403).json({message:"All tasks should be grouped into milestones"})
+                if (difference.length > 0) {
+                    return res.status(403).json({ message: "All tasks should be grouped into milestones" })
                 }
 
                 let milestonesIds = milestones.map(milestone => milestone._id);
@@ -87,6 +87,8 @@ class Proposals {
                 let proposal = await new Proposal(proposalObj).save();
 
                 // send notification to project owner
+                await noticate.notifyOnSubmitProposal(req, project, proposal);
+
                 return res.status(201).json({ proposal });
             }
             return res.status(403).json({ message: "Only contractors are allowed to submit proposals" })
@@ -163,7 +165,7 @@ class Proposals {
      * @static
      * @param {*} req
      * @param {*} res
-     * @returns
+     * @returns {object}
      * @memberof Proposals
      */
     static async getContractorProposals(req, res) {
@@ -275,6 +277,8 @@ class Proposals {
 
                         await Project.updateOne({ _id: projectId }, { $push: { proposals: { _id: proposal._id } } });
                         // send notification here
+
+                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, null);
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
                     case "PENDING":
@@ -290,6 +294,8 @@ class Proposals {
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
+                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, projectStakeholder.user.status);
+
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
 
@@ -306,6 +312,8 @@ class Proposals {
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
+                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, projectStakeholder.user.status)
+
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
                     default:
@@ -324,6 +332,8 @@ class Proposals {
             let project = await Project.findById(projectId);
             project.proposals.pull({ _id: proposal._id });
             await project.save();
+
+            await noticate.acceptOrRejectProposal(req, project, proposal, approved, null)
 
             return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal reverted.` })
         } catch (error) {
