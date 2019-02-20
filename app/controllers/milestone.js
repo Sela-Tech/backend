@@ -42,8 +42,8 @@ class Milestones {
         try {
 
             //use access control instead of the block of code immediately below
-            if(!req.roles.includes('isContractor')){
-                return res.status(403).json({message:"forbidden"})
+            if (!req.roles.includes('isContractor')) {
+                return res.status(403).json({ message: "forbidden" })
             }
             const { body: { title, tasks, projectId } } = req;
             let uniqTasks = _.uniq(tasks);
@@ -64,6 +64,9 @@ class Milestones {
             }
 
             let milestone = await new Milestone(milestoneObj).save();
+
+            await Task.updateMany({ _id: [...taskIds] }, { $set: { isInMilestone: true } });
+
             if (milestone) {
                 return res.status(201).json({ success: successRes.success, milestone })
             }
@@ -104,7 +107,7 @@ class Milestones {
                         lastName: milestone.createdBy.lastName
                     },
                     completed: milestone.completed,
-                    estimatedCost: milestone.tasks.map(t=>t.estimatedCost).reduce((y,z)=>y+z),
+                    estimatedCost: milestone.tasks.map(t => t.estimatedCost).reduce((y, z) => y + z),
                     createdAt: milestone.createdAt,
                     updatedAt: milestone.updatedAt,
                     tasks: milestone.tasks.map((t) => {
@@ -156,8 +159,8 @@ class Milestones {
         let projectId = req.query.project;
         try {
             let project = await Project.findById(projectId);
-            if(!project || project ===null){
-                return res.status(404).json({message:'Project Not found.'});
+            if (!project || project === null) {
+                return res.status(404).json({ message: 'Project Not found.' });
             }
 
 
@@ -175,7 +178,7 @@ class Milestones {
                             lastName: m.createdBy.lastName
                         },
                         completed: m.completed,
-                        estimatedCost: m.tasks.map(t=>t.estimatedCost).reduce((y,z)=>y+z),
+                        estimatedCost: m.tasks.map(t => t.estimatedCost).reduce((y, z) => y + z),
                         createdAt: m.createdAt,
                         updatedAt: m.updatedAt,
                         tasks: m.tasks.map((t) => {
@@ -224,7 +227,7 @@ class Milestones {
      * @param {*} res
      * @memberof Milestones
      */
-    static async updateMilestone(req, res){
+    static async updateMilestone(req, res) {
 
     }
 
@@ -237,7 +240,7 @@ class Milestones {
      * @param {*} res
      * @memberof Milestones
      */
-    static async deleteMilestone(req, res){
+    static async deleteMilestone(req, res) {
 
     }
 }

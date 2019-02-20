@@ -1,7 +1,7 @@
 const emailTemplates = {
 
-  confirmEmail: (host, token) => {
-    return `<!DOCTYPE html>
+    confirmEmail: (host, token) => {
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -130,10 +130,10 @@ const emailTemplates = {
     </table>  
 </body>
 </html>`
-  },
+    },
 
-  welcomeEmail: (host, name) => {
-    return `<!DOCTYPE html>
+    welcomeEmail: (host, name) => {
+        return `<!DOCTYPE html>
 
         <html lang="en">
         
@@ -365,10 +365,10 @@ const emailTemplates = {
         </body>
         
         </html>`
-  },
+    },
 
-  requestResetPassword: (host, user, token) => {
-    return `<!DOCTYPE html>
+    requestResetPassword: (host, user, token) => {
+        return `<!DOCTYPE html>
 
         <html lang="en">
         
@@ -603,10 +603,10 @@ const emailTemplates = {
         </body>
         
         </html>`
-  },
+    },
 
-  resetPasswordSuccess: (user) => {
-    return `<!DOCTYPE html>
+    resetPasswordSuccess: (user) => {
+        return `<!DOCTYPE html>
 
       <html lang="en">
       
@@ -815,10 +815,10 @@ const emailTemplates = {
       </body>
       
       </html>`
-  },
+    },
 
-  inviteToJoinProject:(host, project, user)=>{
-    return `<!DOCTYPE html>
+    inviteToJoinProject: (host, project, user) => {
+        return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -976,10 +976,10 @@ const emailTemplates = {
         </table>  
     </body>
     </html>`
-  },
+    },
 
-  stakeholderInvitationStatus:(host,msg, project, user)=>{
-      return `<!DOCTYPE html>
+    stakeholderInvitationStatus: (host, msg, project, user) => {
+        return `<!DOCTYPE html>
       <html lang="en">
       <head>
           <meta charset="UTF-8">
@@ -1133,7 +1133,322 @@ const emailTemplates = {
           </table>  
       </body>
       </html>`
-  }
+    },
+
+    newProposal: (host, project, user) => {
+        return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" type='text/css' href="https://sela-tech.github.io/assets/fonts/stylesheet.css" />
+        <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+        <style type="text/css">
+            html,body{
+            margin: 0;
+            font-family: 'Acumin Pro';
+            font-weight: 300;
+        }
+    
+        *{
+            outline: none;
+        }
+    
+        .text{
+            line-height: 22px;
+            font-size: 16px;
+            margin: 5px 0 25px;
+            color: #222829;
+            width: 75%;
+            float: left;
+        }
+    
+        .img-container {
+            width: 25%;
+            text-align: center;
+            float: left;
+            max-width: 60px;
+            
+        }
+    
+        
+        .img-container img{
+            display: block;
+            border-radius: 50%;
+            margin: auto;
+            float: left;
+        }
+    
+        button{
+            cursor: pointer;
+        }
+    
+        body {
+            height: 100%;
+            width: 100%;
+            background: #FAFAFA;
+        }
+        </style>
+    </head>
+    <body>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+            <tr>
+                <td 
+                    style='
+                    background: #f5f5f8;
+                    display: block;
+                    border: 0;
+                    padding: 15px;
+                '>
+                </td>
+            </tr>
+            <tr style='background: #FAFAFA;'>
+                <td bgcolor="#FFF" 
+                style='
+                 margin: 20px auto;
+                padding: 30px 7%;
+                width: 80%;
+                display: block;
+                border-radius: 5px;
+                box-sizing: border-box;
+                border: 0;
+                max-width: 600px;
+                '>
+                       <img 
+                        style='display: block;
+                        margin: auto;
+                        height: 35px;
+                        '
+                        src="https://sela-tech.github.io/assets/public-logo.png" alt="logo" />
+                        
+    
+                        <p style="
+                        line-height: 22px;
+                        font-size: 16px;
+                        margin: 25px 0;
+                        color: #222829;
+                        font-weight: 500;
+                        "> Hello, ${project.owner.firstName} </p>
+                      
+                      <div class="img-container">
+                        <img src=${user.profilePhoto || "http://placehold.it/50"} alt='50'/>
+                      </div>
+                      <p  class='text'> <strong>${user.firstName} ${user.lastName}</strong> submitted a proposal for your project, <strong>${project.name}</strong></p>
+                      
+                      <div style="margin: 15px auto; text-align: center;">
+                            <a 
+                            href="${host}/dashboard/project/${project._id}/overview"
+                            style="
+                                width: auto;
+                                height: 40px;
+                                line-height: 43px;
+                                background: #201D41;
+                                border-radius: 5px;
+                                color: white;
+                                font-size: 14px;
+                                padding: 0 20px;
+                                border: 0;
+                                display: inline-block;
+                                text-decoration: none;
+                                font-weight: 300;
+                            ">View Proposal</a>
+                        </div>
+                     
+                </td>
+            </tr>
+            
+                <tr>
+                    <td style='text-align: center;'>
+                        <p style=" margin: 14px 0;
+                        line-height: normal;
+                        font-size: 14px;
+                        color: #696F74;
+                        width: 80%;
+                        margin: auto;
+                        ">
+                            You are receiving this email because you signed up on <strong>Sela</strong>
+                        </p>
+                        <p 
+                            style='
+                        margin: 14px 0;
+                        line-height: normal;
+                        font-size: 12px;
+                        color: #696F74;
+                        '>Copyright &copy; Sela, All Rights Reserved</p>
+                
+                        <p  style='
+                        margin: 14px 0;
+                        line-height: normal;
+                        font-size: 12px;
+                        color: #696F74;
+                        '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+    
+                    </td>
+                </tr>
+                
+        </table>  
+    </body>
+    </html>`
+    },
+
+   
+    proposalStatus: (host, msg, project, proposedBy) => {
+        return `<!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta http-equiv="X-UA-Compatible" content="ie=edge">
+          <link rel="stylesheet" type='text/css' href="https://sela-tech.github.io/assets/fonts/stylesheet.css" />
+          <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+          <style type="text/css">
+              html,body{
+              margin: 0;
+              font-family: 'Acumin Pro';
+              font-weight: 300;
+          }
+      
+          *{
+              outline: none;
+          }
+      
+          .text{
+              line-height: 22px;
+              font-size: 16px;
+              margin: 5px 0 25px;
+              color: #222829;
+              width: 75%;
+              float: left;
+          }
+      
+          .img-container {
+              width: 25%;
+              text-align: center;
+              float: left;
+              max-width: 60px;
+              
+          }
+      
+          
+          .img-container img{
+              display: block;
+              border-radius: 50%;
+              margin: auto;
+              float: left;
+          }
+      
+          button{
+              cursor: pointer;
+          }
+      
+          body {
+              height: 100%;
+              width: 100%;
+              background: #FAFAFA;
+          }
+          </style>
+      </head>
+      <body>
+          <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+              <tr>
+                  <td 
+                      style='
+                      background: #f5f5f8;
+                      display: block;
+                      border: 0;
+                      padding: 15px;
+                  '>
+                  </td>
+              </tr>
+              <tr style='background: #FAFAFA;'>
+                  <td bgcolor="#FFF" 
+                  style='
+                   margin: 20px auto;
+                  padding: 30px 7%;
+                  width: 80%;
+                  display: block;
+                  border-radius: 5px;
+                  box-sizing: border-box;
+                  border: 0;
+                  max-width: 600px;
+                  '>
+                         <img 
+                          style='display: block;
+                          margin: auto;
+                          height: 35px;
+                          '
+                          src="https://sela-tech.github.io/assets/public-logo.png" alt="logo" />
+                          
+      
+                          <p style="
+                          line-height: 22px;
+                          font-size: 16px;
+                          margin: 25px 0;
+                          color: #222829;
+                          font-weight: 500;
+                          "> Hello, ${proposedBy.firstName} </p>
+                        
+                        <div class="img-container">
+                          <img src=${project.owner.profilePhoto || "http://placehold.it/50"} alt='50'/>
+                        </div>
+                        <p  class='text'> <strong>${project.owner.firstName} ${project.owner.lastName}</strong> ${msg} <strong>${project.name} project</strong></p>
+                        
+                        <div style="margin: 15px auto; text-align: center;">
+                              <a 
+                              href="${host}/dashboard/proposal/${proposedBy._id}"
+                              style="
+                                  width: auto;
+                                  height: 40px;
+                                  line-height: 43px;
+                                  background: #201D41;
+                                  border-radius: 5px;
+                                  color: white;
+                                  font-size: 14px;
+                                  padding: 0 20px;
+                                  border: 0;
+                                  display: inline-block;
+                                  text-decoration: none;
+                                  font-weight: 300;
+                              ">View Proposal</a>
+                          </div>
+                       
+                  </td>
+              </tr>
+              
+                  <tr>
+                      <td style='text-align: center;'>
+                          <p style=" margin: 14px 0;
+                          line-height: normal;
+                          font-size: 14px;
+                          color: #696F74;
+                          width: 80%;
+                          margin: auto;
+                          ">
+                              You are receiving this email because you signed up on <strong>Sela</strong>
+                          </p>
+                          <p 
+                              style='
+                          margin: 14px 0;
+                          line-height: normal;
+                          font-size: 12px;
+                          color: #696F74;
+                          '>Copyright &copy; Sela, All Rights Reserved</p>
+                  
+                          <p  style='
+                          margin: 14px 0;
+                          line-height: normal;
+                          font-size: 12px;
+                          color: #696F74;
+                          '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+      
+                      </td>
+                  </tr>
+                  
+          </table>  
+      </body>
+      </html>`
+    },
 }
 
 module.exports = emailTemplates;

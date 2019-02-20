@@ -61,7 +61,7 @@ var notificationStructure = {
   },
   type:{
     type:String,
-    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT",
+    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT","PROPOSAL_APPROVED", "PROPOSAL_REVERTED","PROPOSAL_REJECTED",
         "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN","NEW_PROPOSAL"]
   },
   read:{
@@ -76,7 +76,8 @@ var notificationStructure = {
   model:{
     type: Schema.Types.ObjectId,
     // will look at the `onModel` property to find the right model. e.g task, transaction, proposal e.t.c
-    refPath: 'onModel'
+    refPath: 'onModel',
+    autoPopulate:true
   },
   onModel: {
     type: String,
