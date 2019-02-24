@@ -27,6 +27,7 @@ var schemaOptions = {
         retainKeyOrder: true
     },
     timestamps:true,
+    usePushEach : true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };

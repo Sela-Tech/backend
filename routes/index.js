@@ -13,6 +13,7 @@ const milestone = require('./milestone');
 const dashboard = require("./dashboard");
 const proposal = require("./proposal");
 const retrieveCred = require("./cred");
+const comment = require("./comment");
 
 module.exports = function (app) {
   user(app);
@@ -30,4 +31,5 @@ module.exports = function (app) {
   dashboard(app);
   proposal(app);
   retrieveCred(app);
+  comment(app);
 };

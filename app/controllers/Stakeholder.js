@@ -203,11 +203,11 @@ class Stakeholder {
             let hasNotified = await notify.notifyRequestToJoinP(req, project);
 
             if (Boolean(hasNotified)) {
-                successRes.message = `Your request to join "${project.name}" has been sent`;
+                successRes.message = `Your request to join the "${project.name}" project has been sent`;
                 return res.status(200).json({ successRes });
             }
 
-            failRes.message = `Your request to join "${project.name}" is not successful`;
+            failRes.message = `Your request to join the"${project.name}" project was not successful`;
             return res.status(400).json({ failRes });
 
 

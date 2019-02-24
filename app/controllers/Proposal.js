@@ -23,12 +23,11 @@ class Proposals {
      */
 
     static async sendProposal(req, res) {
-        const { body: { projectId } } = req;
+        const { body: { projectId, comments } } = req;
 
         try {
 
             // check of project exist
-
             let project = await Project.findById(projectId);
 
             if (!project) {
@@ -84,8 +83,20 @@ class Proposals {
                     proposedBy: req.userId
                 }
 
+                if(comments && comments.length>0){
+                    proposalObj.comments=comments.map((comment)=>{
+                        return{
+                            actor:req.userId,
+                            comment:comment
+                        }
+                    })
+                }else{
+                    proposalObj.comments=[];
+                }
+
                 let proposal = await new Proposal(proposalObj).save();
 
+                
                 // send notification to project owner
                 await noticate.notifyOnSubmitProposal(req, project, proposal);
 
@@ -158,6 +169,62 @@ class Proposals {
         }
     }
 
+
+    static async getProposalDetail(req, res){
+        const { id } = req.params;
+        try {
+            let proposal = await Proposal.findById(id);
+            if(!proposal){
+                return res.status(404).json({message:"Proposal Not Found"});
+            }
+
+            proposal= {
+                id:proposal._id,
+                milestones:proposal.milestones.map((milestone)=>{
+                    return{
+                        id:milestone._id,
+                        title:milestone.title,
+                        completed:milestone.completed,
+                        totalBudget:milestone.tasks.map((task)=>{
+                            return task.estimatedCost;
+                        }).reduce((x,y)=>x+y),
+                        tasks:milestone.tasks.map((task)=>{
+                            return{
+                                id:task._id,
+                                name:task.name,
+                                description:task.description,
+                                estimatedCost:task.estimatedCost,
+                                dueDate:task.dueDate
+                            }
+                        })
+                    }
+                }),
+                status:proposal.status,
+                approved:proposal.approved,
+                comments:proposal.comments.map((comment)=>{
+                   return {
+                        actor:{
+                            id:comment.actor._id,
+                            firstName:comment.actor.firstName,
+                            lastName:comment.actor.lastName,
+                            profilePhoto:comment.actor.profilePhoto
+                        },
+                        comment:comment.comment,
+                        createdAt:comment.createdAt
+                    }
+                })
+            
+            }
+
+            return res.status(200).json({proposal});
+        } catch (error) {
+            console.log(error);
+            return res.status(501).json({
+                message: error.message
+            });
+        }
+
+    }
 
     /**
      *
