@@ -24,6 +24,6 @@ module.exports = function(app) {
 
   app.route("/user/area-of-interest").put(verifyToken, user_controller.updateAreaOfInterest);
   // app.route("/user/dashboard-request").get(verifyToken, user_controller.getDashboard);
-  app.route("/user/project/:id/save").post(verifyToken, user_controller.savePrject);
+  app.route("/user/project/:id/save").post(verifyToken, user_controller.saveProject);
 
 };

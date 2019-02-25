@@ -766,7 +766,7 @@ exports.updateAreaOfInterest = async (req, res) => {
   }
 }
 
-exports.savePrject=async(req, res)=>{
+exports.saveProject=async(req, res)=>{
   const projectId = req.params.id;
   try {
     const project = await Save.findOne({project:projectId, user:req.userId});

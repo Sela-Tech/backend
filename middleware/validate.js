@@ -87,6 +87,14 @@ const validator = {
     .notEmpty();
   },
 
+  validateAddComment(req, res){
+    req
+    .checkBody("comment",
+      "comment cannot be empty."
+    )
+    .notEmpty()
+  },
+
   // capitalize First letter
   capitalizeFirst(name) {
     return name.charAt(0).toUpperCase() + name.slice(1)

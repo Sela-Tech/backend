@@ -186,6 +186,9 @@ class Notifications {
         }
 
         try {
+            // check if the project owner is a contractor and the stakeholder is an evaluator
+            // if project owner is a contractor, send notifications to the funders in the project instead
+            // if there are no funders on the project what happens
             let notification = await new Notification(notifObj).save();
 
             if (notification) {

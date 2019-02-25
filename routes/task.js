@@ -11,6 +11,7 @@ module.exports = function(app) {
     .get(verifyToken, Tasks.allTasks);
 
   app.route("/tasks/:id").get(verifyToken,Tasks.singleTask);
+  app.route("/task/:id/update").put(verifyToken, Tasks.updateTask);
 
   //test routes
   // app
