@@ -23,7 +23,7 @@ class Proposals {
      */
 
     static async sendProposal(req, res) {
-        const { body: { projectId, comments } } = req;
+        let { body: { projectId, comments, milestones } } = req;
 
         try {
 
@@ -33,11 +33,7 @@ class Proposals {
             if (!project) {
                 return res.status(404).json({ message: 'Project Not Found.' })
             }
-            let available_contractor;
 
-            // if (project.stakeholders.length > 0) {
-            //     available_contractor = project.stakeholders.filter(s => s.user.information.isContractor === true);
-            //     let isProjectContractor = available_contractor.some(c => c.user.information._id.toString() === req.userId && c.user.status === 'ACCEPTED');
             if (req.roles.includes('isContractor')) {
 
 
@@ -47,56 +43,58 @@ class Proposals {
                     return res.status(403).json({ message: "You have already submitted a proposal for this project." })
                 }
 
-                let milestones = await Milestone.find({ project: projectId, createdBy: req.userId });
-                let tasks = await Task.find({ project: projectId, createdBy: req.userId });
 
-
-                if (milestones.length < 1 || tasks.length < 1) {
+                if (milestones.length < 1) {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
                 }
 
+                milestones= milestones.map(async (milestone) => {
+                    let tasks = milestone.tasks.map((task) => {
+                        task.assignedTo = req.userId;
+                        task.createdBy = req.userId;
+                        task.estimatedCost = task.amount;
+                        task.project = projectId;
+                        task.dueDate = task.deadline;
+                        task.status = 'ASSIGNED';
+                        task.isInMilestone = true;
+                        return task;
+                    })
 
-                let taskIds = tasks.map(task => task._id.toString());
+                    let taskIds = await Task.insertMany(tasks);
 
-                let tasksIdFromMilestones = milestones.map((m) => {
-                    return m.tasks.map((t) => {
-                        return t._id.toString();
-                    });
+                    milestone.createdBy = req.userId;
+                    milestone.title = milestone.name;
+                    milestone.project = projectId;
+                    milestone.tasks = [...taskIds];
+
+                    milestone= await new Milestone(milestone).save();
+                    return milestone;
                 });
 
-                tasksIdFromMilestones = Array.prototype.concat.apply([], tasksIdFromMilestones);
 
-                // const difference = taskIds.filter(t=>!tasksIdFromMilestones.includes(t));
+                // const mile = await Milestone.find({});
+               let milestonesIds = await Promise.all(milestones)
+               milestonesIds=milestonesIds.map(milestone=>milestone._id);
 
-                //check if all tasks has been added to milestones
-                const difference = _.difference(taskIds, tasksIdFromMilestones);
-
-                // cannot submit a proposal if tasks are yet to be groupd to milestones
-                if (difference.length > 0) {
-                    return res.status(403).json({ message: "All tasks should be grouped into milestones" })
-                }
-
-                let milestonesIds = milestones.map(milestone => milestone._id);
                 const proposalObj = {
                     project: projectId,
                     milestones: [...milestonesIds],
                     proposedBy: req.userId
                 }
 
-                if(comments && comments.length>0){
-                    proposalObj.comments=comments.map((comment)=>{
-                        return{
-                            actor:req.userId,
-                            comment:comment
+                if (comments && comments.length > 0) {
+                    proposalObj.comments = comments.map((comment) => {
+                        return {
+                            actor: req.userId,
+                            comment: comment
                         }
                     })
-                }else{
-                    proposalObj.comments=[];
+                } else {
+                    proposalObj.comments = [];
                 }
 
                 let proposal = await new Proposal(proposalObj).save();
 
-                
                 // send notification to project owner
                 await noticate.notifyOnSubmitProposal(req, project, proposal);
 
@@ -170,53 +168,53 @@ class Proposals {
     }
 
 
-    static async getProposalDetail(req, res){
+    static async getProposalDetail(req, res) {
         const { id } = req.params;
         try {
             let proposal = await Proposal.findById(id);
-            if(!proposal){
-                return res.status(404).json({message:"Proposal Not Found"});
+            if (!proposal) {
+                return res.status(404).json({ message: "Proposal Not Found" });
             }
 
-            proposal= {
-                id:proposal._id,
-                milestones:proposal.milestones.map((milestone)=>{
-                    return{
-                        id:milestone._id,
-                        title:milestone.title,
-                        completed:milestone.completed,
-                        totalBudget:milestone.tasks.map((task)=>{
+            proposal = {
+                id: proposal._id,
+                milestones: proposal.milestones.map((milestone) => {
+                    return {
+                        id: milestone._id,
+                        title: milestone.title,
+                        completed: milestone.completed,
+                        totalBudget: milestone.tasks.map((task) => {
                             return task.estimatedCost;
-                        }).reduce((x,y)=>x+y),
-                        tasks:milestone.tasks.map((task)=>{
-                            return{
-                                id:task._id,
-                                name:task.name,
-                                description:task.description,
-                                estimatedCost:task.estimatedCost,
-                                dueDate:task.dueDate
+                        }).reduce((x, y) => x + y),
+                        tasks: milestone.tasks.map((task) => {
+                            return {
+                                id: task._id,
+                                name: task.name,
+                                description: task.description,
+                                estimatedCost: task.estimatedCost,
+                                dueDate: task.dueDate
                             }
                         })
                     }
                 }),
-                status:proposal.status,
-                approved:proposal.approved,
-                comments:proposal.comments.map((comment)=>{
-                   return {
-                        actor:{
-                            id:comment.actor._id,
-                            firstName:comment.actor.firstName,
-                            lastName:comment.actor.lastName,
-                            profilePhoto:comment.actor.profilePhoto
+                status: proposal.status,
+                approved: proposal.approved,
+                comments: proposal.comments.map((comment) => {
+                    return {
+                        actor: {
+                            id: comment.actor._id,
+                            firstName: comment.actor.firstName,
+                            lastName: comment.actor.lastName,
+                            profilePhoto: comment.actor.profilePhoto
                         },
-                        comment:comment.comment,
-                        createdAt:comment.createdAt
+                        comment: comment.comment,
+                        createdAt: comment.createdAt
                     }
                 })
-            
+
             }
 
-            return res.status(200).json({proposal});
+            return res.status(200).json({ proposal });
         } catch (error) {
             console.log(error);
             return res.status(501).json({
