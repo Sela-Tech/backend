@@ -8,6 +8,14 @@ const mongoose = require("mongoose"),
 const validate = require('../../middleware/validate');
 const _ = require('lodash');
 const noticate = require('../helper/notifications');
+const { AccessControl } = require('accesscontrol');
+
+const grantsObject = require('../helper/access_control');
+const Helper = require('../helper/helper');
+
+
+const helper = new Helper();
+const ac = new AccessControl(grantsObject);
 
 class Proposals {
 
@@ -22,24 +30,27 @@ class Proposals {
      * @memberof Proposals
      */
 
-    static async sendProposal(req, res) {
+    static async submitProposal(req, res) {
         let { body: { projectId, comments, milestones } } = req;
 
-        try {
+        const role = helper.getRole(req.roles);
 
-            // check of project exist
-            let project = await Project.findById(projectId);
+        const permission = ac.can(role).createOwn('proposal').granted;
 
-            if (!project) {
-                return res.status(404).json({ message: 'Project Not Found.' })
-            }
+        if (permission) {
 
-            if (req.roles.includes('isContractor')) {
+            try {
 
+                // check of project exist
+                let project = await Project.findById(projectId);
+
+                if (!project) {
+                    return res.status(404).json({ message: 'Project Not Found.' })
+                }
 
                 let existingProposal = await Proposal.findOne({ project: projectId, proposedBy: req.userId });
 
-                if (existingProposal) {
+                if (existingProposal && role === 'Contractor') {
                     return res.status(403).json({ message: "You have already submitted a proposal for this project." })
                 }
 
@@ -48,15 +59,26 @@ class Proposals {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
                 }
 
-                milestones= milestones.map(async (milestone) => {
+                milestones = milestones.map(async (milestone) => {
                     let tasks = milestone.tasks.map((task) => {
-                        task.assignedTo = req.userId;
-                        task.createdBy = req.userId;
-                        task.estimatedCost = task.amount;
-                        task.project = projectId;
-                        task.dueDate = task.deadline;
-                        task.status = 'ASSIGNED';
-                        task.isInMilestone = true;
+
+                        if (req.userId === project.owner._id.toString()) {
+                            task.createdBy = req.userId;
+                            task.estimatedCost = task.amount;
+                            task.project = projectId;
+                            task.dueDate = task.deadline;
+                            task.status = 'UNASSIGNED';
+                            task.isInMilestone = true;
+                        } else {
+                            task.assignedTo = req.userId;
+                            task.createdBy = req.userId;
+                            task.estimatedCost = task.amount;
+                            task.project = projectId;
+                            task.dueDate = task.deadline;
+                            task.status = 'ASSIGNED';
+                            task.isInMilestone = true;
+                        }
+
                         return task;
                     })
 
@@ -67,14 +89,13 @@ class Proposals {
                     milestone.project = projectId;
                     milestone.tasks = [...taskIds];
 
-                    milestone= await new Milestone(milestone).save();
+                    milestone = await new Milestone(milestone).save();
                     return milestone;
                 });
 
 
-                // const mile = await Milestone.find({});
-               let milestonesIds = await Promise.all(milestones)
-               milestonesIds=milestonesIds.map(milestone=>milestone._id);
+                let milestonesIds = await Promise.all(milestones)
+                milestonesIds = milestonesIds.map(milestone => milestone._id);
 
                 const proposalObj = {
                     project: projectId,
@@ -95,22 +116,24 @@ class Proposals {
 
                 let proposal = await new Proposal(proposalObj).save();
 
-                // send notification to project owner
-                await noticate.notifyOnSubmitProposal(req, project, proposal);
+                if (req.userId !== project.owner._id.toString()) {
+                    // send notification to project owner
+                    await noticate.notifyOnSubmitProposal(req, project, proposal);
+                }
+
 
                 return res.status(201).json({ proposal });
+
+
+            } catch (error) {
+                console.log(error);
+                return res.status(501).json({
+                    message: error.message
+                });
             }
-            return res.status(403).json({ message: "Only contractors are allowed to submit proposals" })
-            // }
 
-            // return res.status(403).json({ message: "Become a stakeholder by joining the project" })
-
-
-        } catch (error) {
-            console.log(error);
-            return res.status(501).json({
-                message: error.message
-            });
+        } else {
+            return res.status(403).json({ message: "Forbidden" })
         }
 
     }
@@ -168,6 +191,17 @@ class Proposals {
     }
 
 
+
+
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Proposals
+     */
     static async getProposalDetail(req, res) {
         const { id } = req.params;
         try {

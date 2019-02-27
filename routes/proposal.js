@@ -6,7 +6,7 @@ const { Proposals } = require("../app/controllers/Proposal");
 module.exports = function (app) {
     app
         .route("/proposals")
-        .post(verifyToken, Proposals.sendProposal);
+        .post(verifyToken, Proposals.submitProposal);
 
         app.route("/project/:id/proposals").get(verifyToken, Proposals.getprojectProposals);
         app.route("/proposal/:id").put(verifyToken, Proposals.acceptOrRejectProposal);

@@ -68,14 +68,7 @@ var taskStructure = {
     ref: "User",
     default: null
   },
-  approvedByContractor: {
-    type: Boolean,
-    default: false
-  },
-  approvedByOwner: {
-    type: Boolean,
-    default: false
-  },
+  
   agentEvaluations: [
     {
       type: ObjectId,
@@ -107,14 +100,7 @@ var taskStructure = {
     type:Boolean,
     default:false
   }
-  // createdOn: {
-  //   type: Date,
-  //   default: Date.now()
-  // },
-  // updatedOn: {
-  //   type: Date,
-  //   default: Date.now()
-  // }
+ 
 };
 
 var schemaOptions = {
