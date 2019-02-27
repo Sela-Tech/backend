@@ -1135,7 +1135,7 @@ const emailTemplates = {
       </html>`
     },
 
-    newProposal: (host, project, user) => {
+    newProposal: (host, project, user,proposal) => {
         return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -1238,7 +1238,7 @@ const emailTemplates = {
                       
                       <div style="margin: 15px auto; text-align: center;">
                             <a 
-                            href="${host}/dashboard/project/${project._id}/overview"
+                            href="${host}/dashboard/proposal/${proposal._id}"
                             style="
                                 width: auto;
                                 height: 40px;
@@ -1293,7 +1293,7 @@ const emailTemplates = {
     },
 
    
-    proposalStatus: (host, msg, project, proposedBy) => {
+    proposalStatus: (host, msg, project, proposedBy, proposal) => {
         return `<!DOCTYPE html>
       <html lang="en">
       <head>
@@ -1396,7 +1396,7 @@ const emailTemplates = {
                         
                         <div style="margin: 15px auto; text-align: center;">
                               <a 
-                              href="${host}/dashboard/proposal/${proposedBy._id}"
+                              href="${host}/dashboard/proposal/${proposal._id}"
                               style="
                                   width: auto;
                                   height: 40px;

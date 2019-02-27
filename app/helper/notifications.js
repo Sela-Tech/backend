@@ -335,7 +335,7 @@ class Notifications {
             to: `${project.owner.email}`,
             from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
             subject: "New Proposal",
-            html: EmailTemplates.newProposal(getHost(req), project, req.decodedTokenData)
+            html: EmailTemplates.newProposal(getHost(req), project, req.decodedTokenData, proposal)
         };
 
         try {
@@ -409,7 +409,7 @@ class Notifications {
                     to: `${proposal.proposedBy.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                     subject: "Proposal Status",
-                    html: EmailTemplates.proposalStatus(getHost(req), msgTemplate, project, proposal.proposedBy)
+                    html: EmailTemplates.proposalStatus(getHost(req), msgTemplate, project, proposal.proposedBy,proposal)
                 };
 
 

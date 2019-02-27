@@ -4,6 +4,7 @@ const mongoose = require("mongoose"),
     Task = mongoose.model("Task"),
     Project = mongoose.model("Project"),
     Proposal = mongoose.model("Proposal"),
+    User = mongoose.model("User"),
     Milestone = mongoose.model('Milestone');
 const validate = require('../../middleware/validate');
 const _ = require('lodash');
@@ -50,7 +51,7 @@ class Proposals {
 
                 let existingProposal = await Proposal.findOne({ project: projectId, proposedBy: req.userId });
 
-                if (existingProposal && role === 'Contractor') {
+                if (existingProposal && project.owner._id.toString() !== req.userId) {
                     return res.status(403).json({ message: "You have already submitted a proposal for this project." })
                 }
 
@@ -440,6 +441,38 @@ class Proposals {
             return res.status(501).json({
                 message: error.message
             });
+        }
+    }
+
+    static async assignProposalToContractor(req, res) {
+        const { contractorId, proposalId } = req.body;
+        const role = helper.getRole(req.roles)
+
+        const permission = ac.can(role).updateOwn('proposal').granted;
+        if (permission) {
+            try {
+                let proposal = await Proposal.findOne({ _id: proposalId, proposedBy: req.userId });
+                if (!proposal) {
+                    return res.status(404).json({ message: "Proposal Not Found" });
+                }
+
+                let contractor = await User.findById(contractorId);
+
+                proposal.assignedTo= contractorId;
+               let assingedProposal = await proposal.save();
+
+               if(assingedProposal){
+                return res.status(200).json({message:`You have assigned ${contractor.firstName} ${contractor.lastName} to this proposal.\n We will notify you about his decision`});
+               }
+            } catch (error) {
+                console.log(error);
+                return res.status(501).json({
+                    message: error.message
+                });
+            }
+
+        } else {
+            return res.status(403).json({ message: "Forbidden" })
         }
     }
 }
