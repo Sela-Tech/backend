@@ -466,6 +466,12 @@ class Projects {
         sdgs: project.tags
       }
 
+      if(hasSubmitted){
+        info.proposalId= proposal._id;
+      }else{
+        info.proposalId=null;
+      }
+
       return res.status(200).json(info);
     } catch (error) {
       console.log(error);

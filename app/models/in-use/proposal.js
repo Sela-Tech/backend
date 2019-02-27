@@ -50,22 +50,20 @@ var proposalStructure = {
                 "title createdBy completed _id"
         }
     }],
-
-    // tasksNotInMilestone: [{
-    //     type: ObjectId,
-    //     ref: "Task",
-    //     autopopulate: {
-    //         select:
-    //             "name description _id assignedTo status estimatedCost"
-    //     }
-    // }],
-
     proposedBy: {
         type: ObjectId,
         ref: "User", autopopulate: {
             select:
                 "firstName lastName _id socket email "
         }
+    },
+    assignedTo:{
+        type: ObjectId,
+        ref: "User", autopopulate: {
+            select:
+                "firstName lastName _id socket email "
+        },
+        default:null
     },
     approved: {
         type: Boolean,

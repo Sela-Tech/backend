@@ -6,6 +6,7 @@ const Helper = require('../helper/helper');
 const EmailTemplates = require('../helper/emailTemplates');
 const { getHost } = require('../../in-use/utils');
 const NotificationController = require('../controllers/Notification');
+const helper = new Helper();
 
 
 const options = {
@@ -20,7 +21,6 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 let sms = AfricasTalking.SMS;
 
-let helper = new Helper();
 
 class Notifications {
 
@@ -189,6 +189,9 @@ class Notifications {
             // check if the project owner is a contractor and the stakeholder is an evaluator
             // if project owner is a contractor, send notifications to the funders in the project instead
             // if there are no funders on the project what happens
+            // if(role.includes('isContractor') && helper.getRole(project.owner) === 'Contractor'){
+            //     let projectStakeHolders=
+            // }
             let notification = await new Notification(notifObj).save();
 
             if (notification) {
@@ -209,9 +212,9 @@ class Notifications {
                 };
 
                 await sgMail.send(msg);
-                return true;
+                return {status:true, message:`Your request to join the "${project.name}" project has been sent`}
             }
-            return false
+            return {status:false, message:`Your request to join the"${project.name}" project was not successful`}
 
         } catch (error) {
             console.log(error);

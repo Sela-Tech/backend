@@ -1,9 +1,12 @@
 "use strict";
 
 var { verifyToken } = require("../in-use/utils");
-let {Projects} = require("../app/controllers/project");
+let { Projects } = require("../app/controllers/project");
+const  Role  = require("../middleware/validateRole")
 
-module.exports = function(app) {
+let role= new Role();
+
+module.exports = function (app) {
   //real routes
   app.route("/project").post(verifyToken, Projects.newProject);
   app.route("/project/stakeholder").post(verifyToken, Projects.add_stakeholder);

@@ -15,23 +15,52 @@ let s3 = new AWS.S3({});
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
+
+/**
+ *
+ *
+ * @class Helper
+ */
 class Helper {
 
+    /**
+     *
+     *
+     * @param {*} data
+     * @returns {String}
+     * @memberof Helper
+     * @description accepts an array of roles or an object whose properties are roles and 
+     * returns a role of type string. e.g 'Funder'
+     */
     getRole(data) {
         const roles= ['Funder', 'Contractor', 'Evaluator']
+        let userRole;
 
-        let user ={
-            isFunder:data.isFunder,
-            isContractor:data.isContractor,
-            isEvaluator :data.isEvaluator
-        }
+        if(!(data instanceof Array)){
+            let user ={
+                isFunder:data.isFunder,
+                isContractor:data.isContractor,
+                isEvaluator :data.isEvaluator
+            }
+            
+            let role = Object.keys(user).filter(k => user[k] === true);
 
-        let role = Object.keys(user).filter(k => user[k] === true);
+            userRole = roles.find((r)=>{
+                return r = role[0].includes(r);
+            });
 
-      let userRole = roles.find((r)=>{
-            return r = role[0].includes(r);
-        });
+            return userRole;
+
+        }else{
+            userRole = roles.find((r)=>{
+                return r = data[0].includes(r);
+            });
         return userRole;
+
+        }
+       
+       
+        // return userRole;
 
     }
 

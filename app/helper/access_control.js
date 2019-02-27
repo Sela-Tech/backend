@@ -1,7 +1,7 @@
 const grantsObject={
-    isAdmin:{
+    Admin:{
 
-        Project:{
+        project:{
             'create:any':['*'],
             'delete:any':['*'],
             'update:any':['*'],
@@ -9,7 +9,7 @@ const grantsObject={
             'create:own':['*']
         },
 
-        Account:{
+        account:{
             'update:any':['*'],
             'read:any':['*'],
         },
@@ -25,14 +25,45 @@ const grantsObject={
 
     },
 
-    isFunder:{
+    Funder:{
         organization:{
             'delete:own':['*'],
             'update:own':['*'],
             'read:any':['*'],
             'create:own':['*']
         },
-        Project:{
+        project:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'read:own':['*'],
+        },
+
+        proposal:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'update:any':['*'],
+            'read:own':['*'],
+            'read:any':['*'],
+
+        }
+
+    },
+
+
+    Contractor:{
+        'project-view-contractor':{
+            'read:any':['*'],
+        },
+
+        proposal:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'read:own':['*'],
+        },
+        project:{
             'create:own':['*'],
             'delete:own':['*'],
             'update:own':['*'],
@@ -40,7 +71,7 @@ const grantsObject={
         },
     },
 
-    isEvaluator:{
+    Evaluator:{
         organization:{
             'delete:own':['*'],
             'update:own':['*'],
@@ -48,15 +79,6 @@ const grantsObject={
             'create:own':['*']
         }
     },
-
-    isContractor:{
-        organization:{
-            'delete:own':['*'],
-            'update:own':['*'],
-            'read:any':['*'],
-            'create:own':['*']
-        }
-    }
 
 }
 
