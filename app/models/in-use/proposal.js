@@ -33,6 +33,10 @@ var schemaOptions = {
 };
 
 var proposalStructure = {
+    proposalName:{
+        type:String,
+        required:true
+    },
     project: {
         type: ObjectId,
         ref: "Project",

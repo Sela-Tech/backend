@@ -32,7 +32,7 @@ class Proposals {
      */
 
     static async submitProposal(req, res) {
-        let { body: { projectId, comments, milestones, contractor } } = req;
+        let { body: { projectId, comments, milestones, contractor,proposal_name } } = req;
 
         const role = helper.getRole(req.roles);
 
@@ -101,6 +101,7 @@ class Proposals {
                 milestonesIds = milestonesIds.map(milestone => milestone._id);
 
                 const proposalObj = {
+                    proposalName:proposal_name,
                     project: projectId,
                     milestones: [...milestonesIds],
                     proposedBy: req.userId
