@@ -485,7 +485,6 @@ class Proposals {
         if (permission) {
             try {
 
-                console.log(req.userId)
                 let project = await Project.findById(projectId);
 
                 if(project.owner._id.toString() !==req.userId){
