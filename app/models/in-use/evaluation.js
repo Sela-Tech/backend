@@ -73,6 +73,10 @@ var evaluationStructure = {
         ref: "User",
         default: null
     },
+    datatype:{
+        type:String,
+        enum:["video", "audio", "image", "table", "survey"]
+    },
     // if graphical data, the field below is useful
     fieldNames: [
         {
@@ -80,6 +84,7 @@ var evaluationStructure = {
                 type: String
             }
         }
+
     ],
     // if graphical data, the field above is useful
 
@@ -88,6 +93,7 @@ var evaluationStructure = {
     } // anything can be thrown here regardless of data type e.g string, Number, object
 
 
+   
 };
 
 
