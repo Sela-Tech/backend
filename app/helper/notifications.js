@@ -421,6 +421,51 @@ class Notifications {
         }
     }
 
+    static async notifyOnAssignedToProposal(req,project, proposal, contractorId){
+        const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} assigned you to a proposal for project, "${project.name}"`;
+        const type = "PROPOSAL_ASSIGNED";
+
+        const notificationObj = {
+            project: project._id,
+            user: contractorId,
+            message,
+            stakeholder: project.owner._id,
+            type,
+            model: proposal._id,
+            onModel: "Proposal"
+        }
+
+       
+
+        try {
+            let contractor = await User.findById(contractorId);
+
+            const msg = {
+                to: `${contractor.email}`,
+                from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+                subject: "You Have Been Assigned a Proposal",
+                html: EmailTemplates.assignedproposal(getHost(req), project,contractor, proposal)
+            };
+
+            let notification = await new Notification(notificationObj).save();
+
+            if (notification) {
+                if (contractor.socket !== null) {
+                    if (req.io.sockets.connected[contractor.socket]) {
+                        const notifications = await NotificationController.getUserNViaSocket({ userId: contractor._id })
+                        req.io.sockets.connected[contractor.socket].emit('notifications', { notifications });
+                    }
+                }
+
+                await sgMail.send(msg);
+
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 }
 
 module.exports = Notifications;

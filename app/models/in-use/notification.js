@@ -62,7 +62,7 @@ var notificationStructure = {
   type:{
     type:String,
     enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT","PROPOSAL_APPROVED", "PROPOSAL_REVERTED","PROPOSAL_REJECTED",
-        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN","NEW_PROPOSAL"]
+        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN","NEW_PROPOSAL","PROPOSAL_ASSIGNED"]
   },
   read:{
     type:Boolean,
@@ -82,7 +82,7 @@ var notificationStructure = {
   onModel: {
     type: String,
     // can be either of the document in the enum
-    enum: ['Task', 'Milestone',"Proposal"]
+    enum: ['Task', 'Milestone',"Proposal", "Transaction"]
   }
   
 };

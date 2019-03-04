@@ -32,7 +32,7 @@ class Proposals {
      */
 
     static async submitProposal(req, res) {
-        let { body: { projectId, comments, milestones } } = req;
+        let { body: { projectId, comments, milestones, contractor,proposal_name } } = req;
 
         const role = helper.getRole(req.roles);
 
@@ -68,8 +68,10 @@ class Proposals {
                             task.estimatedCost = task.amount;
                             task.project = projectId;
                             task.dueDate = task.deadline;
-                            task.status = 'UNASSIGNED';
                             task.isInMilestone = true;
+                            contractor && contractor.length !=="" ? task.assignedTo=contractor:task.assignedTo=null;
+                            contractor && contractor.length !=="" ?task.status="ASSIGNED":task.status="UNASSIGNED";
+                            
                         } else {
                             task.assignedTo = req.userId;
                             task.createdBy = req.userId;
@@ -81,7 +83,7 @@ class Proposals {
                         }
 
                         return task;
-                    })
+                    });
 
                     let taskIds = await Task.insertMany(tasks);
 
@@ -99,6 +101,7 @@ class Proposals {
                 milestonesIds = milestonesIds.map(milestone => milestone._id);
 
                 const proposalObj = {
+                    proposalName:proposal_name,
                     project: projectId,
                     milestones: [...milestonesIds],
                     proposedBy: req.userId
@@ -120,8 +123,29 @@ class Proposals {
                 if (req.userId !== project.owner._id.toString()) {
                     // send notification to project owner
                     await noticate.notifyOnSubmitProposal(req, project, proposal);
-                }
+                }else if(req.userId === project.owner._id.toString() && !contractor || contractor===""){
+                    proposal.approved= true;
+                    proposal.status= "APPROVED";
+                    await proposal.save();
+                    // push proposal into the project
 
+                    project.proposals.push(proposal._id);
+                    await project.save();
+
+                }else if(req.userId === project.owner._id.toString() && contractor && contractor!==""){
+                    proposal.assignedTo = contractor;
+                    proposal.approved= true;
+                    proposal.status= "APPROVED";
+                    await proposal.save();
+
+                    // push proposal into the project
+
+                    project.proposals.push(proposal._id);
+                    await project.save();
+
+                    // send contractor a notification about been added to a project
+                    await noticate.notifyOnAssignedToProposal(req, project,proposal, contractor)
+                }
 
                 return res.status(201).json({ proposal });
 
@@ -444,25 +468,51 @@ class Proposals {
         }
     }
 
-    static async assignProposalToContractor(req, res) {
-        const { contractorId, proposalId } = req.body;
-        const role = helper.getRole(req.roles)
 
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Proposals
+     */
+    static async assignProposalToContractor(req, res) {
+        const { contractorId, proposalId, projectId } = req.body;
+        const role = helper.getRole(req.roles)
         const permission = ac.can(role).updateOwn('proposal').granted;
         if (permission) {
             try {
+
+                console.log(req.userId)
+                let project = await Project.findById(projectId);
+
+                if(project.owner._id.toString() !==req.userId){
+                    return res.status(401).json({ message: "You are not authorized to perform this operation" });
+                }
+
                 let proposal = await Proposal.findOne({ _id: proposalId, proposedBy: req.userId });
+               
                 if (!proposal) {
                     return res.status(404).json({ message: "Proposal Not Found" });
                 }
 
-                let contractor = await User.findById(contractorId);
+
+                if(proposal.assignedTo !==null && proposal.assignedTo._id.toString()===contractorId){
+                    return res.status(409).json({ message: "You have already assigned this contractor to this proposal" });
+                }
 
                 proposal.assignedTo= contractorId;
-               let assingedProposal = await proposal.save();
+                let assingedProposal = await proposal.save();
 
                if(assingedProposal){
-                return res.status(200).json({message:`You have assigned ${contractor.firstName} ${contractor.lastName} to this proposal.\n We will notify you about his decision`});
+                //    assign every task in this proposal to the contractor
+                await Task.updateMany({createdBy:req.userId,project:projectId }, {$set:{assignedTo:contractorId, status:"ASSIGNED"}});
+
+                // send contractor a notification
+                await noticate.notifyOnAssignedToProposal(req,project,proposal,contractorId)
+                return res.status(200).json({message:`You successfully assigned a contractor to this proposal.`});
                }
             } catch (error) {
                 console.log(error);

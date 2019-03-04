@@ -54,6 +54,9 @@ class Comment {
             proposal.comments.push({ actor: req.userId, comment });
             let newComment = await proposal.save();
 
+            // return res.json(proposal)
+
+
             return res.status(200).json({ comment: newComment.comments[newComment.comments.length - 1] });
 
         } catch (error) {

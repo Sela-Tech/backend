@@ -33,6 +33,10 @@ var schemaOptions = {
 };
 
 var proposalStructure = {
+    proposalName:{
+        type:String,
+        required:true
+    },
     project: {
         type: ObjectId,
         ref: "Project",
@@ -71,8 +75,8 @@ var proposalStructure = {
     },
     status:{
         type:String,
-        enum:["IN-REVIEW", "DECLINED", "APPROVED","REVERTED"],
-        default:"IN-REVIEW"
+        enum:["IN_REVIEW", "DECLINED", "APPROVED","REVERTED"],
+        default:"IN_REVIEW"
     },
     comments: [
         {
