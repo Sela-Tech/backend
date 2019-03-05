@@ -207,7 +207,10 @@ class Proposals {
                         fullName: `${p.proposedBy.firstName} ${p.proposedBy.lastName}`,
                         _id: p.proposedBy._id
                     },
-                    assignedTo:p.assignedTo,
+                    assignedTo:{
+                        fullName: `${p.assignedTo.firstName} ${p.assignedTo.lastName}`,
+                        _id: p.assignedTo._id
+                    },
                     status:p.status,
                     approved:p.approved
                 }
@@ -264,7 +267,10 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
-                assignedTo:proposal.assignedTo,
+                assignedTo:{
+                    fullName: `${proposal.assignedTo.firstName} ${proposal.assignedTo.lastName}`,
+                    _id: proposal.assignedTo._id
+                },
                 comments: proposal.comments.map((comment) => {
                     return {
                         actor: {
