@@ -444,10 +444,13 @@ class Projects {
         documents: project.documents.map((doc) => {
           return {
             name: doc.name,
-            id: doc._id,
-            size: doc.size || null,
-            url: doc.doc,
-            type: doc.filetype
+            _id: doc._id,
+            filesize: doc.filesize || null,
+            doc: doc.doc,
+            filetype: doc.filetype,
+            project:doc.project,
+            createdAt:doc.createdAt,
+            updatedAt:doc.updatedAt
           }
         }),
         isProjectStakeholder,

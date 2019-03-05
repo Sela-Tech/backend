@@ -23,7 +23,9 @@ exports.new = async (req, res) => {
       name: req.body.name,
       filetype: req.body.filetype,
       doc: req.body.doc,
-      project: req.body.projectId
+      project: req.body.projectId,
+      filesize:req.body.filesize
+
     };
 
     let saveDocument = await new Document(docObj).save();
