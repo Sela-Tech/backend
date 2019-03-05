@@ -121,6 +121,8 @@ class Proposals {
                 let proposal = await new Proposal(proposalObj).save();
 
                 if (req.userId !== project.owner._id.toString()) {
+                    proposal.assignedTo = req.userId;
+                    await proposal.save();
                     // send notification to project owner
                     await noticate.notifyOnSubmitProposal(req, project, proposal);
                 }else if(req.userId === project.owner._id.toString() && !contractor || contractor===""){
@@ -188,6 +190,7 @@ class Proposals {
                 return {
                     _id: p._id,
 
+                    proposal_name:p.proposalName,
                     totalMilestones: p.milestones.length,
 
                     totalTasks: p.milestones.map((m) => {
@@ -204,6 +207,9 @@ class Proposals {
                         fullName: `${p.proposedBy.firstName} ${p.proposedBy.lastName}`,
                         _id: p.proposedBy._id
                     },
+                    assignedTo:p.assignedTo,
+                    status:p.status,
+                    approved:p.approved
                 }
             })
             return res.status(200).json({ proposals })
@@ -258,6 +264,7 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
+                assignedTo:proposal.assignedTo,
                 comments: proposal.comments.map((comment) => {
                     return {
                         actor: {

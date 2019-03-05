@@ -24,10 +24,7 @@ var docStructure = {
     type: String,
     required: true
   },
-  docKey: {
-    type: String
-  },
-  size:{
+  filesize:{
     type:String
   }
 };
