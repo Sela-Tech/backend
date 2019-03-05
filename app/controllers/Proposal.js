@@ -205,11 +205,13 @@ class Proposals {
 
                     proposedBy: {
                         fullName: `${p.proposedBy.firstName} ${p.proposedBy.lastName}`,
-                        _id: p.proposedBy._id
+                        _id: p.proposedBy._id,
+                        profilePhoto:p.proposedBy.profilePhoto
                     },
                     assignedTo:{
                         fullName: `${p.assignedTo.firstName} ${p.assignedTo.lastName}`,
-                        _id: p.assignedTo._id
+                        _id: p.assignedTo._id,
+                        profilePhoto:p.proposedBy.profilePhoto
                     },
                     status:p.status,
                     approved:p.approved
@@ -246,6 +248,7 @@ class Proposals {
 
             proposal = {
                 id: proposal._id,
+                proposal_name:proposal.proposalName,
                 milestones: proposal.milestones.map((milestone) => {
                     return {
                         id: milestone._id,
@@ -267,9 +270,17 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
+                proposedBy:{
+                    fullName: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}`,
+                    _id: proposal.proposedBy._id,
+                    profilePhoto:proposal.proposedBy.profilePhoto
+
+                },
                 assignedTo:{
                     fullName: `${proposal.assignedTo.firstName} ${proposal.assignedTo.lastName}`,
-                    _id: proposal.assignedTo._id
+                    _id: proposal.assignedTo._id,
+                    profilePhoto:proposal.assignedTo.profilePhoto
+
                 },
                 comments: proposal.comments.map((comment) => {
                     return {

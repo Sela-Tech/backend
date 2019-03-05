@@ -58,14 +58,14 @@ var proposalStructure = {
         type: ObjectId,
         ref: "User", autopopulate: {
             select:
-                "firstName lastName _id socket email "
+                "firstName lastName _id socket email profilePhoto"
         }
     },
     assignedTo:{
         type: ObjectId,
         ref: "User", autopopulate: {
             select:
-                "firstName lastName _id socket email "
+                "firstName lastName _id socket email profilePhoto"
         },
         default:null
     },
