@@ -8,7 +8,7 @@ const mongoosePaginate = require('mongoose-paginate');
 
 // import related models
 const Project = require("./project");
-const Evaluation = require("./evaluation");
+const Evidence = require("./evidence");
 const Milestone = require("./milestone");
 const Notifications = require("./notification");
 const Proposal = require("./proposal");
@@ -211,7 +211,7 @@ UserSchema.post('remove', async (next) => {
     await Project.update({},
       { $pull: { stakeholders: { 'stakeholders.user.information': this._id } } },
       { multi: true });
-    await Evaluation.remove({ evaluator: this._id });
+    await Evidence.remove({ evaluator: this._id });
     await Milestone.remove({ createdBy: this._id });
     await Notifications.remove({ user: this._id });
     await Notifications.remove({ stakeholder: this._id });

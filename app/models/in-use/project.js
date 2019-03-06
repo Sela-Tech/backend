@@ -9,7 +9,7 @@ const Save = require('./save_project');
 const Notifications = require('./notification');
 const Proposal = require('./proposal');
 const Documents = require("./document");
-const Evaluation = require("./evaluation");
+const Evidence = require("./evidence");
 const Milestone = require("./milestone");
 const Task = require("./task");
 const Transaction = require("./transaction");
@@ -186,7 +186,7 @@ ProjectSchema.post('remove', async function (next) {
     await Proposal.remove({ project: this._id });
     await Notifications.remove({ project: this._id });
     await Documents.remove({ project: this._id });
-    await Evaluation.remove({ project: this._id });
+    await Evidence.remove({ project: this._id });
     await Milestone.remove({ project: this._id });
     await Task.remove({ project: this._id });
     await Transaction.remove({ project: this._id });
