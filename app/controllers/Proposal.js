@@ -142,22 +142,24 @@ class Proposals {
                 } else if (req.userId === project.owner._id.toString() && !contractor || contractor === "") {
                     proposal.approved = true;
                     proposal.status = "APPROVED";
-                    await proposal.save();
+
                     // push proposal into the project
 
-                    project.proposals.push(proposal._id);
-                    await project.save();
+                    // project.proposals.push(proposal._id);
+
+                    await proposal.save();
+
 
                 } else if (req.userId === project.owner._id.toString() && contractor && contractor !== "") {
                     proposal.assignedTo = contractor;
                     proposal.approved = true;
                     proposal.status = "APPROVED";
-                    await proposal.save();
-
                     // push proposal into the project
 
-                    project.proposals.push(proposal._id);
+                    // project.proposals.push(proposal._id);
                     await project.save();
+
+                    
 
                     // send contractor a notification about been added to a project
                     await noticate.notifyOnAssignedToProposal(req, project, proposal, contractor)
@@ -406,7 +408,7 @@ class Proposals {
                                     'user.information': proposal.proposedBy._id, 'user.status': "ACCEPTED",
                                     'user.agreed': true
                                 },
-                                proposals: { _id: proposal._id }
+                                // proposals: { _id: proposal._id }
 
                             }
 
@@ -419,7 +421,7 @@ class Proposals {
                 switch (projectStakeholder.user.status) {
                     case "ACCEPTED":
 
-                        await Project.updateOne({ _id: projectId }, { $push: { proposals: { _id: proposal._id } } });
+                        // await Project.updateOne({ _id: projectId }, { $push: { proposals: { _id: proposal._id } } });
                         // send notification here
 
                         await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, null);
@@ -433,7 +435,7 @@ class Proposals {
                         },
                             {
                                 $set: { 'stakeholders.$.user.status': "ACCEPTED", 'stakeholders.$.user.agreed': true },
-                                $push: { proposals: { _id: proposal._id } }
+                                // $push: { proposals: { _id: proposal._id } }
                             });
 
                         // send notification here
@@ -451,7 +453,7 @@ class Proposals {
                         },
                             {
                                 $set: { 'stakeholders.$.user.status': "ACCEPTED", 'stakeholders.$.user.agreed': true },
-                                $push: { proposals: { _id: proposal._id } }
+                                // $push: { proposals: { _id: proposal._id } }
                             });
 
                         // send notification here
@@ -473,9 +475,9 @@ class Proposals {
             await proposal.save();
 
             // await Project.updateOne({ _id: projectId }, { $pull: { proposals: { _id: proposal._id } } }, { 'new': true });
-            let project = await Project.findById(projectId);
-            project.proposals.pull({ _id: proposal._id });
-            await project.save();
+            // let project = await Project.findById(projectId);
+            // project.proposals.pull({ _id: proposal._id });
+            // await project.save();
 
             await noticate.acceptOrRejectProposal(req, project, proposal, approved, null)
 
