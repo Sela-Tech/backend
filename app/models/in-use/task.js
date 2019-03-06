@@ -9,7 +9,7 @@ var ObjectId = Schema.Types.ObjectId;
 
 const Project = require("./project")
 const Milestone = require("./milestone")
-const Evaluation = require("./evaluation")
+const Evidence = require("./evidence")
 
 var taskStructure = {
   name: {
@@ -58,40 +58,40 @@ var taskStructure = {
         "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
   },
-  evaluators: [{
-    type: ObjectId,
-    ref: "User",
-    default: null
-  }],
-  completedBy: {
-    type: ObjectId,
-    ref: "User",
-    default: null
-  },
+  // evaluators: [{
+  //   type: ObjectId,
+  //   ref: "User",
+  //   default: null
+  // }],
+  // completedBy: {
+  //   type: ObjectId,
+  //   ref: "User",
+  //   default: null
+  // },
   
-  agentEvaluations: [
-    {
-      type: ObjectId,
-      ref: "Evaluation",
-      default: null
-    }
-  ],
-  contractorEvaluations: [
-    {
-      text: {
-        type: String,
-        default: null
-      },
-      isCompleted: {
-        type: Boolean,
-        default: false
-      },
-      proof: {
-        type: String,
-        default: ''
-      }
-    }
-  ],
+  // agentEvaluations: [
+  //   {
+  //     type: ObjectId,
+  //     ref: "Evaluation",
+  //     default: null
+  //   }
+  // ],
+  // contractorEvaluations: [
+  //   {
+  //     text: {
+  //       type: String,
+  //       default: null
+  //     },
+  //     isCompleted: {
+  //       type: Boolean,
+  //       default: false
+  //     },
+  //     proof: {
+  //       type: String,
+  //       default: ''
+  //     }
+  //   }
+  // ],
   estimatedCost: {
     type: Number,
     default: 0
@@ -139,7 +139,7 @@ var TaskSchema = new Schema(taskStructure, schemaOptions);
 TaskSchema.post('remove', async (req, res) => {
   try {
     // await Project.update({}, { $pull: {} })
-    await Evaluation.remove({ task: this._id });
+    await Evidence.remove({ task: this._id });
     await Milestone.update({}, { $pull: { tasks: { _id: this._id } } });
   } catch (error) {
     next(error)

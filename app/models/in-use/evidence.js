@@ -28,7 +28,7 @@ var schemaOptions = {
     strict: process.env.NODE_ENV !== "development"
 };
 
-var evaluationStructure = {
+var evidenceStructure = {
     name: {
         type: String,
         required: true
@@ -105,8 +105,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var evaluationSchema = new Schema(evaluationStructure, { timestamps: true });
-evaluationSchema.plugin(autoPopulate);
-evaluationSchema.plugin(mongoosePaginate);
+var evidenceSchema = new Schema(evidenceStructure, { timestamps: true });
+evidenceSchema.plugin(autoPopulate);
+evidenceSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model("Evaluation", evaluationSchema);
+module.exports = mongoose.model("Evidence", evidenceSchema);

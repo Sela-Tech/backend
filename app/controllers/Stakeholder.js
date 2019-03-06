@@ -183,8 +183,7 @@ class Stakeholder {
 
             if (project === null) {
                 return res.status(404).json({
-                    message: "This project doesn't exists on sela platform\n" +
-                        "or has not been activated"
+                    message: "Project Not Found"
                 })
             }
 

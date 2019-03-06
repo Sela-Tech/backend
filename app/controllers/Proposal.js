@@ -20,6 +20,20 @@ const ac = new AccessControl(grantsObject);
 
 class Proposals {
 
+    // constructor() {
+    //     this.handleNull = this.handleNull.bind(this)
+    // }
+
+    static handleNull(object) {
+        if (object == null) {
+            return null
+        }
+        return {
+            fullName: `${object.firstName} ${object.lastName}`,
+            _id: object._id,
+            profilePhoto: object.profilePhoto
+        }
+    }
 
     /**
      *
@@ -32,7 +46,7 @@ class Proposals {
      */
 
     static async submitProposal(req, res) {
-        let { body: { projectId, comments, milestones, contractor,proposal_name } } = req;
+        let { body: { projectId, comments, milestones, contractor, proposal_name } } = req;
 
         const role = helper.getRole(req.roles);
 
@@ -69,9 +83,9 @@ class Proposals {
                             task.project = projectId;
                             task.dueDate = task.deadline;
                             task.isInMilestone = true;
-                            contractor && contractor.length !=="" ? task.assignedTo=contractor:task.assignedTo=null;
-                            contractor && contractor.length !=="" ?task.status="ASSIGNED":task.status="UNASSIGNED";
-                            
+                            contractor && contractor.length !== "" ? task.assignedTo = contractor : task.assignedTo = null;
+                            contractor && contractor.length !== "" ? task.status = "ASSIGNED" : task.status = "UNASSIGNED";
+
                         } else {
                             task.assignedTo = req.userId;
                             task.createdBy = req.userId;
@@ -101,7 +115,7 @@ class Proposals {
                 milestonesIds = milestonesIds.map(milestone => milestone._id);
 
                 const proposalObj = {
-                    proposalName:proposal_name,
+                    proposalName: proposal_name,
                     project: projectId,
                     milestones: [...milestonesIds],
                     proposedBy: req.userId
@@ -125,19 +139,19 @@ class Proposals {
                     await proposal.save();
                     // send notification to project owner
                     await noticate.notifyOnSubmitProposal(req, project, proposal);
-                }else if(req.userId === project.owner._id.toString() && !contractor || contractor===""){
-                    proposal.approved= true;
-                    proposal.status= "APPROVED";
+                } else if (req.userId === project.owner._id.toString() && !contractor || contractor === "") {
+                    proposal.approved = true;
+                    proposal.status = "APPROVED";
                     await proposal.save();
                     // push proposal into the project
 
                     project.proposals.push(proposal._id);
                     await project.save();
 
-                }else if(req.userId === project.owner._id.toString() && contractor && contractor!==""){
+                } else if (req.userId === project.owner._id.toString() && contractor && contractor !== "") {
                     proposal.assignedTo = contractor;
-                    proposal.approved= true;
-                    proposal.status= "APPROVED";
+                    proposal.approved = true;
+                    proposal.status = "APPROVED";
                     await proposal.save();
 
                     // push proposal into the project
@@ -146,7 +160,7 @@ class Proposals {
                     await project.save();
 
                     // send contractor a notification about been added to a project
-                    await noticate.notifyOnAssignedToProposal(req, project,proposal, contractor)
+                    await noticate.notifyOnAssignedToProposal(req, project, proposal, contractor)
                 }
 
                 return res.status(201).json({ proposal });
@@ -190,7 +204,7 @@ class Proposals {
                 return {
                     _id: p._id,
 
-                    proposal_name:p.proposalName,
+                    proposal_name: p.proposalName,
                     totalMilestones: p.milestones.length,
 
                     totalTasks: p.milestones.map((m) => {
@@ -203,18 +217,10 @@ class Proposals {
                         }).reduce((x, y) => x + y);
                     }).reduce((a, b) => a + b),
 
-                    proposedBy: {
-                        fullName: `${p.proposedBy.firstName} ${p.proposedBy.lastName}`,
-                        _id: p.proposedBy._id,
-                        profilePhoto:p.proposedBy.profilePhoto
-                    },
-                    assignedTo:{
-                        fullName: `${p.assignedTo.firstName} ${p.assignedTo.lastName}`,
-                        _id: p.assignedTo._id,
-                        profilePhoto:p.proposedBy.profilePhoto
-                    },
-                    status:p.status,
-                    approved:p.approved
+                    proposedBy: Proposals.handleNull(p.proposedBy),
+                    assignedTo: Proposals.handleNull(p.assignedTo),
+                    status: p.status,
+                    approved: p.approved
                 }
             })
             return res.status(200).json({ proposals })
@@ -248,7 +254,7 @@ class Proposals {
 
             proposal = {
                 id: proposal._id,
-                proposal_name:proposal.proposalName,
+                proposal_name: proposal.proposalName,
                 milestones: proposal.milestones.map((milestone) => {
                     return {
                         id: milestone._id,
@@ -270,18 +276,8 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
-                proposedBy:{
-                    fullName: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}`,
-                    _id: proposal.proposedBy._id,
-                    profilePhoto:proposal.proposedBy.profilePhoto
-
-                },
-                assignedTo:{
-                    fullName: `${proposal.assignedTo.firstName} ${proposal.assignedTo.lastName}`,
-                    _id: proposal.assignedTo._id,
-                    profilePhoto:proposal.assignedTo.profilePhoto
-
-                },
+                proposedBy: Proposals.handleNull(proposal.proposedBy),
+                assignedTo: Proposals.handleNull(proposal.assignedTo),
                 comments: proposal.comments.map((comment) => {
                     return {
                         actor: {
@@ -511,32 +507,32 @@ class Proposals {
 
                 let project = await Project.findById(projectId);
 
-                if(project.owner._id.toString() !==req.userId){
+                if (project.owner._id.toString() !== req.userId) {
                     return res.status(401).json({ message: "You are not authorized to perform this operation" });
                 }
 
                 let proposal = await Proposal.findOne({ _id: proposalId, proposedBy: req.userId });
-               
+
                 if (!proposal) {
                     return res.status(404).json({ message: "Proposal Not Found" });
                 }
 
 
-                if(proposal.assignedTo !==null && proposal.assignedTo._id.toString()===contractorId){
+                if (proposal.assignedTo !== null && proposal.assignedTo._id.toString() === contractorId) {
                     return res.status(409).json({ message: "You have already assigned this contractor to this proposal" });
                 }
 
-                proposal.assignedTo= contractorId;
+                proposal.assignedTo = contractorId;
                 let assingedProposal = await proposal.save();
 
-               if(assingedProposal){
-                //    assign every task in this proposal to the contractor
-                await Task.updateMany({createdBy:req.userId,project:projectId }, {$set:{assignedTo:contractorId, status:"ASSIGNED"}});
+                if (assingedProposal) {
+                    //    assign every task in this proposal to the contractor
+                    await Task.updateMany({ createdBy: req.userId, project: projectId }, { $set: { assignedTo: contractorId, status: "ASSIGNED" } });
 
-                // send contractor a notification
-                await noticate.notifyOnAssignedToProposal(req,project,proposal,contractorId)
-                return res.status(200).json({message:`You successfully assigned a contractor to this proposal.`});
-               }
+                    // send contractor a notification
+                    await noticate.notifyOnAssignedToProposal(req, project, proposal, contractorId)
+                    return res.status(200).json({ message: `You successfully assigned a contractor to this proposal.` });
+                }
             } catch (error) {
                 console.log(error);
                 return res.status(501).json({
