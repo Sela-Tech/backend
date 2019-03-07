@@ -142,22 +142,25 @@ class Proposals {
                 } else if (req.userId === project.owner._id.toString() && !contractor || contractor === "") {
                     proposal.approved = true;
                     proposal.status = "APPROVED";
+                    await proposal.save();
 
                     // push proposal into the project
 
                     // project.proposals.push(proposal._id);
 
-                    await proposal.save();
+                    // await proposal.save();
 
 
                 } else if (req.userId === project.owner._id.toString() && contractor && contractor !== "") {
                     proposal.assignedTo = contractor;
                     proposal.approved = true;
                     proposal.status = "APPROVED";
+                    await proposal.save();
+
                     // push proposal into the project
 
                     // project.proposals.push(proposal._id);
-                    await project.save();
+                    // await project.save();
 
                     
 
