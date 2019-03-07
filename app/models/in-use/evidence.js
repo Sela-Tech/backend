@@ -47,7 +47,6 @@ var evidenceStructure = {
         enum: ["project", "task"],
         default: "task"
     },
-    // TODO: uncomment when needed
     task: {                 // can be null or not null depending on the level(project or task)
         type: ObjectId,
         ref: "Task",
