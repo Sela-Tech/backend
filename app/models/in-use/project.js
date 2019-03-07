@@ -82,6 +82,14 @@ var projectStructure = {
     type: Number,
     default: 0
   },
+  implementationBudget:{
+    type:Number,
+    default:0
+  },
+  observationBudget:{
+    type:Number,
+    default:0
+  },
   raised: {
     type: Number,
     default: 0

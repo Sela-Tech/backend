@@ -14,6 +14,7 @@ const dashboard = require("./dashboard");
 const proposal = require("./proposal");
 const retrieveCred = require("./cred");
 const comment = require("./comment");
+const evidence = require("./evidence");
 
 module.exports = function (app) {
   user(app);
@@ -32,4 +33,5 @@ module.exports = function (app) {
   proposal(app);
   retrieveCred(app);
   comment(app);
+  evidence(app);
 };
