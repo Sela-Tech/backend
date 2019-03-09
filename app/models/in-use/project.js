@@ -94,10 +94,9 @@ var projectStructure = {
     type: Number,
     default: 0
   },
-  // tasks: [{ type: ObjectId, ref: "Task", autopopulate: true }],
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
-  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: true }],
+  proposals: [{ type: ObjectId, ref: "Proposal"}],
   stakeholders: [
     {
       user: {

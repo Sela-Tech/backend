@@ -7,9 +7,9 @@ var ObjectId = Schema.Types.ObjectId;
 
 // import related models
 
-const Project = require("./project")
-const Milestone = require("./milestone")
-const Evidence = require("./evidence")
+const Project = require("./project");
+const Milestone = require("./milestone");
+const Evidence = require("./evidence");
 
 var taskStructure = {
   name: {

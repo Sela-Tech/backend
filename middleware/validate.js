@@ -95,6 +95,27 @@ const validator = {
     .notEmpty()
   },
 
+  validateAddEvidenceRequest(req, res){
+    req
+    .checkBody("name","name cannot be empty.")
+    .notEmpty()
+    req
+    .checkBody("project","Please specify project.")
+    .notEmpty()
+    req
+    .checkBody("level","Please specify level(task or project).")
+    .notEmpty()
+    req
+    .checkBody("quote","Please specify quote for this request")
+    .notEmpty()
+    req
+    .checkBody("stakeholder","Please specify who submits the evidence")
+    .notEmpty()
+    req
+    .checkBody("datatype","Please specify datatype(video, audio, image, e.t.c)")
+    .notEmpty()
+  },
+
   // capitalize First letter
   capitalizeFirst(name) {
     return name.charAt(0).toUpperCase() + name.slice(1)

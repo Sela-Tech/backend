@@ -24,6 +24,8 @@ var schemaOptions = {
         versionKey: false,
         retainKeyOrder: true
     },
+    timestamps: true ,
+    usePushEach : true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
@@ -50,14 +52,14 @@ var evidenceStructure = {
     task: {                 // can be null or not null depending on the level(project or task)
         type: ObjectId,
         ref: "Task",
-        // autopopulate: {
-        //     select:
-        //         "name description _id assignedTo status"
-        // },
+        autopopulate: {
+            select:
+                "name _id "
+        },
         default: null
     },
 
-    description: {
+    instruction: {
         type: String,
         default: ""
     },
@@ -77,10 +79,13 @@ var evidenceStructure = {
         enum:["video", "audio", "image", "table", "survey"]
     },
     // if graphical data, the field below is useful
-    fieldNames: [
+    fields: [
         {
-            fieldName: {
+            title: {
                 type: String
+            },
+            responseType:{
+                type:String
             }
         }
 
@@ -89,8 +94,13 @@ var evidenceStructure = {
 
     submissions:{
         type:[mongoose.Schema.Types.Mixed] //an array of mixed data types
-    } // anything can be thrown here regardless of data type e.g string, Number, object
+    }, // anything can be thrown here regardless of data type e.g string, Number, object
 
+    status:{
+        type:String,
+        enum:["Pending", "Submitted"],
+        default:"Pending"
+    }
 
    
 };
@@ -104,7 +114,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var evidenceSchema = new Schema(evidenceStructure, { timestamps: true });
+var evidenceSchema = new Schema(evidenceStructure, schemaOptions);
 evidenceSchema.plugin(autoPopulate);
 evidenceSchema.plugin(mongoosePaginate);
 
