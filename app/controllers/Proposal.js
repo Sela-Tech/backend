@@ -21,17 +21,17 @@ const ac = new AccessControl(grantsObject);
 class Proposals {
 
     // constructor() {
-    //     this.handleNull = this.handleNull.bind(this)
+    //     this.populateUser = this.populateUser.bind(this)
     // }
 
-    static handleNull(object) {
-        if (object == null) {
+    static populateUser(user) {
+        if (user == null) {
             return null
         }
         return {
-            fullName: `${object.firstName} ${object.lastName}`,
-            _id: object._id,
-            profilePhoto: object.profilePhoto
+            fullName: `${user.firstName} ${user.lastName}`,
+            _id: user._id,
+            profilePhoto: user.profilePhoto
         }
     }
 
@@ -72,6 +72,10 @@ class Proposals {
 
                 if (milestones.length < 1) {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
+                }
+
+                if(req.userId === project.owner._id.toString() && contractor && contractor===req.userId){
+                    return res.status(403).json({ message: "You cannot assign a proposal to Yourself" })
                 }
 
                 milestones = milestones.map(async (milestone) => {
@@ -222,8 +226,8 @@ class Proposals {
                         }).reduce((x, y) => x + y);
                     }).reduce((a, b) => a + b),
 
-                    proposedBy: Proposals.handleNull(p.proposedBy),
-                    assignedTo: Proposals.handleNull(p.assignedTo),
+                    proposedBy: Proposals.populateUser(p.proposedBy),
+                    assignedTo: Proposals.populateUser(p.assignedTo),
                     status: p.status,
                     approved: p.approved
                 }
@@ -281,8 +285,8 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
-                proposedBy: Proposals.handleNull(proposal.proposedBy),
-                assignedTo: Proposals.handleNull(proposal.assignedTo),
+                proposedBy: Proposals.populateUser(proposal.proposedBy),
+                assignedTo: Proposals.populateUser(proposal.assignedTo),
                 comments: proposal.comments.map((comment) => {
                     return {
                         actor: {

@@ -31,7 +31,7 @@ var schemaOptions = {
 };
 
 var evidenceStructure = {
-    name: {
+    title: {
         type: String,
         required: true
     },
@@ -54,7 +54,7 @@ var evidenceStructure = {
         ref: "Task",
         autopopulate: {
             select:
-                "name _id "
+                "name _id"
         },
         default: null
     },
@@ -72,7 +72,11 @@ var evidenceStructure = {
     stakeholder: {
         type: ObjectId,
         ref: "User",
-        default: null
+        default: null,
+        autopopulate: {
+            select:
+              "firstName lastName _id profilePhoto"
+          }
     },
     datatype:{
         type:String,
@@ -100,6 +104,21 @@ var evidenceStructure = {
         type:String,
         enum:["Pending", "Submitted"],
         default:"Pending"
+    },
+
+    requestedBy:{
+        type: ObjectId,
+        ref: "User",
+        default: null,
+        autopopulate: {
+          select:
+            "firstName lastName _id profilePhoto"
+        }
+    },
+
+    dueDate:{
+        type:Date,
+        default:null
     }
 
    

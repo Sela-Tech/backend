@@ -97,7 +97,7 @@ const validator = {
 
   validateAddEvidenceRequest(req, res){
     req
-    .checkBody("name","name cannot be empty.")
+    .checkBody("title","title cannot be empty.")
     .notEmpty()
     req
     .checkBody("project","Please specify project.")
