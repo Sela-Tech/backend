@@ -368,6 +368,15 @@ class Evidences {
         }
     }
 
+
+   /**
+    *
+    *
+    * @param {*} req
+    * @param {*} res
+    * @returns
+    * @memberof Evidences
+    */
    async getSingleEvidenceRequest(req, res){
         const { id } = req.params;
 

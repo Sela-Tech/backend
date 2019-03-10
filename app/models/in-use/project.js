@@ -96,7 +96,7 @@ var projectStructure = {
   },
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
-  proposals: [{ type: ObjectId, ref: "Proposal"}],
+  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: { select: "proposalName milestones proposedBy assignedTo status" }}],
   stakeholders: [
     {
       user: {
