@@ -21,17 +21,17 @@ const ac = new AccessControl(grantsObject);
 class Proposals {
 
     // constructor() {
-    //     this.handleNull = this.handleNull.bind(this)
+    //     this.populateUser = this.populateUser.bind(this)
     // }
 
-    static handleNull(object) {
-        if (object == null) {
+    static populateUser(user) {
+        if (user == null) {
             return null
         }
         return {
-            fullName: `${object.firstName} ${object.lastName}`,
-            _id: object._id,
-            profilePhoto: object.profilePhoto
+            fullName: `${user.firstName} ${user.lastName}`,
+            _id: user._id,
+            profilePhoto: user.profilePhoto
         }
     }
 
@@ -72,6 +72,10 @@ class Proposals {
 
                 if (milestones.length < 1) {
                     return res.status(403).json({ message: "You cannot submit an empty proposal.\n Start by creating tasks and milestones" })
+                }
+
+                if (req.userId === project.owner._id.toString() && contractor && contractor === req.userId) {
+                    return res.status(403).json({ message: "You cannot assign a proposal to Yourself" })
                 }
 
                 milestones = milestones.map(async (milestone) => {
@@ -146,9 +150,8 @@ class Proposals {
 
                     // push proposal into the project
 
-                    // project.proposals.push(proposal._id);
-
-                    // await proposal.save();
+                    project.proposals.push(proposal._id);
+                    await project.save();
 
 
                 } else if (req.userId === project.owner._id.toString() && contractor && contractor !== "") {
@@ -159,10 +162,10 @@ class Proposals {
 
                     // push proposal into the project
 
-                    // project.proposals.push(proposal._id);
-                    // await project.save();
+                    project.proposals.push(proposal._id);
+                    await project.save();
 
-                    
+
 
                     // send contractor a notification about been added to a project
                     await noticate.notifyOnAssignedToProposal(req, project, proposal, contractor)
@@ -222,8 +225,8 @@ class Proposals {
                         }).reduce((x, y) => x + y);
                     }).reduce((a, b) => a + b),
 
-                    proposedBy: Proposals.handleNull(p.proposedBy),
-                    assignedTo: Proposals.handleNull(p.assignedTo),
+                    proposedBy: Proposals.populateUser(p.proposedBy),
+                    assignedTo: Proposals.populateUser(p.assignedTo),
                     status: p.status,
                     approved: p.approved
                 }
@@ -281,8 +284,8 @@ class Proposals {
                 }),
                 status: proposal.status,
                 approved: proposal.approved,
-                proposedBy: Proposals.handleNull(proposal.proposedBy),
-                assignedTo: Proposals.handleNull(proposal.assignedTo),
+                proposedBy: Proposals.populateUser(proposal.proposedBy),
+                assignedTo: Proposals.populateUser(proposal.assignedTo),
                 comments: proposal.comments.map((comment) => {
                     return {
                         actor: {
@@ -372,16 +375,22 @@ class Proposals {
         const { body: { approved, projectId } } = req;
         try {
 
+            let project = await Project.findById(projectId);
+
+            if (!project) {
+                return res.status(404).json({ message: 'Project Not Found.' })
+            }
+
             let proposal = await Proposal.findOne({ _id: req.params.id, project: projectId });
             if (!proposal) {
                 return res.status(404).json({ message: "Proposal Not Found" });
             }
 
-            if (proposal.project.owner._id.toString() !== req.userId) {
+            if (project.owner._id.toString() !== req.userId) {
                 return res.status(403).json({ message: "You don't have the permission." });
             }
 
-            const projectStakeholders = proposal.project.stakeholders
+            const projectStakeholders = project.stakeholders
 
             // check if proposal owner is a stakeholder
             const projectStakeholder = projectStakeholders.find(c => c.user.information._id.toString() === proposal.proposedBy._id.toString());
@@ -411,7 +420,7 @@ class Proposals {
                                     'user.information': proposal.proposedBy._id, 'user.status': "ACCEPTED",
                                     'user.agreed': true
                                 },
-                                // proposals: { _id: proposal._id }
+                                proposals: { _id: proposal._id }
 
                             }
 
@@ -427,7 +436,7 @@ class Proposals {
                         // await Project.updateOne({ _id: projectId }, { $push: { proposals: { _id: proposal._id } } });
                         // send notification here
 
-                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, null);
+                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, null);
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
                     case "PENDING":
@@ -438,12 +447,12 @@ class Proposals {
                         },
                             {
                                 $set: { 'stakeholders.$.user.status': "ACCEPTED", 'stakeholders.$.user.agreed': true },
-                                // $push: { proposals: { _id: proposal._id } }
+                                $push: { proposals: { _id: proposal._id } }
                             });
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
-                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, projectStakeholder.user.status);
+                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status);
 
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
@@ -456,12 +465,12 @@ class Proposals {
                         },
                             {
                                 $set: { 'stakeholders.$.user.status': "ACCEPTED", 'stakeholders.$.user.agreed': true },
-                                // $push: { proposals: { _id: proposal._id } }
+                                $push: { proposals: { _id: proposal._id } }
                             });
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
-                        await noticate.acceptOrRejectProposal(req, proposal.project, proposal, approved, projectStakeholder.user.status)
+                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status)
 
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
@@ -478,9 +487,9 @@ class Proposals {
             await proposal.save();
 
             // await Project.updateOne({ _id: projectId }, { $pull: { proposals: { _id: proposal._id } } }, { 'new': true });
-            // let project = await Project.findById(projectId);
-            // project.proposals.pull({ _id: proposal._id });
-            // await project.save();
+            let project = await Project.findById(projectId);
+            project.proposals.pull({ _id: proposal._id });
+            await project.save();
 
             await noticate.acceptOrRejectProposal(req, project, proposal, approved, null)
 

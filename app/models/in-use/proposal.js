@@ -40,10 +40,10 @@ var proposalStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
-        autopopulate: {
-            select:
-                "name activated _id, owner stakeholders"
-        }
+        // autopopulate: {
+        //     select:
+        //         "name activated _id, owner stakeholders "
+        // }
     },
 
     milestones: [{
