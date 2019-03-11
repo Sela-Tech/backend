@@ -296,10 +296,15 @@ class Projects {
     try {
       let project = await Project.findOne({ _id: req.params.id });
 
+      // lazy load proposals related to project
+
+      let proposals =await Proposal.find({project:project._id})
+
       if (project.activated === true || project.owner._id == req.userId) {
         project = project.toJSON();
 
         project.isOwner = project.owner._id == req.userId;
+        project.proposals = proposals;
         res.status(200).json(project);
       } else {
         res.status(400).json({

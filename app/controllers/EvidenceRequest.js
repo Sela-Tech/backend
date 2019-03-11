@@ -193,7 +193,7 @@ class Evidences {
         const { evidenceRequestId, file, fields } = req.body;
         const datatypes = ["table", "survey", "audio", "image", "video"];
 
-        let evidenceObj = [];
+        let evidenceObj = {};
         let errors = [];
 
         try {
@@ -204,7 +204,6 @@ class Evidences {
                 return res.status(404).json({ message: "Request Not Found" })
             }
 
-            console.log(evidenceRequest)
 
             if (evidenceRequest.submissions.length > 0) {
                 return res.status(403).json({ message: "You cannot submit more than one evidence" })
@@ -263,11 +262,14 @@ class Evidences {
                                         continue
                                     } else {
                                         data.value = Number(data.value);
-                                        evidenceObj.push({ title: data.title, value: data.value })
+                                        evidenceObj[`${field.title}`]=data.value;
+                                        // evidenceObj.push({ title: data.title, value: data.value })
 
                                     }
                                 } else {
-                                    evidenceObj.push({ title: data.title, value: data.value })
+                                    // evidenceObj.push({ title: data.title, value: data.value })
+                                    evidenceObj[`${field.title}`]=data.value;
+
                                 }
 
                             }
@@ -280,8 +282,10 @@ class Evidences {
                     }
 
 
-                    evidenceObj.push({ title: "Date", value: new Date() })
-                    evidenceRequest.submissions = [...evidenceObj];
+                    // evidenceObj.push({ title: "Date", value: new Date() })
+                    evidenceObj['Date']= new Date();
+                    // evidenceRequest.submissions = [{evidence:evidenceObj}];
+                    evidenceRequest.submissions.push(evidenceObj);
                     evidenceRequest.status = "Submitted"
 
 
@@ -300,7 +304,9 @@ class Evidences {
                         return res.status(404).json({ message: "Please submit evidence" })
                     }
 
-                    const field = { title: evidenceRequest.datatype, value: file }
+                    const field = {  }
+
+                    field[`${evidenceRequest.datatype}`] =file
 
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.status = "Submitted"
