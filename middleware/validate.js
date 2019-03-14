@@ -109,7 +109,8 @@ const validator = {
     .checkBody("quote","Please specify quote for this request")
     .notEmpty()
     req
-    .checkBody("stakeholder","Please specify who submits the evidence")
+    .checkBody("stakeholders","Please add who submits the evidence")
+    .isArray()
     .notEmpty()
     req
     .checkBody("datatype","Please specify datatype(video, audio, image, e.t.c)")
