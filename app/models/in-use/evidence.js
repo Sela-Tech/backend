@@ -24,13 +24,13 @@ var schemaOptions = {
         versionKey: false,
         retainKeyOrder: true
     },
-    timestamps: true ,
-    usePushEach : true,
+    timestamps: true,
+    usePushEach: true,
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
 
-var evidenceStructure = {
+const evidenceStructure = {
     title: {
         type: String,
         required: true
@@ -64,23 +64,35 @@ var evidenceStructure = {
         default: ""
     },
 
-    quote: {
+    totalAmount: {
         type: Number,
         default: 0
     },
 
-    stakeholder: {
-        type: ObjectId,
-        ref: "User",
-        default: null,
-        autopopulate: {
-            select:
-              "firstName lastName _id profilePhoto"
-          }
-    },
-    datatype:{
-        type:String,
-        enum:["video", "audio", "image", "table", "survey"]
+    stakeholders: [
+        {
+            user: {
+                type: ObjectId,
+                ref: "User",
+                default: null,
+                autopopulate: {
+                    select:
+                        "firstName lastName _id profilePhoto"
+                }
+            },
+            quote: {
+                type: Number,
+                default: 0
+            },
+            hasSubmitted: {
+                type: Boolean,
+                default: false
+            }
+        }
+    ],
+    datatype: {
+        type: String,
+        enum: ["video", "audio", "image", "table", "survey"]
     },
     // if graphical data, the field below is useful
     fields: [
@@ -88,40 +100,40 @@ var evidenceStructure = {
             title: {
                 type: String
             },
-            responseType:{
-                type:String
+            responseType: {
+                type: String
             }
         }
 
     ],
     // if graphical data, the field above is useful
 
-    submissions:{
-        type:[mongoose.Schema.Types.Mixed] //an array of mixed data types
+    submissions: {
+        type: [mongoose.Schema.Types.Mixed] //an array of mixed data types
     }, // anything can be thrown here regardless of data type e.g string, Number, object
 
-    status:{
-        type:String,
-        enum:["Pending", "Submitted"],
-        default:"Pending"
+    status: {
+        type: String,
+        enum: ["Pending", "Submitted", "In Progess", "Completed"],
+        default: "Pending"
     },
 
-    requestedBy:{
+    requestedBy: {
         type: ObjectId,
         ref: "User",
         default: null,
         autopopulate: {
-          select:
-            "firstName lastName _id profilePhoto"
+            select:
+                "firstName lastName _id profilePhoto"
         }
     },
 
-    dueDate:{
-        type:Date,
-        default:null
+    dueDate: {
+        type: Date,
+        default: null
     }
 
-   
+
 };
 
 

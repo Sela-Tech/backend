@@ -217,6 +217,7 @@ class Proposals {
                     tasks:Array.prototype.concat.apply([], p.milestones.map((m)=>{
                         return m.tasks;
                     })),
+                    
                     totalTasks: p.milestones.map((m) => {
                         return m.tasks.length
                     }).reduce((x, y) => x + y),
