@@ -55,13 +55,13 @@ class Evidences {
         }
     }
 
-    static filterProjectLevelSubmission(generalSub, evidenceRequestSub){
-        let requested = evidenceRequestSub.filter(submission => submission.level==='project');
-        let others = generalSub.filter(submission => submission.level==='project');
+    static filterProjectLevelSubmission(generalSub, evidenceRequestSub) {
+        let requested = evidenceRequestSub.filter(submission => submission.level === 'project');
+        let others = generalSub.filter(submission => submission.level === 'project');
 
         // const totalRequest= requested.length, totalOther= other.length;
 
-        return { requested, others}
+        return { requested, others }
     }
 
     static filterTaskLevelSubmission(generalSub, evidenceRequestSub) {
@@ -78,6 +78,30 @@ class Evidences {
         });
 
         return { requested, others };
+    }
+
+    static filterSubmissions(user, submissions, stakeholders, requestedBy) {
+        let isStakeholder = stakeholders.some(stakeholder => stakeholder.user._id.toString() === user);
+        if (isStakeholder) {
+            return submissions = submissions.filter(submission => submission.user === user)
+        } else if (!isStakeholder && requestedBy._id.toString() === user) {//he who sent the request
+            return submissions
+        } else {
+            return [];
+        }
+
+    }
+
+    static filterStakeholders(user, stakeholders, requestedBy) {
+        let isStakeholder = stakeholders.some(stakeholder => stakeholder.user._id.toString() === user);
+        if (isStakeholder) {
+            return stakeholders = stakeholders.filter(stakeholder => stakeholder.user._id.toString() === user)
+        } else if (!isStakeholder && requestedBy._id.toString() === user) {//he who sent the request
+            return stakeholders
+        } else {
+            return [];
+        }
+
     }
 
     // KPI - Key Performance Indicator
@@ -104,7 +128,7 @@ class Evidences {
         }
 
         const { title, project, level, task, instruction,
-            quote, stakeholders, datatype, fields, dueDate,totalAmount
+            quote, stakeholders, datatype, fields, dueDate, totalPrice
         } = req.body;
 
         try {
@@ -114,8 +138,8 @@ class Evidences {
                 return res.status(404).json({ message: "Project Not Found" })
             }
 
-          
-            let userAddedHimself = stakeholders.some(stakeholder=> stakeholder===req.userId);
+
+            let userAddedHimself = stakeholders.some(stakeholder => stakeholder === req.userId);
 
             if (userAddedHimself) {
                 return res.status(403).json({ message: "You cannot assign evidence request to yourself." })
@@ -126,8 +150,8 @@ class Evidences {
                 project,
                 level,
                 instruction,
-                stakeholders:stakeholders.map(stakeholder=>{return {user:stakeholder, quote:Number(quote)}}),
-                totalAmount:totalAmount || quote*stakeholders.length,
+                stakeholders: _.uniqBy(stakeholders.map(stakeholder => { return { user: stakeholder, quote: Number(quote) } }), 'user'),
+                totalPrice: totalPrice || quote * stakeholders.length,
                 datatype,
                 task,
                 requestedBy: req.userId,
@@ -140,8 +164,7 @@ class Evidences {
                 return res.status(404).json({ message: "Please Specify task" })
             }
 
-            
-            // return res.json({KPIObj});
+
 
             let fieldObj;
             let evidenceRequest;
@@ -229,15 +252,23 @@ class Evidences {
 
         try {
 
-            let evidenceRequest = await Evidence.findOne({ _id: evidenceRequestId, stakeholder: req.userId });
+            let evidenceRequest = await Evidence.findOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId });
 
             if (!evidenceRequest) {
                 return res.status(404).json({ message: "Request Not Found" })
             }
 
 
-            if (evidenceRequest.submissions.length > 0) {
-                return res.status(403).json({ message: "You cannot submit more than one evidence" })
+            // check if the stakeholder has submitted before
+
+            let extractedStakeholder = evidenceRequest.stakeholders.find(stakeholder => stakeholder.user._id.toString() === req.userId)
+
+            // return res.json({extractedStakeholder});
+
+            if (extractedStakeholder === undefined || Object.getOwnPropertyNames(extractedStakeholder).length === 0) {
+                return res.status(403).json({ message: "You were not assigned to this request" })
+            } else if (Object.getOwnPropertyNames(extractedStakeholder).length > 0 && extractedStakeholder.hasSubmitted === true) {
+                return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
             }
 
             switch (evidenceRequest.datatype) {
@@ -283,7 +314,7 @@ class Evidences {
                         for (let data of fields) {
 
                             // check both title are thesame
-                            if (field.title == data.title) {
+                            if (field._id == data._id) {
                                 // check the response data of field
                                 // check if the valid response type is provided
                                 // cast data value to Number whose corresponding response type is 'Number'
@@ -315,14 +346,21 @@ class Evidences {
 
                     // evidenceObj.push({ title: "Date", value: new Date() })
                     evidenceObj['Date'] = new Date();
+                    evidenceObj['user'] = req.userId;
                     // evidenceRequest.submissions = [{evidence:evidenceObj}];
                     evidenceRequest.submissions.push(evidenceObj);
-                    evidenceRequest.status = "Submitted"
 
+                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
+                        evidenceRequest.status = "In Progess";
+                    // evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
-                    return res.status(200).json({ message: "Your Evidence has been submittted", evidenceRequest });
+
+                    await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
+                        { $set: { 'stakeholders.$.hasSubmitted': true } });
+
+                    return res.status(200).json({ message: "Your Evidence has been submitted" });
 
                 // when evidence require survey
                 case datatypes[1]:
@@ -337,7 +375,8 @@ class Evidences {
 
                     const field = {}
 
-                    field["evidence"] = file
+                    field[`${evidenceRequest.datatype}`] = file
+                    field[`evidence`] = file
 
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.status = "Submitted"
@@ -345,7 +384,7 @@ class Evidences {
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
 
-                    return res.status(200).json({ message: "Your Evidence has been submittted", evidenceRequest });
+                    return res.status(200).json({ message: "Your Evidence has been submitted" });
 
             }
 
@@ -371,7 +410,7 @@ class Evidences {
         const { id } = req.params;
 
         try {
-            let evidenceRequests = await Evidence.find({ project: id, $or: [{ requestedBy: req.userId }, { stakeholder: req.userId }] }).sort({ createdAt: -1 });
+            let evidenceRequests = await Evidence.find({ project: id, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }] }).sort({ createdAt: -1 });
 
             if (evidenceRequests.length < 1) {
                 return res.status(200).json({ evidenceRequests: [] });
@@ -384,15 +423,22 @@ class Evidences {
                     project: evidenceRequest.project,
                     level: evidenceRequest.level,
                     instruction: evidenceRequest.instruction,
-                    stakeholder: Evidences.populateUser(evidenceRequest.stakeholder),
-                    quote: evidenceRequest.quote,
+                    stakeholders: evidenceRequest.stakeholders.map(stakeholder => {
+                        return {
+                            hasSubmitted: stakeholder.hasSubmitted,
+                            quote: stakeholder.quote,
+                            user: Evidences.populateUser(stakeholder.user)
+                        }
+                    }),
+                    // quote: evidenceRequest.quote,
                     datatype: evidenceRequest.datatype,
                     task: Evidences.populateTask(evidenceRequest.task),
                     requestedBy: Evidences.populateUser(evidenceRequest.requestedBy),
                     dueDate: evidenceRequest.dueDate,
                     status: evidenceRequest.status,
                     fields: evidenceRequest.fields,
-                    submissions: evidenceRequest.submissions,
+                    submissions: Evidences.filterSubmissions(req.userId, evidenceRequest.submissions, evidenceRequest.stakeholders, evidenceRequest.requestedBy),
+                    totalPrice: evidenceRequest.totalPrice
                 }
             })
             return res.status(200).json({ evidenceRequests });
@@ -416,7 +462,6 @@ class Evidences {
      */
     async getSingleEvidenceRequest(req, res) {
         const { id } = req.params;
-
         try {
             let evidenceRequest = await Evidence.findOne({ _id: id });
 
@@ -429,7 +474,13 @@ class Evidences {
                 project: evidenceRequest.project,
                 level: evidenceRequest.level,
                 instruction: evidenceRequest.instruction,
-                stakeholder: Evidences.populateUser(evidenceRequest.stakeholder),
+                stakeholders: evidenceRequest.stakeholders.map(stakeholder => {
+                    return {
+                        hasSubmitted: stakeholder.hasSubmitted,
+                        quote: stakeholder.quote,
+                        user: Evidences.populateUser(stakeholder.user)
+                    }
+                }),
                 quote: evidenceRequest.quote,
                 datatype: evidenceRequest.datatype,
                 task: Evidences.populateTask(evidenceRequest.task),
@@ -437,7 +488,9 @@ class Evidences {
                 dueDate: evidenceRequest.dueDate,
                 status: evidenceRequest.status,
                 fields: evidenceRequest.fields,
-                submissions: evidenceRequest.submissions,
+                submissions: Evidences.filterSubmissions(req.userId, evidenceRequest.submissions, evidenceRequest.stakeholders, evidenceRequest.requestedBy),
+                totalPrice: evidenceRequest.totalPrice
+
             }
 
             return res.status(200).json({ evidenceRequest });
@@ -541,10 +594,10 @@ class Evidences {
 
             // const getTaskBasedSub;
 
-            
 
-            let projectSubmissions= Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
-            let taskSubmissions= Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+
+            let projectSubmissions = Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+            let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
 
             let submissions = {
                 projectSubmissions,

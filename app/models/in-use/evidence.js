@@ -64,7 +64,7 @@ const evidenceStructure = {
         default: ""
     },
 
-    totalAmount: {
+    totalPrice: {
         type: Number,
         default: 0
     },
