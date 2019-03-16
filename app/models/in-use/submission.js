@@ -50,7 +50,7 @@ var submissionStructure = {
         ref: "Task",
         autopopulate: {
             select:
-                "name _id"
+                "name _id createdAt updateAt"
         },
         default: null
     },
