@@ -55,7 +55,7 @@ class Evidences {
         }
     }
 
-    static filterProjectLevelSubmission(generalSub, evidenceRequestSub) {
+    static filterProjectLevelSubmission(user, generalSub, evidenceRequestSub) {
         let requested = evidenceRequestSub.filter(submission => submission.level === 'project')
         .map((requested) => {
             return {
@@ -681,7 +681,7 @@ class Evidences {
             }
 
 
-            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId,generalSubmissions, evidenceRequestSubmissions)
             // let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
 
             let submissions = {
