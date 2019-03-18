@@ -64,20 +64,59 @@ class Evidences {
         return { requested, others }
     }
 
-    static filterTaskLevelSubmission(generalSub, evidenceRequestSub) {
-        let requested = evidenceRequestSub.filter(submission => submission.level === 'task');
-        let others = generalSub.filter(submission => submission.level === 'task');
+    static filterTaskLevelSubmission(user, task, generalSub, evidenceRequestSub) {
+        // let allTaskSubmissions = Array.prototype.concat.call([], generalSub, evidenceRequestSub).filter(submission => submission.level === 'task');
+        let requested = evidenceRequestSub.filter(submission => submission.level === 'task' && submission.task._id.toString() === task._id.toString())
+            .map((requested) => {
+                return {
+                    _id: requested._id,
+                    title:requested.title,
+                    datatype:requested.datatype,
+                    updatedAt: requested.updatedAt,
+                    task: {
+                        _id: requested.task._id,
+                    },
+                    stakeholders: requested.stakeholders.map(stakeholder => {
+                        return {
+                            hasSubmitted: stakeholder.hasSubmitted,
+                            quote: stakeholder.quote,
+                            user: Evidences.populateUser(stakeholder.user)
+                        }
+                    }),
+                    fields:requested.fields,
+                    submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
+                // submissions:requested.submissions
 
-        // const totalRequest= requested.length, totalOther= other.length;
-
-        let taskSubmissions = requested.map((request) => {
-            return {
-                submission: request,
-                totalSubmission: request.submissions.length + others.filter(other => request.task.toString() === other.task.toString()).length
+                }
+            });
+        let others = generalSub.filter(submission => submission.level === 'task' && submission.task._id.toString() === task._id.toString())
+        .map((other)=>{
+            return{
+                _id: other._id,
+                    title:other.title,
+                    datatype:other.datatype,
+                    updatedAt: other.updatedAt,
+                    task: {
+                        _id: other.task._id,
+                    },
+                    stakeholder:Evidences.populateUser(other.stakeholder),
+                    evidence:other.evidence,
+                    updatedAt:other.updatedAt
             }
         });
 
-        return { requested, others };
+        task = task.toJSON()
+        delete task.assignedTo
+        delete task.createdBy
+        delete task.status
+        delete task.description
+        delete task.estimatedCost
+
+        task.totalSubmissions = requested.length + others.length;
+        task.requested = requested;
+        task.others = others;
+        return task
+        // return { requested, others };
     }
 
     static filterSubmissions(user, submissions, stakeholders, requestedBy) {
@@ -522,6 +561,11 @@ class Evidences {
                 return res.status(404).json({ message: "Project Not Found" })
             }
 
+            // ................features....................
+            // 1. check if he is assigned to the proposal (for a contractor)
+            // 2. check role
+
+
             let projectStakeholders = foundProject.stakeholders;
 
             let isProjectStakeholder = projectStakeholders.some(s => s.user.information._id.toString() === req.userId && s.user.status === 'ACCEPTED')
@@ -571,6 +615,7 @@ class Evidences {
 
     async getSubmissions(req, res) {
         const { id } = req.params;
+        const { proposalId } = req.query;
         let generalSubmissions;
         try {
 
@@ -588,24 +633,39 @@ class Evidences {
             }
 
 
-            let evidenceRequestSubmissions = await Evidence.find({ project, $or: [{ requestedBy: req.userId }, { stakeholder: req.userId }], submissions: { $exists: true }, $where: 'this.submissions.length>0' });
+            let evidenceRequestSubmissions = await Evidence.find({ project, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }], submissions: { $exists: true }, $where: 'this.submissions.length>0' });
 
-            // const allSubmissions = [...generalSubmissions, evidenceRequestSubmissions]
+            // get proposal related to the project
 
-            // const getTaskBasedSub;
-
-
-
-            let projectSubmissions = Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
-            let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
-
-            let submissions = {
-                projectSubmissions,
-                taskSubmissions
+            let proposal
+            if(proposalId && proposalId.length>0){
+                 proposal = await Proposal.findOne({ _id: proposalId, $or: [{ proposedBy: req.userId }, { assignedTo: req.userId }] }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
             }
 
+            if(!proposal){
+                return res.status(404).json({ message: "Proposal Not Found" })
+            }
+
+
+            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+            // let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+
+            let submissions = {
+                projectLevelSubmissions,
+                taskLevelSubmissions: proposal.milestones.map((milestone) => {
+                    return {
+                        title: milestone.title,
+                        tasks: milestone.tasks.map((task) => {
+                            return Evidences.filterTaskLevelSubmission(req.userId,task, generalSubmissions, evidenceRequestSubmissions)
+                        })
+                    }
+                })
+            }
+
+            // let allTaskSubmissions = Array.prototype.concat.call([], generalSubmissions, evidenceRequestSubmissions).filter(submission => submission.level === 'task');
+
             // let submissions= {}
-            return res.json({ submissions })
+            return res.json( submissions )
 
         } catch (error) {
             console.log(error);
