@@ -10,6 +10,8 @@
     "start": "nodemon sela_app.js --watch",
     "server": "nodemon sela_app.js",
     "client": "nodemon start-client.js",
+    "prebuild": "rm -rf dist/*",
+    "build:prod": "npm run prebuild && babel -d ./dist/server ./ -s --ignore node_modules",
     "test": "cross-env NODE_ENV=test mocha --timeout 500000",
     "coveralls": "istanbul cover npm run test --report lcovonly -- -R test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "lint": "eslint ."

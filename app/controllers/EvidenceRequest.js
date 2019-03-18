@@ -55,9 +55,44 @@ class Evidences {
         }
     }
 
-    static filterProjectLevelSubmission(generalSub, evidenceRequestSub) {
-        let requested = evidenceRequestSub.filter(submission => submission.level === 'project');
-        let others = generalSub.filter(submission => submission.level === 'project');
+    static filterProjectLevelSubmission(user, generalSub, evidenceRequestSub) {
+        let requested = evidenceRequestSub.filter(submission => submission.level === 'project')
+        .map((requested) => {
+            return {
+                _id: requested._id,
+                title:requested.title,
+                datatype:requested.datatype,
+                updatedAt: requested.updatedAt,
+                // task: {
+                //     _id: requested.task._id,
+                // },
+                stakeholders: requested.stakeholders.map(stakeholder => {
+                    return {
+                        hasSubmitted: stakeholder.hasSubmitted,
+                        quote: stakeholder.quote,
+                        user: Evidences.populateUser(stakeholder.user)
+                    }
+                }),
+                fields:requested.fields,
+                submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
+
+            }
+        });
+        let others = generalSub.filter(submission => submission.level === 'project')
+        .map((other)=>{
+            return{
+                _id: other._id,
+                // title:other.title,
+                // datatype:other.datatype,
+                updatedAt: other.updatedAt,
+                // task: {
+                //     _id: other.task._id,
+                // },
+                stakeholder:Evidences.populateUser(other.stakeholder),
+                evidence:other.evidence,
+                updatedAt:other.updatedAt
+            }
+        });
 
         // const totalRequest= requested.length, totalOther= other.length;
 
@@ -85,7 +120,6 @@ class Evidences {
                     }),
                     fields:requested.fields,
                     submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
-                // submissions:requested.submissions
 
                 }
             });
@@ -93,8 +127,8 @@ class Evidences {
         .map((other)=>{
             return{
                 _id: other._id,
-                    title:other.title,
-                    datatype:other.datatype,
+                    // title:other.title,
+                    // datatype:other.datatype,
                     updatedAt: other.updatedAt,
                     task: {
                         _id: other.task._id,
@@ -647,7 +681,7 @@ class Evidences {
             }
 
 
-            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId,generalSubmissions, evidenceRequestSubmissions)
             // let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
 
             let submissions = {
