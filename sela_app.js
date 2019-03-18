@@ -1,3 +1,6 @@
+require('babel-core/register');
+require('babel-polyfill');
+
 ROOT = __dirname;
 FRONTEND = __dirname + "/public";
 
