@@ -55,7 +55,8 @@ class Dashboard {
                             owner: {
                                 fullName: `${p.project.owner.firstName} ${p.project.owner.lastName}`,
                                 _id: p.project.owner._id
-                            }
+                            },
+                            tags:p.project.tags
                         }
                     }).reverse();
                 }
@@ -82,7 +83,8 @@ class Dashboard {
                         owner: {
                             fullName: `${d.project.owner.firstName} ${d.project.owner.lastName}`,
                             _id: d.project.owner._id
-                        }
+                        },
+                        tags:d.project.tags
                     }
                 }).reverse();
             }
@@ -135,7 +137,8 @@ class Dashboard {
                                 owner: {
                                     fullName: `${p.owner.firstName} ${p.owner.lastName}`,
                                     _id: p.owner._id
-                                }
+                                },
+                                tags:p.tags
                             }
                         }).reverse();
                     }
@@ -162,7 +165,8 @@ class Dashboard {
                             owner: {
                                 fullName: `${d.owner.firstName} ${d.owner.lastName}`,
                                 _id: d.owner._id
-                            }
+                            },
+                            tags:d.tags
                         }
                     }).reverse();
                 }
@@ -195,6 +199,8 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
 
+        console.log(page, limit)
+
         let all = req.query.all;
         try {
 
@@ -219,7 +225,8 @@ class Dashboard {
                             owner: {
                                 fullName: `${p.owner.firstName} ${p.owner.lastName}`,
                                 _id: p.owner._id
-                            }
+                            },
+                            tags:p.tags
                         }
                     }).reverse();
                 }
@@ -262,7 +269,8 @@ class Dashboard {
                         owner: {
                             fullName: `${d.owner.firstName} ${d.owner.lastName}`,
                             _id: d.owner._id
-                        }
+                        },
+                        tags:d.tags
                     }
                 }).reverse();
 
@@ -334,7 +342,8 @@ class Dashboard {
                             owner: {
                                 fullName: `${p.owner.firstName} ${p.owner.lastName}`,
                                 _id: p.owner._id
-                            }
+                            },
+                            tags:p.tags
                         }
                     }).reverse();
                 }
@@ -362,7 +371,8 @@ class Dashboard {
                         owner: {
                             fullName: `${d.owner.firstName} ${d.owner.lastName}`,
                             _id: d.owner._id
-                        }
+                        },
+                        tags:d.tags
                     }
                 }).reverse();
             }
