@@ -379,14 +379,22 @@ class Projects {
 
         // if (shouldAddContractor) {
 
-        let new_stakeholders = [...old_stakeholders, ...stakeholders];
+        // let new_stakeholders = [...old_stakeholders, ...stakeholders];
 
-        let saveResponse = await Project.updateOne(
-          { _id: req.body.id },
-          { $set: { stakeholders: new_stakeholders } }
-        );
+        stakeholders.forEach(stakeholder => {
+          project.stakeholders.push(stakeholder)
+        });
 
-        if (saveResponse.n === 1) {
+
+        // return res.json({project})
+        // let saveResponse = await Project.updateOne(
+        //   { _id: req.body.id },
+        //   { $push: { stakeholders: ...stakeholders } }
+        // );
+
+        let saveResponse = await project.save();
+
+        if (saveResponse) {
           await notify.notifyAddedStakeholders(req, req.body.stakeholders, project);
           return res.status(200).json({
             message: "Stakeholder Added Sucessfully"
