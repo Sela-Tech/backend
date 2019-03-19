@@ -57,42 +57,42 @@ class Evidences {
 
     static filterProjectLevelSubmission(user, generalSub, evidenceRequestSub) {
         let requested = evidenceRequestSub.filter(submission => submission.level === 'project')
-        .map((requested) => {
-            return {
-                _id: requested._id,
-                title:requested.title,
-                datatype:requested.datatype,
-                updatedAt: requested.updatedAt,
-                // task: {
-                //     _id: requested.task._id,
-                // },
-                stakeholders: requested.stakeholders.map(stakeholder => {
-                    return {
-                        hasSubmitted: stakeholder.hasSubmitted,
-                        quote: stakeholder.quote,
-                        user: Evidences.populateUser(stakeholder.user)
-                    }
-                }),
-                fields:requested.fields,
-                submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
+            .map((requested) => {
+                return {
+                    _id: requested._id,
+                    title: requested.title,
+                    datatype: requested.datatype,
+                    updatedAt: requested.updatedAt,
+                    // task: {
+                    //     _id: requested.task._id,
+                    // },
+                    stakeholders: requested.stakeholders.map(stakeholder => {
+                        return {
+                            hasSubmitted: stakeholder.hasSubmitted,
+                            quote: stakeholder.quote,
+                            user: Evidences.populateUser(stakeholder.user)
+                        }
+                    }),
+                    fields: requested.fields,
+                    submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
 
-            }
-        });
+                }
+            });
         let others = generalSub.filter(submission => submission.level === 'project')
-        .map((other)=>{
-            return{
-                _id: other._id,
-                // title:other.title,
-                // datatype:other.datatype,
-                updatedAt: other.updatedAt,
-                // task: {
-                //     _id: other.task._id,
-                // },
-                stakeholder:Evidences.populateUser(other.stakeholder),
-                evidence:other.evidence,
-                updatedAt:other.updatedAt
-            }
-        });
+            .map((other) => {
+                return {
+                    _id: other._id,
+                    // title:other.title,
+                    // datatype:other.datatype,
+                    updatedAt: other.updatedAt,
+                    // task: {
+                    //     _id: other.task._id,
+                    // },
+                    stakeholder: Evidences.populateUser(other.stakeholder),
+                    evidence: other.evidence,
+                    updatedAt: other.updatedAt
+                }
+            });
 
         // const totalRequest= requested.length, totalOther= other.length;
 
@@ -105,8 +105,8 @@ class Evidences {
             .map((requested) => {
                 return {
                     _id: requested._id,
-                    title:requested.title,
-                    datatype:requested.datatype,
+                    title: requested.title,
+                    datatype: requested.datatype,
                     updatedAt: requested.updatedAt,
                     task: {
                         _id: requested.task._id,
@@ -118,26 +118,26 @@ class Evidences {
                             user: Evidences.populateUser(stakeholder.user)
                         }
                     }),
-                    fields:requested.fields,
+                    fields: requested.fields,
                     submissions: Evidences.filterSubmissions(user, requested.submissions, requested.stakeholders, requested.requestedBy),
 
                 }
             });
         let others = generalSub.filter(submission => submission.level === 'task' && submission.task._id.toString() === task._id.toString())
-        .map((other)=>{
-            return{
-                _id: other._id,
+            .map((other) => {
+                return {
+                    _id: other._id,
                     // title:other.title,
                     // datatype:other.datatype,
                     updatedAt: other.updatedAt,
                     task: {
                         _id: other.task._id,
                     },
-                    stakeholder:Evidences.populateUser(other.stakeholder),
-                    evidence:other.evidence,
-                    updatedAt:other.updatedAt
-            }
-        });
+                    stakeholder: Evidences.populateUser(other.stakeholder),
+                    evidence: other.evidence,
+                    updatedAt: other.updatedAt
+                }
+            });
 
         task = task.toJSON()
         delete task.assignedTo
@@ -647,10 +647,27 @@ class Evidences {
 
     }
 
+
+    static getTaskLevelSubmissions(user, generalSubmissions, evidenceRequestSubmissions, proposal) {
+       proposal= proposal.milestones.map((milestone) => {
+            return {
+                title: milestone.title,
+                tasks: milestone.tasks.map((task) => {
+                    return Evidences.filterTaskLevelSubmission(user, task, generalSubmissions, evidenceRequestSubmissions)
+                })
+            }
+        });
+
+        return proposal;
+    }
+
+
+
     async getSubmissions(req, res) {
         const { id } = req.params;
-        const { proposalId } = req.query;
-        let generalSubmissions;
+        const { level, proposalId } = req.query;
+
+        let generalLevelSubmissions;
         try {
 
             // confirm project 
@@ -661,45 +678,74 @@ class Evidences {
 
 
             if (project.owner._id.toString() === req.userId) {
-                generalSubmissions = await Submission.find({ project: id });
+                generalLevelSubmissions = Submission.find({ project: id });
             } else {
-                generalSubmissions = await Submission.find({ project: id, stakeholder: req.userId });
+                generalLevelSubmissions = Submission.find({ project: id, stakeholder: req.userId });
             }
 
 
-            let evidenceRequestSubmissions = await Evidence.find({ project, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }], submissions: { $exists: true }, $where: 'this.submissions.length>0' });
+            let evidenceRequestLevelSubmissions = Evidence.find({ project, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }], submissions: { $exists: true }, $where: 'this.submissions.length>0' });
 
-            // get proposal related to the project
-
+            const [generalSubmissions, evidenceRequestSubmissions] = await Promise.all([generalLevelSubmissions, evidenceRequestLevelSubmissions])
+            let submissions = {};
+            let projectLevelSubmissions;
+            let taskLevelSubmissions;
             let proposal
-            if(proposalId && proposalId.length>0){
-                 proposal = await Proposal.findOne({ _id: proposalId, $or: [{ proposedBy: req.userId }, { assignedTo: req.userId }] }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
-            }
-
-            if(!proposal){
-                return res.status(404).json({ message: "Proposal Not Found" })
-            }
 
 
-            let projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId,generalSubmissions, evidenceRequestSubmissions)
-            // let taskSubmissions = Evidences.filterTaskLevelSubmission(generalSubmissions, evidenceRequestSubmissions)
+            switch (level) {
+                case 'project':
 
-            let submissions = {
-                projectLevelSubmissions,
-                taskLevelSubmissions: proposal.milestones.map((milestone) => {
-                    return {
-                        title: milestone.title,
-                        tasks: milestone.tasks.map((task) => {
-                            return Evidences.filterTaskLevelSubmission(req.userId,task, generalSubmissions, evidenceRequestSubmissions)
-                        })
+                    projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId, generalSubmissions, evidenceRequestSubmissions)
+                    submissions.projectLevelSubmissions = projectLevelSubmissions;
+                    break;
+                case 'task':
+
+                    // get proposal related to the project
+                    if (!proposalId || proposalId === "") {
+                        return res.status(400).json({ message: "invalid proposal Id" })
                     }
-                })
+
+                    if (proposalId && proposalId.length > 0) {
+                        proposal = await Proposal.findOne({ _id: proposalId, $or: [{ proposedBy: req.userId }, { assignedTo: req.userId }] }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
+                    }
+
+                    if (!proposal) {
+                        return res.status(404).json({ message: "Proposal Not Found" })
+                    }
+
+                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions,proposal)
+                    submissions.taskLevelSubmissions = taskLevelSubmissions;
+                    break;
+
+                case 'both':
+
+                    if (!proposalId || proposalId === "") {
+                        return res.status(400).json({ message: "invalid proposal Id" })
+                    }
+
+                    if (proposalId && proposalId.length > 0) {
+                        proposal = await Proposal.findOne({ _id: proposalId, $or: [{ proposedBy: req.userId }, { assignedTo: req.userId }] }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
+                    }
+
+                    if (!proposal) {
+                        return res.status(404).json({ message: "Proposal Not Found" })
+                    }
+
+                    projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId, generalSubmissions, evidenceRequestSubmissions);
+                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions,proposal)
+
+                    submissions.projectLevelSubmissions = projectLevelSubmissions;
+                    submissions.taskLevelSubmissions = taskLevelSubmissions;
+
+                    break;
+
+                default:
+                    return res.status(400).json({ message: "please specify level" })
+                    // break;
             }
 
-            // let allTaskSubmissions = Array.prototype.concat.call([], generalSubmissions, evidenceRequestSubmissions).filter(submission => submission.level === 'task');
-
-            // let submissions= {}
-            return res.json( submissions )
+            return res.json(submissions)
 
         } catch (error) {
             console.log(error);

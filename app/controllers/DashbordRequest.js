@@ -199,7 +199,6 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
 
-        console.log(page, limit)
 
         let all = req.query.all;
         try {
