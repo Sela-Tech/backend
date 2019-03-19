@@ -321,13 +321,29 @@ class Dashboard {
         try {
 
             let user = await User.findById(req.userId);
-
             let interests = user.areasOfInterest;
 
             if (all && typeof (all) === 'string' && all === 'true') {
                 let projects = await Project.find({ owner: { $ne: req.userId }, tags: { $in: [...interests] } });
+                // let projects = await Project.find({ tags: { $in: [...interests] }, $or:[{owner: { $ne: req.userId } }, {'stakeholders.user.information':req.userId, 'stakeholders.user.status':{$ne:'ACCEPTED'}}] });
+                // let projects = await Project.find({owner: { $ne: req.userId }, tags: { $in: [...interests] }, $or:[{'stakeholders.user.information':req.userId, 'stakeholders.user.status':{$ne:'ACCEPTED'}},{'stakeholders.user.information':{$ne:req.userId} }] });
+
+
+                // filter out projects user may have joined or funded
+                // projects= projects.map((project)=>{
+                //     project= project.stakeholders.filter((stakeholder)=>{
+                //         return stakeholder.user.information._id.toString()!==req.userId && stakeholder.user.status !=='ACCEPTED'
+                //     });
+                //     return project;
+                // });
+
+
+
                 if (projects.length > 0) {
                     // projects= projects.filter(p=>p.owner._id.toString() !== req.userId);
+
+                    
+
                     projects = projects.map((p) => {
                         return {
                             _id: p._id,
