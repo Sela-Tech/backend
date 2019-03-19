@@ -448,14 +448,17 @@ class Evidences {
 
                     const field = {}
 
-                    field[`${evidenceRequest.datatype}`] = file
-                    field[`evidence`] = file
+                    // field[`${evidenceRequest.datatype}`] = file
+                    field["evidence"] = file
 
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
+
+                    await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
+                    { $set: { 'stakeholders.$.hasSubmitted': true } });
 
                     return res.status(200).json({ message: "Your Evidence has been submitted" });
 
