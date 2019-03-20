@@ -177,6 +177,13 @@ class Evidences {
 
     }
 
+    static extractStakeHolderInfo(stakeholder){
+        return stakeholder={
+            _id:stakeholder._id,
+            fullName:`${stakeholder.firstName} ${stakeholder.lastName}`,
+            profilePhoto:stakeholder.profilePhoto
+        }
+    }
     // KPI - Key Performance Indicator
 
     /**
@@ -205,6 +212,9 @@ class Evidences {
         } = req.body;
 
         try {
+
+            // TODO: validate stakeholders to make sure the are not null or undefined
+
             // confirm project
             let foundProject = await Project.findById(project);
             if (!foundProject || foundProject == null) {
@@ -336,7 +346,7 @@ class Evidences {
 
             let extractedStakeholder = evidenceRequest.stakeholders.find(stakeholder => stakeholder.user._id.toString() === req.userId)
 
-            // return res.json({extractedStakeholder});
+            // return res.json(Evidences.extractStakeHolderInfo(extractedStakeholder.user));
 
             if (extractedStakeholder === undefined || Object.getOwnPropertyNames(extractedStakeholder).length === 0) {
                 return res.status(403).json({ message: "You were not assigned to this request" })
@@ -344,6 +354,7 @@ class Evidences {
                 return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
             }
 
+            
             switch (evidenceRequest.datatype) {
                 // when evidence require table
                 case datatypes[0]:
@@ -419,7 +430,7 @@ class Evidences {
 
                     // evidenceObj.push({ title: "Date", value: new Date() })
                     evidenceObj['Date'] = new Date();
-                    evidenceObj['user'] = req.userId;
+                    evidenceObj['user'] = Evidences.extractStakeHolderInfo(extractedStakeholder.user);
                     // evidenceRequest.submissions = [{evidence:evidenceObj}];
                     evidenceRequest.submissions.push(evidenceObj);
 
@@ -450,6 +461,8 @@ class Evidences {
 
                     // field[`${evidenceRequest.datatype}`] = file
                     field["evidence"] = file
+                    field["Date"] = new Date();
+                    field["user"]=Evidences.extractStakeHolderInfo(extractedStakeholder.user)
 
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.status = "Submitted"
