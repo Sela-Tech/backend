@@ -1,5 +1,5 @@
-ROOT = __dirname;
-FRONTEND = __dirname + "/public";
+global.ROOT = __dirname;
+// FRONTEND = __dirname + "/public";
 
 var express = require("express");
 var app = express();

@@ -24,11 +24,9 @@ var userStructure = {
   },
   profilePhoto: {
     type: String,
-    default:"http://placehold.it/50"
+    default: "http://placehold.it/50"
   },
-  profilePhotoKey: {
-    type: String
-  },
+  
   reputationScore: {
     type: Number,
     default: 0
@@ -137,7 +135,17 @@ var userStructure = {
   accountStatus: {
     type: Boolean,
     default: true
-  }
+  },
+  requests: [
+    {
+        type: ObjectId,
+        ref: "Project",
+        // autopopulate: {
+        //   select:
+        //     "name activated _id owner"
+        // }
+    }
+  ]
 };
 
 if (process.env.NODE_ENV === "development") {

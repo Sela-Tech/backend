@@ -116,11 +116,22 @@ class Notifications {
 
         try {
             //update user existing notification
+            let action;
+            data.agreed === true ? action = "ACCEPTED" : action = "REJECTED";
+
             if (data.notificationId) {
-                let action;
-                data.agreed === true ? action = "ACCEPTED" : action = "REJECTED";
                 await Notification.updateOne({ _id: data.notificationId, user: req.userId }, { $set: { action: action } });
+            } else {
+                await Notification.updateOne({ project: data.project._id, user: req.userId, stakeholder: data.project.owner._id, type: "INVITATION_TO_JOIN_PROJECT", action:"REQUIRED" },
+                    { $set: { action: action } }
+                );
             }
+
+            let updateUser = await User.findById(req.userId);
+            updateUser.requests.pull({_id:data.project._id})
+
+            await updateUser.save();
+
             let notification = await new Notification(notifObj).save();
 
             if (notification) {
@@ -212,9 +223,9 @@ class Notifications {
                 };
 
                 await sgMail.send(msg);
-                return {status:true, message:`Your request to join the "${project.name}" project has been sent`}
+                return { status: true, message: `Your request to join the "${project.name}" project has been sent` }
             }
-            return {status:false, message:`Your request to join the"${project.name}" project was not successful`}
+            return { status: false, message: `Your request to join the"${project.name}" project was not successful` }
 
         } catch (error) {
             console.log(error);
@@ -261,8 +272,20 @@ class Notifications {
             })
 
             if (notifObjs.length > 0) {
-                let nots = await Notification.insertMany(notifObjs);
-                if (nots) {
+                let nots = Notification.insertMany(notifObjs);
+                let updateUser = User.updateMany({ _id: [...usersData] },
+                    {
+                        $addToSet: {
+                            requests: {
+                                _id: project._id,
+                                // message: `${project.owner.firstName} ${project.owner.lastName} added you to the project "${project.name}"`
+                            }
+                        }
+                    });
+
+                const [notified, updated] = await Promise.all([nots, updateUser])
+
+                if (notified) {
 
                     users.forEach(async (u) => {
                         if (u.socket !== null) {
@@ -409,7 +432,7 @@ class Notifications {
                     to: `${proposal.proposedBy.email}`,
                     from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                     subject: "Proposal Status",
-                    html: EmailTemplates.proposalStatus(getHost(req), msgTemplate, project, proposal.proposedBy,proposal)
+                    html: EmailTemplates.proposalStatus(getHost(req), msgTemplate, project, proposal.proposedBy, proposal)
                 };
 
 
@@ -421,7 +444,7 @@ class Notifications {
         }
     }
 
-    static async notifyOnAssignedToProposal(req,project, proposal, contractorId){
+    static async notifyOnAssignedToProposal(req, project, proposal, contractorId) {
         const message = `${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName} assigned you to a proposal for project, "${project.name}"`;
         const type = "PROPOSAL_ASSIGNED";
 
@@ -435,7 +458,7 @@ class Notifications {
             onModel: "Proposal"
         }
 
-       
+
 
         try {
             let contractor = await User.findById(contractorId);
@@ -444,7 +467,7 @@ class Notifications {
                 to: `${contractor.email}`,
                 from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
                 subject: "You Have Been Assigned a Proposal",
-                html: EmailTemplates.assignedproposal(getHost(req), project,contractor, proposal)
+                html: EmailTemplates.assignedproposal(getHost(req), project, contractor, proposal)
             };
 
             let notification = await new Notification(notificationObj).save();
