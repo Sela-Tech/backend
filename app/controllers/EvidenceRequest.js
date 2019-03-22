@@ -466,12 +466,18 @@ class Evidences {
                     field["Date"] = new Date();
                     field["user"]=Evidences.extractStakeHolderInfo(extractedStakeholder.user)
 
+                    // evidenceRequest.submissions.push(field);
+                    // evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
+                    // evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
+                    // evidenceRequest.status = "Submitted":
+                    // evidenceRequest.status = "In Progess";
+                    // // evidenceRequest.status = "Submitted"
+
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
                     evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
                     evidenceRequest.status = "Submitted":
                     evidenceRequest.status = "In Progess";
-                    // evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
