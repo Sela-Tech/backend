@@ -90,7 +90,7 @@ class Evidences {
                     // },
                     stakeholder: Evidences.populateUser(other.stakeholder),
                     evidence: other.evidence,
-                    updatedAt: other.updatedAt
+                    // updatedAt: other.updatedAt
                 }
             });
 
@@ -135,7 +135,7 @@ class Evidences {
                     },
                     stakeholder: Evidences.populateUser(other.stakeholder),
                     evidence: other.evidence,
-                    updatedAt: other.updatedAt
+                    // updatedAt: other.updatedAt
                 }
             });
 
@@ -348,11 +348,11 @@ class Evidences {
 
             // return res.json(Evidences.extractStakeHolderInfo(extractedStakeholder.user));
 
-            if (extractedStakeholder === undefined || Object.getOwnPropertyNames(extractedStakeholder).length === 0) {
-                return res.status(403).json({ message: "You were not assigned to this request" })
-            } else if (Object.getOwnPropertyNames(extractedStakeholder).length > 0 && extractedStakeholder.hasSubmitted === true) {
-                return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
-            }
+            // if (extractedStakeholder === undefined || Object.getOwnPropertyNames(extractedStakeholder).length === 0) {
+            //     return res.status(403).json({ message: "You were not assigned to this request" })
+            // } else if (Object.getOwnPropertyNames(extractedStakeholder).length > 0 && extractedStakeholder.hasSubmitted === true) {
+            //     return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
+            // }
 
             
             switch (evidenceRequest.datatype) {
@@ -435,7 +435,9 @@ class Evidences {
                     evidenceRequest.submissions.push(evidenceObj);
 
                     evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
-                        evidenceRequest.status = "In Progess";
+                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
+                    evidenceRequest.status = "Submitted":
+                    evidenceRequest.status = "In Progess";
                     // evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
@@ -465,7 +467,11 @@ class Evidences {
                     field["user"]=Evidences.extractStakeHolderInfo(extractedStakeholder.user)
 
                     evidenceRequest.submissions.push(field);
-                    evidenceRequest.status = "Submitted"
+                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
+                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
+                    evidenceRequest.status = "Submitted":
+                    evidenceRequest.status = "In Progess";
+                    // evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
@@ -682,7 +688,6 @@ class Evidences {
     async getSubmissions(req, res) {
         const { id } = req.params;
         const { level, proposalId } = req.query;
-
         let generalLevelSubmissions;
         try {
 
