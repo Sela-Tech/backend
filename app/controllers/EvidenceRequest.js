@@ -154,14 +154,16 @@ class Evidences {
     }
 
     static filterSubmissions(user, submissions, stakeholders, requestedBy) {
-        let isStakeholder = stakeholders.some(stakeholder => stakeholder.user._id.toString() === user);
-        if (isStakeholder) {
-            return submissions = submissions.filter(submission => submission.user === user)
-        } else if (!isStakeholder && requestedBy._id.toString() === user) {//he who sent the request
-            return submissions
-        } else {
-            return [];
-        }
+        // let isStakeholder = stakeholders.some(stakeholder => stakeholder.user._id.toString() === user);
+        // if (isStakeholder) {
+        //     return submissions = submissions.filter(submission => submission.user === user)
+        // } else if (!isStakeholder && requestedBy._id.toString() === user) {//he who sent the request
+        //     return submissions
+        // } else {
+        //     return [];
+        // }
+
+        return submissions
 
     }
 
@@ -512,9 +514,12 @@ class Evidences {
 
         try {
             let evidenceRequests = await Evidence.find({ project: id, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }] }).sort({ createdAt: -1 });
+            let project = await Project.findOne({_id:id});
+
+            // return res.json(project);
 
             if (evidenceRequests.length < 1) {
-                return res.status(200).json({ evidenceRequests: [] });
+                return res.status(200).json({ projectName:project.name, evidenceRequests: [] });
             }
 
             evidenceRequests = evidenceRequests.map((evidenceRequest) => {
@@ -542,7 +547,7 @@ class Evidences {
                     totalPrice: evidenceRequest.totalPrice
                 }
             })
-            return res.status(200).json({ evidenceRequests });
+            return res.status(200).json({ projectName:project.name, evidenceRequests });
         } catch (error) {
 
             console.log(error);
@@ -565,10 +570,11 @@ class Evidences {
         const { id } = req.params;
         try {
             let evidenceRequest = await Evidence.findOne({ _id: id });
-
             if (!evidenceRequest) {
                 return res.status(404).json({ message: "Request Not Found" })
             }
+
+            let project = await Project.findById(evidenceRequest.project);
 
             evidenceRequest = {
                 title: evidenceRequest.title,
@@ -594,7 +600,7 @@ class Evidences {
 
             }
 
-            return res.status(200).json({ evidenceRequest });
+            return res.status(200).json({projectName:project.name, evidenceRequest });
 
         } catch (error) {
             console.log(error);

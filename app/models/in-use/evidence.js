@@ -87,6 +87,10 @@ const evidenceStructure = {
             hasSubmitted: {
                 type: Boolean,
                 default: false
+            },
+            submissionCount:{
+                type:Boolean,
+                default:0
             }
         }
     ],
