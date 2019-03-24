@@ -6,6 +6,26 @@ const User = mongoose.model("User"),
     Save = mongoose.model('Save');
 
 
+function formatData(data){
+   return {
+        _id: data._id,
+        name: data.name,
+        status:data.status,
+        goal:data.goal,
+        location:{
+            name:data.location.name
+        },
+        avatar: data["project-avatar"],
+        owner: {
+            fullName: `${data.owner.firstName} ${data.owner.lastName}`,
+            _id: data.owner._id
+        },
+        tags:data.tags,
+        observationBudget:data.observationBudget,
+        implementationBudget:data.implementationBudget
+    }
+}
+
 
 class Dashboard {
     constructor() {
@@ -43,21 +63,7 @@ class Dashboard {
                 let projects = await Save.find({ user: req.userId });
                 if (projects.length > 0) {
                     projects = projects.map((p) => {
-                        return {
-                            _id: p.project._id,
-                            name: p.project.name,
-                            status:p.project.status,
-                            goal:p.project.goal,
-                            location:{
-                                name:p.project.location.name
-                            },
-                            avatar: p.project["project-avatar"],
-                            owner: {
-                                fullName: `${p.project.owner.firstName} ${p.project.owner.lastName}`,
-                                _id: p.project.owner._id
-                            },
-                            tags:p.project.tags
-                        }
+                        return formatData(p.project)
                     }).reverse();
                 }
 
@@ -71,21 +77,8 @@ class Dashboard {
             let docs = projects.docs;
             if (docs.length > 0) {
                 docs = docs.map((d) => {
-                    return {
-                        _id: d.project._id,
-                        name: d.project.name,
-                        status:d.project.status,
-                        goal:d.project.goal,
-                        location:{
-                            name:d.project.location.name
-                        },
-                        avatar: d.project["project-avatar"],
-                        owner: {
-                            fullName: `${d.project.owner.firstName} ${d.project.owner.lastName}`,
-                            _id: d.project.owner._id
-                        },
-                        tags:d.project.tags
-                    }
+                    return formatData(d.project)
+
                 }).reverse();
             }
 
@@ -125,21 +118,7 @@ class Dashboard {
                     let projects = await Project.find({ owner: req.userId });
                     if (projects.length > 0) {
                         projects = projects.map((p) => {
-                            return {
-                                _id: p._id,
-                                name: p.name,
-                                status:p.status,
-                                goal:p.goal,
-                                location:{
-                                    name:p.location.name
-                                },
-                                avatar: p["project-avatar"],
-                                owner: {
-                                    fullName: `${p.owner.firstName} ${p.owner.lastName}`,
-                                    _id: p.owner._id
-                                },
-                                tags:p.tags
-                            }
+                            return formatData(p)
                         }).reverse();
                     }
 
@@ -153,21 +132,7 @@ class Dashboard {
                 let docs = projects.docs;
                 if (docs.length > 0) {
                     docs = docs.map((d) => {
-                        return {
-                            _id: d._id,
-                            name: d.name,
-                            status:d.status,
-                            goal:d.goal,
-                            location:{
-                                name:d.location.name
-                            },
-                            avatar: d["project-avatar"],
-                            owner: {
-                                fullName: `${d.owner.firstName} ${d.owner.lastName}`,
-                                _id: d.owner._id
-                            },
-                            tags:d.tags
-                        }
+                        return formatData(d)
                     }).reverse();
                 }
 
@@ -212,21 +177,7 @@ class Dashboard {
 
                 if (projects.length > 0) {
                     projects = projects.map((p) => {
-                        return {
-                            _id: p._id,
-                            name: p.name,
-                            status:p.status,
-                            goal:p.goal,
-                            location:{
-                                name:p.location.name
-                            },
-                            avatar: p["project-avatar"],
-                            owner: {
-                                fullName: `${p.owner.firstName} ${p.owner.lastName}`,
-                                _id: p.owner._id
-                            },
-                            tags:p.tags
-                        }
+                        return formatData(p)
                     }).reverse();
                 }
 
@@ -256,21 +207,7 @@ class Dashboard {
             let docs = projects.docs;
             if (docs.length > 0) {
                 docs = docs.map((d) => {
-                    return {
-                        _id: d._id,
-                        name: d.name,
-                        status:d.status,
-                        goal:d.goal,
-                        location:{
-                            name:d.location.name
-                        },
-                        avatar: d["project-avatar"],
-                        owner: {
-                            fullName: `${d.owner.firstName} ${d.owner.lastName}`,
-                            _id: d.owner._id
-                        },
-                        tags:d.tags
-                    }
+                    return formatData(d)
                 }).reverse();
 
             }
@@ -345,21 +282,8 @@ class Dashboard {
                     
 
                     projects = projects.map((p) => {
-                        return {
-                            _id: p._id,
-                            name: p.name,
-                            status:p.status,
-                            goal:p.goal,
-                            location:{
-                                name:p.location.name
-                            },
-                            avatar: p["project-avatar"],
-                            owner: {
-                                fullName: `${p.owner.firstName} ${p.owner.lastName}`,
-                                _id: p.owner._id
-                            },
-                            tags:p.tags
-                        }
+                        return formatData(p)
+                        
                     }).reverse();
                 }
 
@@ -374,21 +298,7 @@ class Dashboard {
             if (docs.length > 0) {
                 // docs= docs.filter(d=>d.owner._id.toString() !== req.userId);
                 docs = docs.map((d) => {
-                    return {
-                        _id: d._id,
-                        name: d.name,
-                        status:d.status,
-                        goal:d.goal,
-                        location:{
-                            name:d.location.name
-                        },
-                        avatar: d["project-avatar"],
-                        owner: {
-                            fullName: `${d.owner.firstName} ${d.owner.lastName}`,
-                            _id: d.owner._id
-                        },
-                        tags:d.tags
-                    }
+                    return formatData(d)
                 }).reverse();
             }
 
