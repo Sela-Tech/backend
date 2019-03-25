@@ -26,4 +26,7 @@ module.exports = function(app) {
   // app.route("/user/dashboard-request").get(verifyToken, user_controller.getDashboard);
   app.route("/user/project/:id/save").post(verifyToken, user_controller.saveProject);
 
+  app.route("/user/wallet-balance").get(verifyToken, user_controller.checkAccountBalance);
+
+
 };
