@@ -62,7 +62,8 @@ var userStructure = {
   },
   publicKey: {
     type: String,
-    unique: true
+    unique: true,
+    default:null
   },
   isEvaluator: {
     type: Boolean,

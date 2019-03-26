@@ -90,6 +90,14 @@ var projectStructure = {
     type:Number,
     default:0
   },
+  issuingAccount:{
+    type:String,
+    default:null
+  },
+  distributionAccount:{
+    type:String,
+    default:null
+  },
   raised: {
     type: Number,
     default: 0

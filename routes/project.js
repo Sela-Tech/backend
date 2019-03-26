@@ -18,6 +18,11 @@ module.exports = function (app) {
 
   app.route("/project/:id").delete(verifyToken, Projects.delete);
   app.route("/project/:id/contractor-preview").get(verifyToken, Projects.contractorViewProjectDetails);
+  app.route("/project/:id/asset-balance")
+    .get(verifyToken, Projects.getProjectBalances);
+    
+  app.route("/project/:id/transaction-history")
+    .get(verifyToken, Projects.getProjectTransactionHistory);
 
   // test routes
   // app.route("/test/projects?").get(Projects.find);

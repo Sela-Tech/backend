@@ -234,45 +234,45 @@ exports.verify = async (req, res) => {
   let signThis = {};
 
   const { isFunder, isEvaluator, isContractor } = user;
-        if (Boolean(user.organization)) {
-          signThis.organization = {
-            name: user.organization.name,
-            id: user.organization._id
-          }
-        } else {
-          signThis.organization = {
-            name: "No Organization",
-            id: ""
-          }
-        }
+  if (Boolean(user.organization)) {
+    signThis.organization = {
+      name: user.organization.name,
+      id: user.organization._id
+    }
+  } else {
+    signThis.organization = {
+      name: "No Organization",
+      id: ""
+    }
+  }
 
-        signThis = {
-          ...signThis,
-          profilePhoto: user.profilePhoto,
-          id: user._id,
-          isFunder,
-          isEvaluator,
-          isContractor,
-          firstName: user.firstName,
-          phone: user.phone,
-          email: user.email,
-          lastName: user.lastName,
-          areasOfInterest: user.areasOfInterest,
+  signThis = {
+    ...signThis,
+    profilePhoto: user.profilePhoto,
+    id: user._id,
+    isFunder,
+    isEvaluator,
+    isContractor,
+    firstName: user.firstName,
+    phone: user.phone,
+    email: user.email,
+    lastName: user.lastName,
+    areasOfInterest: user.areasOfInterest,
 
-        };
+  };
 
-        var token = jwt.sign(signThis, process.env.SECRET, {
-          expiresIn: tokenValidityPeriod
-        });
+  var token = jwt.sign(signThis, process.env.SECRET, {
+    expiresIn: tokenValidityPeriod
+  });
 
 
-        return res.status(200).json({
-          ...signThis,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          organization: user.organization,
-          token
-        });
+  return res.status(200).json({
+    ...signThis,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    organization: user.organization,
+    token
+  });
 
 };
 
@@ -455,7 +455,7 @@ exports.update = async (req, res) => {
             isContractor,
             phone: finalUserObj.phone,
             firstName: finalUserObj.firstName,
-            areasOfInterest:finalUserObj.areasOfInterest,
+            areasOfInterest: finalUserObj.areasOfInterest,
             organization: {
               name: finalUserObj.organization.name,
               id: finalUserObj.organization._id
@@ -576,6 +576,7 @@ exports.verifyAccountToken = async (req, res) => {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
     }
 
+    let role = helper.getRole(user);
 
     user.verificationToken = null;
     user.isVerified = true;
@@ -583,6 +584,15 @@ exports.verifyAccountToken = async (req, res) => {
     let verifiedUser = await user.save();
 
     if (verifiedUser) {
+
+      // create wallet for user
+      let wallet = await helper.createWallet(user._id, role);
+
+      if (wallet.success == true) {
+        verifiedUser.publicKey = wallet.publicKey
+        // updated user with detail
+        await verifiedUser.save();
+      }
       const { isFunder, isEvaluator, isContractor } = verifiedUser;
 
       if (Boolean(verifiedUser.organization)) {
@@ -615,6 +625,8 @@ exports.verifyAccountToken = async (req, res) => {
       var token = jwt.sign(signThis, process.env.SECRET, {
         expiresIn: tokenValidityPeriod
       });
+
+
 
 
       if (verificationToken.length < 10) {
@@ -766,28 +778,73 @@ exports.updateAreaOfInterest = async (req, res) => {
   }
 }
 
-exports.saveProject=async(req, res)=>{
+exports.saveProject = async (req, res) => {
   const projectId = req.params.id;
   try {
-    const project = await Save.findOne({project:projectId, user:req.userId});
-    if(project){
+    const project = await Save.findOne({ project: projectId, user: req.userId });
+    if (project) {
       await project.remove();
-      return res.status(200).json({message:"Project removed from saved projects"})
+      return res.status(200).json({ message: "Project removed from saved projects" })
     }
 
-    let saveObj={
-      project:projectId,
-      user:req.userId
+    let saveObj = {
+      project: projectId,
+      user: req.userId
     }
 
     let savedProject = await new Save(saveObj).save();
-    if(savedProject){
-      return res.status(201).json({message:"Project has been saved", savedProject})
+    if (savedProject) {
+      return res.status(201).json({ message: "Project has been saved", savedProject })
     }
 
   } catch (error) {
     console.log(error)
-    res.status(500).json({ message: "internal server error" })
+    return res.status(500).json({ message: "internal server error" })
   }
 }
 
+exports.checkAccountBalance = async (req, res) => {
+  try {
+    let user = await User.findById(req.userId);
+
+    if(user ==null || user == undefined){
+      return res.status(404).json({message:"user not found"})
+    }
+
+    let token = req.headers['authorization'];
+    let balances = await helper.getWalletBalance(token, user.publicKey);
+
+    if(balances.balances.success==true){
+      return res.status(balances.status).json(balances.balances)
+    }else{
+      return res.status(400).json({message:"Could not retrieve wallet balance"})
+      // return res.status(400).json({message:balances.message})
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
+  }
+}
+
+exports.checkTransactionHistory= async (req, res)=>{
+  try {
+    let user = await User.findById(req.userId);
+
+    if(user ==null || user == undefined){
+      return res.status(404).json({message:"user not found"})
+    }
+
+    let token = req.headers['authorization'];
+    let transactions = await helper.getWalletTransactionHistory(token, user.publicKey);
+
+    if(transactions.transactions.success==true){
+      return res.status(transactions.status).json(transactions.transactions)
+    }else{
+      return res.status(400).json({message:"Could not retrieve account's transaction history"})
+      // return res.status(400).json({message:balances.message})
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
+  }
+}
