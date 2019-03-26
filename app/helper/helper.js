@@ -160,6 +160,26 @@ class Helper {
         }
     }
 
+    async getWalletTransactionHistory(token, key){
+        try {
+            let transactions = await fetch(`${process.env.BLOCKCHAIN_URL}/account/${key}/history`, {
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+            });
+            // if(balances.status !==200){
+            //     const status= balances.status
+            //     await balances.json();
+            //     console.log(balances)
+            //     return balances={success:balances.success, status, message:balances.message}
+            // }
+
+            transactions = await transactions.json();
+            return {transactions, status:200}
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
 }
 
 module.exports = Helper;

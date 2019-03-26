@@ -826,3 +826,25 @@ exports.checkAccountBalance = async (req, res) => {
   }
 }
 
+exports.checkTransactionHistory= async (req, res)=>{
+  try {
+    let user = await User.findById(req.userId);
+
+    if(user ==null || user == undefined){
+      return res.status(404).json({message:"user not found"})
+    }
+
+    let token = req.headers['authorization'];
+    let transactions = await helper.getWalletTransactionHistory(token, user.publicKey);
+
+    if(transactions.transactions.success==true){
+      return res.status(transactions.status).json(transactions.transactions)
+    }else{
+      return res.status(400).json({message:"Could not retrieve account's transaction history"})
+      // return res.status(400).json({message:balances.message})
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
+  }
+}
