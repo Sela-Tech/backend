@@ -147,9 +147,31 @@ class Stakeholder {
                     let createTrust;
                     
                     if(agreed==true){
-                        // create trust to accept payment ffrom project
+                        // const memoObj={
+                        //     from:{
+                        //         to:{
+                        //             _id:project.owner._id,
+                        //             fullName:`${project.owner.firstName} ${project.owner.lastName}`
+                        //         },
+                        //     },
+                        //     to:{
+                        //         _id:req.userId,
+                        //         fullName:`${req.decodedTokenData.firstName} ${req.decodedTokenData.lastName}`
+                        //     },
+                        //     amount:"0",
+                        //     project:{
+                        //         _id:project._id,
+                        //         name:project.name
+                        //     },
+                        //     purpose:{
+                        //         name:"Trust to receive asset",
+                        //         _id:null
+                        //     }
+
+                        // }
+                        // create trust to accept payment from project
                         createTrust= await helper.changeTrust(project._id, req.token)
-                        console.log(createTrust)
+                        // console.log(createTrust)
                     }
 
                     return res.status(200).json({

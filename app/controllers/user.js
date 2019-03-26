@@ -131,6 +131,22 @@ exports.register = async (req, res) => {
 
       var newUser = await new User(userObj).save();
 
+      // remove this code in a production environemnt
+
+      if(newUser){
+        (async () => {
+          let role = helper.getRole(newUser);
+          let wallet = await helper.createWallet(newUser._id, role);
+  
+          if (wallet.success == true) {
+            newUser.publicKey = wallet.publicKey
+            // updated user with detail
+            await newUser.save();
+          }
+        })();
+      }
+      // code above is only meant for testing
+
       const receiver = '+234' + req.body.phone;
       const to = [receiver];
 
@@ -310,6 +326,22 @@ exports.login = (req, res) => {
       }
 
       if (user.activation === "approved" && user.isVerified === true) {
+
+        if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
+
+          // // create wallet for user have not wallet
+          (async () => {
+            let role = helper.getRole(user);
+            let wallet = await helper.createWallet(user._id, role);
+
+            if (wallet.success == true) {
+              user.publicKey = wallet.publicKey
+              // updated user with detail
+              await user.save();
+            }
+          })();
+        }
+
         const { isFunder, isEvaluator, isContractor } = user;
 
         if (Boolean(user.organization)) {
@@ -807,17 +839,17 @@ exports.checkAccountBalance = async (req, res) => {
   try {
     let user = await User.findById(req.userId);
 
-    if(user ==null || user == undefined){
-      return res.status(404).json({message:"user not found"})
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "user not found" })
     }
 
     let token = req.headers['authorization'];
     let balances = await helper.getWalletBalance(token, user.publicKey);
 
-    if(balances.balances.success==true){
+    if (balances.balances.success == true) {
       return res.status(balances.status).json(balances.balances)
-    }else{
-      return res.status(400).json({message:"Could not retrieve wallet balance"})
+    } else {
+      return res.status(400).json({ message: "Could not retrieve wallet balance" })
       // return res.status(400).json({message:balances.message})
     }
   } catch (error) {
@@ -826,21 +858,21 @@ exports.checkAccountBalance = async (req, res) => {
   }
 }
 
-exports.checkTransactionHistory= async (req, res)=>{
+exports.checkTransactionHistory = async (req, res) => {
   try {
     let user = await User.findById(req.userId);
 
-    if(user ==null || user == undefined){
-      return res.status(404).json({message:"user not found"})
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "user not found" })
     }
 
     let token = req.headers['authorization'];
     let transactions = await helper.getWalletTransactionHistory(token, user.publicKey);
 
-    if(transactions.transactions.success==true){
+    if (transactions.transactions.success == true) {
       return res.status(transactions.status).json(transactions.transactions)
-    }else{
-      return res.status(400).json({message:"Could not retrieve account's transaction history"})
+    } else {
+      return res.status(400).json({ message: "Could not retrieve account's transaction history" })
       // return res.status(400).json({message:balances.message})
     }
   } catch (error) {
