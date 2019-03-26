@@ -569,7 +569,7 @@ class Projects {
       }
 
       let token = req.headers['authorization'];
-      let transactions = await helper.getProjectBalancesOrhistory(project._id, token,true);
+      let transactions = await helper.getProjectBalancesOrhistory(project._id, token, true);
 
       // return res.json(transactions);
       if (transactions.status == 200) {

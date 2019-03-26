@@ -12,7 +12,7 @@ const notify = require('../helper/notifications');
 // const authToken = 'your_auth_token';
 // const client = require('twilio')(accountSid, authToken);
 
-
+const helper = new Helper();
 
 /**
  *
@@ -143,6 +143,14 @@ class Stakeholder {
                     let rejected = `Your have successfully declined the invitation to join the project "${project.name}"`;
 
                     agreed === true ? message = accepted : message = rejected;
+
+                    let createTrust;
+                    
+                    if(agreed==true){
+                        // create trust to accept payment ffrom project
+                        createTrust= await helper.changeTrust(project._id, req.token)
+                        console.log(createTrust)
+                    }
 
                     return res.status(200).json({
                         success: success,
