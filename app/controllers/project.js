@@ -523,6 +523,17 @@ class Projects {
 
   }
 
+
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Projects
+   */
   static async getProjectBalances(req, res) {
     try {
       const { id } = req.params;
