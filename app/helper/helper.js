@@ -132,11 +132,12 @@ class Helper {
 
     async createWallet(user, role) {
         try {
+
             let wallet = await fetch(`${process.env.BLOCKCHAIN_URL}/account`, {
 
                 method: 'POST',
                 body: JSON.stringify({ user, role }),
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json','Access-Control-Allow-Origin':'*' },
             });
 
             return wallet = await wallet.json();
