@@ -4,6 +4,7 @@ require("dotenv").config();
 const mongoose = require("mongoose"),
     User = mongoose.model("User");
 const AWS = require('aws-sdk');
+const crypto = require('crypto');
 
 const fetch = require('node-fetch');
 
@@ -64,6 +65,11 @@ class Helper {
 
         // return userRole;
 
+    }
+
+    generateAssetName() {
+        const assetName = 'PST'+crypto.randomBytes(2).toString('hex').toUpperCase();
+        return assetName;
     }
 
     async updateUserSocket(data) {
@@ -153,14 +159,14 @@ class Helper {
             // }
 
             balances = await balances.json();
-            return {balances, status:200}
+            return { balances, status: 200 }
 
         } catch (error) {
             console.log(error)
         }
     }
 
-    async getWalletTransactionHistory(token, key){
+    async getWalletTransactionHistory(token, key) {
         try {
             let transactions = await fetch(`${process.env.BLOCKCHAIN_URL}/account/${key}/history`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
@@ -173,12 +179,57 @@ class Helper {
             // }
 
             transactions = await transactions.json();
-            return {transactions, status:200}
+            return { transactions, status: 200 }
 
         } catch (error) {
             console.log(error)
         }
     }
+
+
+    async createAsset(property, token){
+        try {
+            let ProjectToken = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/create`, {
+                method: 'POST',
+                body: JSON.stringify(property),
+                headers: { 'Content-Type': 'application/json', 'authorization': token,},
+            });
+
+            return ProjectToken = await ProjectToken.json();
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async getProjectBalancesOrhistory(project, token, history=false){
+        try {
+            if(!history){
+                let projectBalances = await fetch(`${process.env.BLOCKCHAIN_URL}/project/${project}/balance`, {
+                    headers: { 'Content-Type': 'application/json', 'authorization': token,},
+                });
+    
+                return projectBalances = await projectBalances.json();
+            }
+
+            let transactions = await fetch(`${process.env.BLOCKCHAIN_URL}/project/${project}/transaction-history`, {
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+            });
+            // if(balances.status !==200){
+            //     const status= balances.status
+            //     await balances.json();
+            //     console.log(balances)
+            //     return balances={success:balances.success, status, message:balances.message}
+            // }
+
+            transactions = await transactions.json();
+            return { transactions:transactions.transactions, status: 200 }
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
 
 }
 

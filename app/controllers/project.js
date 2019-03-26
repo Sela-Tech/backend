@@ -72,6 +72,9 @@ class Projects {
         }
 
         var newProject = new Project(projectObj);
+
+
+
         // newProject.save((err, project)=>{
         //   if (err) {
         //     failRes.message = err.name + ": " + err.message;
@@ -84,12 +87,35 @@ class Projects {
 
         let newP = await newProject.save();
 
+        let user = await User.findById(req.userId);
+
+
+
         if (newP) {
-          let project = await Project.findById(newP._id);
+
+          const assetName = helper.generateAssetName();
+          let projectToken = {
+            assetName,
+            project: newProject._id,
+            implementationBudget: newProject.implementationBudget,
+            observationBudget: newProject.observationBudget,
+            publicKey: user.publicKey
+          }
+
+          let createdAsset = await helper.createAsset(projectToken, req.headers['authorization']);
+
+          if (createdAsset.success == true) {
+            newP.issuingAccount = createdAsset.newProject.issuingAccount.pk
+            newP.distributionAccount = createdAsset.newProject.distributionAccount.pk
+            await newP.save();
+          }
+
           if (SHs.length > 0) {
+            let project = await Project.findById(newP._id);
             await notify.notifyAddedStakeholders(req, SHs, project)
           }
-          successRes.project = project;
+
+          successRes.project = newP;
           return res.status(200).json(successRes);
         }
       };
@@ -298,7 +324,7 @@ class Projects {
 
       // lazy load proposals related to project
 
-      let proposals =await Proposal.find({project:project._id})
+      let proposals = await Proposal.find({ project: project._id })
 
       if (project.activated === true || project.owner._id == req.userId) {
         project = project.toJSON();
@@ -460,9 +486,9 @@ class Projects {
             filesize: doc.filesize || null,
             doc: doc.doc,
             filetype: doc.filetype,
-            project:doc.project,
-            createdAt:doc.createdAt,
-            updatedAt:doc.updatedAt
+            project: doc.project,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt
           }
         }),
         isProjectStakeholder,
@@ -481,10 +507,10 @@ class Projects {
         sdgs: project.tags
       }
 
-      if(hasSubmitted){
-        info.proposalId= proposal._id;
-      }else{
-        info.proposalId=null;
+      if (hasSubmitted) {
+        info.proposalId = proposal._id;
+      } else {
+        info.proposalId = null;
       }
 
       return res.status(200).json(info);
@@ -497,7 +523,66 @@ class Projects {
 
   }
 
+  static async getProjectBalances(req, res) {
+    try {
+      const { id } = req.params;
 
+      let project = await Project.findOne({ _id: id, owner: req.userId });
+
+      if (project == null || project == undefined) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      let token = req.headers['authorization'];
+      let balances = await helper.getProjectBalancesOrhistory(project._id, token);
+
+      if (balances.success == true) {
+        return res.status(200).json(balances)
+      } else {
+        return res.status(400).json({ message: "Could not project asset balances" })
+        // return res.status(400).json({message:balances.message})
+      }
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" })
+    }
+  }
+
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Projects
+   */
+  static async getProjectTransactionHistory(req, res) {
+    try {
+      const { id } = req.params;
+
+      let project = await Project.findOne({ _id: id, owner: req.userId });
+
+      if (project == null || project == undefined) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      let token = req.headers['authorization'];
+      let transactions = await helper.getProjectBalancesOrhistory(project._id, token,true);
+
+      // return res.json(transactions);
+      if (transactions.status == 200) {
+        return res.status(200).json(transactions)
+      } else {
+        return res.status(400).json({ message: "Could not retrieve project transactions" })
+        // return res.status(400).json({message:balances.message})
+      }
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" })
+    }
+  }
 }
 
 
