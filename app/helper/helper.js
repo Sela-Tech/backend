@@ -231,6 +231,21 @@ class Helper {
     }
 
 
+    async changeTrust(project, token){
+        try {
+            let trustline = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/trustline`, {
+                method: 'POST',
+                body: JSON.stringify({project}),
+                headers: { 'Content-Type': 'application/json', 'authorization': token,},
+            });
+
+            return trustline = await trustline.json();
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+
 }
 
 module.exports = Helper;

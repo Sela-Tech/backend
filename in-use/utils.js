@@ -55,6 +55,7 @@ exports.verifyToken = (req, res, next) => {
         req.tokenExists = true;
         req.userId = decoded.id;
         req.decodedTokenData = decoded;
+        req.token = token;
         next();
       }
     });
