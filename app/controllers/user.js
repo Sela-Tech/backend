@@ -330,7 +330,7 @@ exports.login = (req, res) => {
         if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
 
           // // create wallet for user have not wallet
-          (async () => {
+          (async (user) => {
             let role = helper.getRole(user);
             let wallet = await helper.createWallet(user._id, role);
 
@@ -339,7 +339,7 @@ exports.login = (req, res) => {
               // updated user with detail
               await user.save();
             }
-          })();
+          })(user);
         }
 
         const { isFunder, isEvaluator, isContractor } = user;
