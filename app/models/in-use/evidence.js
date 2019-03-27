@@ -89,8 +89,12 @@ const evidenceStructure = {
                 default: false
             },
             submissionCount:{
-                type:Boolean,
+                type:Number,
                 default:0
+            },
+            hasBeenPaid:{
+                type:Boolean,
+                default:false
             }
         }
     ],

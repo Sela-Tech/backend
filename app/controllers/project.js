@@ -4,6 +4,7 @@ const mongoose = require("mongoose"),
   Project = mongoose.model("Project"),
   User = mongoose.model("User"),
   Location = mongoose.model("Location"),
+  Transaction = mongoose.model("Transaction"),
   Proposal = mongoose.model("Proposal");
 const moment = require('moment')
 
@@ -102,9 +103,10 @@ class Projects {
             publicKey: user.publicKey
           }
 
-          let createdAsset = await helper.createAsset(projectToken, req.headers['authorization']);
+          let createdAsset = await helper.createAsset(projectToken, req.token);
 
           if (createdAsset.success == true) {
+            newP.pst = assetName;
             newP.issuingAccount = createdAsset.newProject.issuingAccount.pk
             newP.distributionAccount = createdAsset.newProject.distributionAccount.pk
             await newP.save();
@@ -569,26 +571,54 @@ class Projects {
    * @returns
    * @memberof Projects
    */
+
   static async getProjectTransactionHistory(req, res) {
     try {
       const { id } = req.params;
+      let page = req.query.page || 1;
+      let limit = req.query.limit || 20;
 
-      let project = await Project.findOne({ _id: id, owner: req.userId });
+
+      // let project = await Project.findOne({ _id: id, owner: req.userId });
+      let project = await Project.findOne({ _id: id });
 
       if (project == null || project == undefined) {
         return res.status(404).json({ message: "Project not found" })
       }
 
-      let token = req.headers['authorization'];
-      let transactions = await helper.getProjectBalancesOrhistory(project._id, token, true);
+      let projectOwner = project.owner._id.toString();
 
-      // return res.json(transactions);
-      if (transactions.status == 200) {
-        return res.status(200).json(transactions)
-      } else {
-        return res.status(400).json({ message: "Could not retrieve project transactions" })
-        // return res.status(400).json({message:balances.message})
+      const isProjectOwner = projectOwner === req.userId.toString();
+
+      let transactions;
+
+      switch (isProjectOwner) {
+        case true:
+          transactions = await Transaction.find({ project: project._id },
+             { page: Number(page), limit: Number(limit) }).populate('');
+          return res.status(200).json({ transactions });
+
+        case false:
+          transactions = await Transaction.find({ project: project._id, receiver:req.userId },
+             { page: Number(page), limit: Number(limit) });
+          return res.status(200).json({ transactions });
+        default:
+          break;
       }
+
+
+
+
+
+      // let token = req.token;
+      // let transactions = await helper.getProjectBalancesOrhistory(project._id, token, true);
+
+      // if (transactions.status == 200) {
+      //   return res.status(200).json(transactions)
+      // } else {
+      //   return res.status(400).json({ message: "Could not retrieve project transactions" })
+      //   // return res.status(400).json({message:balances.message})
+      // }
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: "internal server error" })

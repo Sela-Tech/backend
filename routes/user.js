@@ -23,12 +23,11 @@ module.exports = function(app) {
   app.route("/verify/account/resend").put(user_controller.resendVerificationToken);
 
   app.route("/user/area-of-interest").put(verifyToken, user_controller.updateAreaOfInterest);
-  // app.route("/user/dashboard-request").get(verifyToken, user_controller.getDashboard);
   app.route("/user/project/:id/save").post(verifyToken, user_controller.saveProject);
 
-  app.route("/user/wallet-balance").get(verifyToken, user_controller.checkAccountBalance);
-  app.route("/user/wallet-transaction-history")
-    .get(verifyToken, user_controller.checkTransactionHistory);
+  // app.route("/user/wallet-balance").get(verifyToken, user_controller.checkAccountBalance);
+  // app.route("/user/wallet-transaction-history")
+  //   .get(verifyToken, user_controller.checkTransactionHistory);
 
 
 };

@@ -835,7 +835,7 @@ exports.saveProject = async (req, res) => {
   }
 }
 
-exports.checkAccountBalance = async (req, res) => {
+exports.checkAccountBalances = async (req, res) => {
   try {
     let user = await User.findById(req.userId);
 

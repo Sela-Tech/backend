@@ -172,7 +172,7 @@ class Helper {
             // }
 
             balances = await balances.json();
-            console.log(balances)
+            // console.log(balances)
             return { balances, status: 200 }
 
         } catch (error) {
@@ -259,6 +259,22 @@ class Helper {
         }
     }
 
+    async transferToken(token, amount, project){
+        try {
+            let transaction = await fetch(`${BLOCKCHAIN_URL}asset/transfer-asset`, {
+                method: 'POST',
+                body: JSON.stringify({amount, project}),
+                headers: { 'Content-Type': 'application/json', 'authorization': token, },
+            });
+
+            transaction = await transaction.json();
+            // console.log(transaction)
+            return transaction;
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
 }
 
