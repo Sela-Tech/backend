@@ -68,7 +68,7 @@ class Helper {
     }
 
     generateAssetName() {
-        const assetName = 'PST'+crypto.randomBytes(2).toString('hex').toUpperCase();
+        const assetName = 'PST' + crypto.randomBytes(2).toString('hex').toUpperCase();
         return assetName;
     }
 
@@ -132,15 +132,18 @@ class Helper {
 
     async createWallet(user, role) {
         try {
-
-            let wallet = await fetch(`${process.env.BLOCKCHAIN_URL}/account`, {
+const addr='https://sela-blockchain.herokuapp.com';
+            let wallet = await fetch(`${addr}/account`, {
 
                 method: 'POST',
                 body: JSON.stringify({ user, role }),
-                headers: { 'Content-Type': 'application/json','Access-Control-Allow-Origin':'*' },
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
             });
 
-            return wallet = await wallet.json();
+
+            wallet = await wallet.json();
+            console.log(wallet);
+            return wallet
 
         } catch (error) {
             console.log(error)
@@ -188,12 +191,12 @@ class Helper {
     }
 
 
-    async createAsset(property, token){
+    async createAsset(property, token) {
         try {
             let ProjectToken = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/create`, {
                 method: 'POST',
                 body: JSON.stringify(property),
-                headers: { 'Content-Type': 'application/json', 'authorization': token,},
+                headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 
             return ProjectToken = await ProjectToken.json();
@@ -203,13 +206,13 @@ class Helper {
         }
     }
 
-    async getProjectBalancesOrhistory(project, token, history=false){
+    async getProjectBalancesOrhistory(project, token, history = false) {
         try {
-            if(!history){
+            if (!history) {
                 let projectBalances = await fetch(`${process.env.BLOCKCHAIN_URL}/project/${project}/balance`, {
-                    headers: { 'Content-Type': 'application/json', 'authorization': token,},
+                    headers: { 'Content-Type': 'application/json', 'authorization': token, },
                 });
-    
+
                 return projectBalances = await projectBalances.json();
             }
 
@@ -224,7 +227,7 @@ class Helper {
             // }
 
             transactions = await transactions.json();
-            return { transactions:transactions.transactions, status: 200 }
+            return { transactions: transactions.transactions, status: 200 }
 
         } catch (error) {
             console.log(error)
@@ -232,12 +235,12 @@ class Helper {
     }
 
 
-    async changeTrust(project, token){
+    async changeTrust(project, token) {
         try {
             let trustline = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/trustline`, {
                 method: 'POST',
-                body: JSON.stringify({project}),
-                headers: { 'Content-Type': 'application/json', 'authorization': token,},
+                body: JSON.stringify({ project }),
+                headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 
             return trustline = await trustline.json();
