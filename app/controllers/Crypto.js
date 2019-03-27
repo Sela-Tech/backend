@@ -124,12 +124,12 @@ class Crypto {
     this.projectRelatedBalances = [];
     this.CreatedProjects = [];
     this.joinedProjects = [];
-    this.CreatedProjectBalances=[];
-    this.joinedProjectBalances=[];
+    this.CreatedProjectBalances = [];
+    this.joinedProjectBalances = [];
     this.user = '';
     this.PSTAssets;
   }
-  
+
 
   async getBalances(req, res) {
 
@@ -177,39 +177,40 @@ class Crypto {
         this.nativeBalances = balance.filter(balance => balance.type === "native" || !balance.token.includes('PST'));
         this.PSTAssets = balance.filter(balance => balance.type !== "native" && balance.token.includes('PST'));
 
-        if(this.CreatedProjects.length>0){
-         this.CreatedProjectBalances= this.CreatedProjects.map(async(project)=>{
-              return {
-                _id:project._id,
-                name:project.name,
-                balances:await helper.getProjectBalancesOrhistory(project._id, token, false)
-              }
+        if (this.CreatedProjects.length > 0) {
+          this.CreatedProjectBalances = this.CreatedProjects.map(async (project) => {
+            return {
+              _id: project._id,
+              name: project.name,
+              balances: await helper.getProjectBalancesOrhistory(project._id, token, false)
+            }
           })
         }
 
-        this.CreatedProjectBalances= await Promise.all(this.CreatedProjectBalances);
+        this.CreatedProjectBalances = await Promise.all(this.CreatedProjectBalances);
 
-        if(this.joinedProjects.length>0){
-          for(let PSTAsset of this.PSTAssets){
-              for(let project of this.joinedProjects){
-                  if(PSTAsset.token.toString()===project.pst.toString()){
-                    this.joinedProjectBalances.push(
-                      {
-                        _id:project._id,
-                        name:project.name,
-                        type:PSTAsset.type,
-                        token:project.pst,
-                        balance:PSTAsset.balance
-                      }
-                    )
+        if (this.joinedProjects.length > 0) {
+          for (let PSTAsset of this.PSTAssets) {
+            for (let project of this.joinedProjects) {
+              if (PSTAsset.token.toString() === project.pst.toString()) {
+                this.joinedProjectBalances.push(
+                  {
+                    _id: project._id,
+                    name: project.name,
+                    type: PSTAsset.type,
+                    token: project.pst,
+                    balance: PSTAsset.balance
                   }
+                )
               }
+            }
           }
         }
 
-        return res.json({native_balance:this.nativeBalances, 
-          joinedProjects:this.joinedProjectBalances,
-          createdProjects:this.CreatedProjectBalances
+        return res.json({
+          native_balance: this.nativeBalances,
+          joinedProjects: this.joinedProjectBalances,
+          createdProjects: this.CreatedProjectBalances
         })
 
         // return res.status(balances.status).json({ success: balances.balances.success, balances: balances.balances.balances, link: balances.balances.links.self.href })
@@ -226,9 +227,53 @@ class Crypto {
   }
 
 
-  async getTransactions(req, res){
+  async getTransactions(req, res) {
+    const { id } = req.params
     this.user = req.userId
 
+    try {
+      let the_user = User.findById(this.user);
+      let the_project = Project.findOne({ _id: id });
+  
+      const [user, project] = await Promise.all([the_user, the_project])
+  
+      if (project == null || project == undefined) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+  
+      let projectOwner = project.owner._id.toString();
+  
+      const isProjectOwner = projectOwner === this.user.toString();
+  
+      let transactions;
+  
+      switch (isProjectOwner) {
+        case true:
+          transactions = await Transaction.find({ project: project._id })
+            .populate({ path: 'receiver', select: 'firstName lastName' })
+            .populate({ path: 'sender', select: 'firstName lastName' });
+          return res.status(200).json({ transactions });
+  
+        case false:
+        let tokenBalance={};
+          let walletBalance = await helper.getWalletBalance(req.token, user.publicKey)
+          if(walletBalance.balances.success && walletBalance.balances.success == true){
+            tokenBalance = walletBalance.balances.balances.find(token => token.token.toString() === project.pst);
+          }
+  
+          transactions = await Transaction.find({ project: project._id, receiver: req.userId })
+            .populate({ path: 'receiver', select: 'firstName lastName' })
+            .populate({ path: 'sender', select: 'firstName lastName' })
+          // .populate('modelId');
+          return res.status(200).json({ projectName:project.name,pst:tokenBalance,transactions });
+        default:
+          break;
+      }
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" })
+    }
+   
   }
 }
 
