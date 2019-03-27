@@ -7,6 +7,7 @@ const mongoose = require("mongoose"),
     User = mongoose.model("User"),
     Evidence = mongoose.model("Evidence"),
     Submission = mongoose.model("Submission"),
+    Transaction = mongoose.model("Transaction"),
     Milestone = mongoose.model('Milestone');
 const validate = require('../../middleware/validate');
 const _ = require('lodash');
@@ -179,11 +180,11 @@ class Evidences {
 
     }
 
-    static extractStakeHolderInfo(stakeholder){
-        return stakeholder={
-            _id:stakeholder._id,
-            fullName:`${stakeholder.firstName} ${stakeholder.lastName}`,
-            profilePhoto:stakeholder.profilePhoto
+    static extractStakeHolderInfo(stakeholder) {
+        return stakeholder = {
+            _id: stakeholder._id,
+            fullName: `${stakeholder.firstName} ${stakeholder.lastName}`,
+            profilePhoto: stakeholder.profilePhoto
         }
     }
     // KPI - Key Performance Indicator
@@ -317,8 +318,6 @@ class Evidences {
 
     }
 
-
-
     /**
      *
      *
@@ -337,16 +336,18 @@ class Evidences {
 
         try {
 
-            let evidenceRequest = await Evidence.findOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId });
+            let evidenceRequest = await Evidence.findOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId }).populate('project');
 
             if (!evidenceRequest) {
                 return res.status(404).json({ message: "Request Not Found" })
             }
 
 
+
             // check if the stakeholder has submitted before
 
             let extractedStakeholder = evidenceRequest.stakeholders.find(stakeholder => stakeholder.user._id.toString() === req.userId)
+            const submissionCount = extractedStakeholder.submissionCount + 1
 
             // return res.json(Evidences.extractStakeHolderInfo(extractedStakeholder.user));
 
@@ -356,7 +357,8 @@ class Evidences {
             //     return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
             // }
 
-            
+            let hasBeenPaid=extractedStakeholder.hasBeenPaid;
+
             switch (evidenceRequest.datatype) {
                 // when evidence require table
                 case datatypes[0]:
@@ -437,16 +439,44 @@ class Evidences {
                     evidenceRequest.submissions.push(evidenceObj);
 
                     evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
-                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
-                    evidenceRequest.status = "Submitted":
-                    evidenceRequest.status = "In Progess";
+                        evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length === 1 ?
+                            evidenceRequest.status = "Submitted" :
+                            evidenceRequest.status = "In Progess";
                     // evidenceRequest.status = "Submitted"
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
 
+                    // send token to user after submitting evidence once
+                    if (extractedStakeholder.submissionCount < 1) {
+                        let transaction = await helper.transferToken(req.token, extractedStakeholder.quote, evidenceRequest.project._id);
+                        // if(transaction.transaction.success && transaction.tr){
+
+                        // }
+                        const transactionObj = {
+                            hash: transaction.transactionResult.hash,
+                            link: `${'https://testnet.steexp.com/tx/'}transaction.transactionResult.hash`,
+                            project: evidenceRequest.project._id,
+                            asset: evidenceRequest.project.pst,
+                            sender: evidenceRequest.project.owner._id,
+                            receiver: req.userId,
+                            value: extractedStakeholder.quote,
+                            memo: 'Payment',
+                            modelId: evidenceRequest._id,
+                            onModel: 'Evidence',
+                            success: transaction.success,
+                            status: "CONFIRMED"
+                        }
+                        await new Transaction(transactionObj).save();
+
+                        hasBeenPaid = true;
+                    }
+
+
                     await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
-                        { $set: { 'stakeholders.$.hasSubmitted': true } });
+                        { $set: { 'stakeholders.$.hasSubmitted': true, 
+                        'stakeholders.$.submissionCount': submissionCount,
+                        'stakeholders.$.hasBeenPaid': hasBeenPaid } });
 
                     return res.status(200).json({ message: "Your Evidence has been submitted" });
 
@@ -466,7 +496,7 @@ class Evidences {
                     // field[`${evidenceRequest.datatype}`] = file
                     field["evidence"] = file
                     field["Date"] = new Date();
-                    field["user"]=Evidences.extractStakeHolderInfo(extractedStakeholder.user)
+                    field["user"] = Evidences.extractStakeHolderInfo(extractedStakeholder.user)
 
                     // evidenceRequest.submissions.push(field);
                     // evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
@@ -477,15 +507,43 @@ class Evidences {
 
                     evidenceRequest.submissions.push(field);
                     evidenceRequest.stakeholders.length === evidenceRequest.submissions.length ? evidenceRequest.status = "Completed" :
-                    evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length===1 ?
-                    evidenceRequest.status = "Submitted":
-                    evidenceRequest.status = "In Progess";
+                        evidenceRequest.stakeholders.length === evidenceRequest.submissions.length && evidenceRequest.stakeholders.length === 1 ?
+                            evidenceRequest.status = "Submitted" :
+                            evidenceRequest.status = "In Progess";
 
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
 
+                   
+
+                    // send token to who submitted evidence one
+                    if (extractedStakeholder.submissionCount < 1) {
+                        let transaction = await helper.transferToken(req.token, extractedStakeholder.quote, evidenceRequest.project._id);
+                        // if(transaction.transaction.success && transaction.tr){
+                        // }
+                        const transactionObj = {
+                            hash: transaction.transactionResult.hash,
+                            link: transaction.transactionResult._links.transaction.href,
+                            project: evidenceRequest.project._id,
+                            asset: evidenceRequest.project.pst,
+                            sender: evidenceRequest.project.owner._id,
+                            receiver: req.userId,
+                            value: extractedStakeholder.quote,
+                            memo: `Payment for ${evidenceRequest.title}`,
+                            modelId: evidenceRequest._id,
+                            onModel: 'Evidence',
+                            success: transaction.success,
+                            status: "CONFIRMED"
+                        }
+
+                        await new Transaction(transactionObj).save();
+                        hasBeenPaid = true;
+                    }
+
                     await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
-                    { $set: { 'stakeholders.$.hasSubmitted': true } });
+                    { $set: { 'stakeholders.$.hasSubmitted': true, 
+                    'stakeholders.$.submissionCount': submissionCount,
+                    'stakeholders.$.hasBeenPaid': hasBeenPaid } });
 
                     return res.status(200).json({ message: "Your Evidence has been submitted" });
 
@@ -514,12 +572,12 @@ class Evidences {
 
         try {
             let evidenceRequests = await Evidence.find({ project: id, $or: [{ requestedBy: req.userId }, { 'stakeholders.user': req.userId }] }).sort({ createdAt: -1 });
-            let project = await Project.findOne({_id:id});
+            let project = await Project.findOne({ _id: id });
 
             // return res.json(project);
 
             if (evidenceRequests.length < 1) {
-                return res.status(200).json({ projectName:project.name, evidenceRequests: [] });
+                return res.status(200).json({ projectName: project.name, evidenceRequests: [] });
             }
 
             evidenceRequests = evidenceRequests.map((evidenceRequest) => {
@@ -547,7 +605,7 @@ class Evidences {
                     totalPrice: evidenceRequest.totalPrice
                 }
             })
-            return res.status(200).json({ projectName:project.name, evidenceRequests });
+            return res.status(200).json({ projectName: project.name, evidenceRequests });
         } catch (error) {
 
             console.log(error);
@@ -600,7 +658,7 @@ class Evidences {
 
             }
 
-            return res.status(200).json({projectName:project.name, evidenceRequest });
+            return res.status(200).json({ projectName: project.name, evidenceRequest });
 
         } catch (error) {
             console.log(error);
@@ -683,7 +741,7 @@ class Evidences {
 
 
     static getTaskLevelSubmissions(user, generalSubmissions, evidenceRequestSubmissions, proposal) {
-       proposal= proposal.milestones.map((milestone) => {
+        proposal = proposal.milestones.map((milestone) => {
             return {
                 title: milestone.title,
                 tasks: milestone.tasks.map((task) => {
@@ -747,7 +805,7 @@ class Evidences {
                         return res.status(404).json({ message: "Proposal Not Found" })
                     }
 
-                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions,proposal)
+                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions, proposal)
                     submissions.taskLevelSubmissions = taskLevelSubmissions;
                     break;
 
@@ -766,7 +824,7 @@ class Evidences {
                     }
 
                     projectLevelSubmissions = Evidences.filterProjectLevelSubmission(req.userId, generalSubmissions, evidenceRequestSubmissions);
-                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions,proposal)
+                    taskLevelSubmissions = Evidences.getTaskLevelSubmissions(req.userId, generalSubmissions, evidenceRequestSubmissions, proposal)
 
                     submissions.projectLevelSubmissions = projectLevelSubmissions;
                     submissions.taskLevelSubmissions = taskLevelSubmissions;
@@ -775,7 +833,7 @@ class Evidences {
 
                 default:
                     return res.status(400).json({ message: "please specify level" })
-                    // break;
+                // break;
             }
 
             return res.json(submissions)

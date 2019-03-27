@@ -98,6 +98,10 @@ var projectStructure = {
     type:String,
     default:null
   },
+  pst:{
+    type:String,
+    default:null
+  },
   raised: {
     type: Number,
     default: 0

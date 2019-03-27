@@ -1,4 +1,5 @@
 var moment = require("moment");
+var autoPopulate = require("mongoose-autopopulate");
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
@@ -11,21 +12,27 @@ var transactionStructure = {
     required: true,
     max: 1000
   },
+  link:{
+    type: String,
+    required: true,
+  },
   project: {
     type: ObjectId,
     ref: "Project",
     required: true
   },
-  currency: {
+  asset: {
     type: String,
     required: true
   },
   sender: {
-    type: String,
+    type: ObjectId,
+    ref: "User",
     required: true
   },
   receiver: {
-    type: String,
+    type: ObjectId,
+    ref: "User",
     required: true
   },
   value: {
@@ -35,19 +42,26 @@ var transactionStructure = {
   memo: {
     type: String
   },
-
+  modelId:{
+    type: ObjectId,
+    // will look at the `onModel` property to find the right model. e.g task, transaction, proposal e.t.c
+    refPath: 'onModel',
+    // autoPopulate:true
+  },
+  onModel: {
+    type: String,
+    // can be either of the document in the enum
+    enum: ['Task', 'Milestone',"Evidence"],
+    default:"Task"
+  },
   status: {
     type: String,
-    enum: ["PENDING", "CONFIRMED"],
-    default: "PENDING"
+    // enum: ["F", "CONFIRMED", "SUCCESS"],
+    // default: "PENDING"
   },
-  createdOn: {
-    type: Date,
-    default: Date.now()
-  },
-  updatedOn: {
-    type: Date,
-    default: Date.now()
+  success:{
+    type:Boolean,
+    default:false
   }
 };
 
@@ -69,6 +83,8 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
+  timestamps: true,
+  usePushEach: true,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -84,28 +100,28 @@ if (process.env.NODE_ENV === "development") {
 
 var TransactionSchema = new Schema(transactionStructure, schemaOptions);
 
-TransactionSchema.pre("save", true, function(next, done) {
-  next();
+// TransactionSchema.pre("save", true, function(next, done) {
+//   next();
 
-  this.updatedOn = new Date();
+//   this.updatedOn = new Date();
 
-  done();
-});
+//   done();
+// });
 
-TransactionSchema.pre("update", true, function(next, done) {
-  next();
+// TransactionSchema.pre("update", true, function(next, done) {
+//   next();
 
-  this.update(
-    {},
-    {
-      $set: {
-        updatedOn: new Date()
-      }
-    }
-  );
+//   this.update(
+//     {},
+//     {
+//       $set: {
+//         updatedOn: new Date()
+//       }
+//     }
+//   );
 
-  done();
-});
+//   done();
+// });
 
 //Export model
 /*module.exports = function(connection) {
@@ -117,4 +133,5 @@ TransactionSchema.pre("update", true, function(next, done) {
 };*/
 
 TransactionSchema.plugin(mongoosePaginate);
+// TransactionSchema.plugin(autoPopulate);
 module.exports = mongoose.model("Transaction", TransactionSchema);
