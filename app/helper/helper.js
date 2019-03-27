@@ -141,7 +141,7 @@ class Helper {
     async createWallet(user, role) {
         try {
             // const addr = 'https://sela-blockchain.herokuapp.com';
-            let wallet = await fetch(`${BLOCKCHAIN_URL}/account`, {
+            let wallet = await fetch(`${BLOCKCHAIN_URL}account`, {
 
                 method: 'POST',
                 body: JSON.stringify({ user, role }),
@@ -161,7 +161,7 @@ class Helper {
     async getWalletBalance(token, key) {
         try {
             console.log(typeof BLOCKCHAIN_URL)
-            let balances = await fetch(`${BLOCKCHAIN_URL}/account/${key}/balance`, {
+            let balances = await fetch(`${BLOCKCHAIN_URL}account/${key}/balance`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -182,7 +182,7 @@ class Helper {
 
     async getWalletTransactionHistory(token, key) {
         try {
-            let transactions = await fetch(`${BLOCKCHAIN_URL}/account/${key}/history`, {
+            let transactions = await fetch(`${BLOCKCHAIN_URL}account/${key}/history`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -203,7 +203,7 @@ class Helper {
 
     async createAsset(property, token) {
         try {
-            let ProjectToken = await fetch(`${BLOCKCHAIN_URL}/asset/create`, {
+            let ProjectToken = await fetch(`${BLOCKCHAIN_URL}asset/create`, {
                 method: 'POST',
                 body: JSON.stringify(property),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
@@ -219,14 +219,14 @@ class Helper {
     async getProjectBalancesOrhistory(project, token, history = false) {
         try {
             if (!history) {
-                let projectBalances = await fetch(`${BLOCKCHAIN_URL}/project/${project}/balance`, {
+                let projectBalances = await fetch(`${BLOCKCHAIN_URL}project/${project}/balance`, {
                     headers: { 'Content-Type': 'application/json', 'authorization': token, },
                 });
 
                 return projectBalances = await projectBalances.json();
             }
 
-            let transactions = await fetch(`${BLOCKCHAIN_URL}/project/${project}/transaction-history`, {
+            let transactions = await fetch(`${BLOCKCHAIN_URL}project/${project}/transaction-history`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -247,7 +247,7 @@ class Helper {
 
     async changeTrust(project, token) {
         try {
-            let trustline = await fetch(`${BLOCKCHAIN_URL}/asset/trustline`, {
+            let trustline = await fetch(`${BLOCKCHAIN_URL}asset/trustline`, {
                 method: 'POST',
                 body: JSON.stringify({ project }),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
