@@ -843,11 +843,11 @@ exports.checkAccountBalance = async (req, res) => {
       return res.status(404).json({ message: "user not found" })
     }
 
-    let token = req.headers['authorization'];
+    let token = req.token;
     let balances = await helper.getWalletBalance(token, user.publicKey);
 
     if (balances.balances.success == true) {
-      return res.status(balances.status).json(balances.balances)
+      return res.status(balances.status).json({success:balances.balances.success,balances:balances.balances.balances, link:balances.balances.links.self.href})
     } else {
       return res.status(400).json({ message: "Could not retrieve wallet balance" })
       // return res.status(400).json({message:balances.message})

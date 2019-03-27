@@ -18,6 +18,10 @@ let s3 = new AWS.S3({});
 
 sgMail.setApiKey(process.env.SEND_GRID_API);
 
+// const BLOCKCHAIN_URL='';
+// if(process.env.NODE_ENV =='development' || process.env.NODE_ENV=='test'){
+    const BLOCKCHAIN_URL=process.env.BLOCKCHAIN_URL.toString();
+// }
 
 /**
  *
@@ -25,6 +29,10 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
  * @class Helper
  */
 class Helper {
+
+    constructor(){
+       
+    }
 
     /**
      *
@@ -132,8 +140,8 @@ class Helper {
 
     async createWallet(user, role) {
         try {
-const addr='https://sela-blockchain.herokuapp.com';
-            let wallet = await fetch(`${addr}/account`, {
+            // const addr = 'https://sela-blockchain.herokuapp.com';
+            let wallet = await fetch(`${BLOCKCHAIN_URL}/account`, {
 
                 method: 'POST',
                 body: JSON.stringify({ user, role }),
@@ -152,7 +160,8 @@ const addr='https://sela-blockchain.herokuapp.com';
 
     async getWalletBalance(token, key) {
         try {
-            let balances = await fetch(`${process.env.BLOCKCHAIN_URL}/account/${key}/balance`, {
+            console.log(typeof BLOCKCHAIN_URL)
+            let balances = await fetch(`${BLOCKCHAIN_URL}/account/${key}/balance`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -163,6 +172,7 @@ const addr='https://sela-blockchain.herokuapp.com';
             // }
 
             balances = await balances.json();
+            console.log(balances)
             return { balances, status: 200 }
 
         } catch (error) {
@@ -172,7 +182,7 @@ const addr='https://sela-blockchain.herokuapp.com';
 
     async getWalletTransactionHistory(token, key) {
         try {
-            let transactions = await fetch(`${process.env.BLOCKCHAIN_URL}/account/${key}/history`, {
+            let transactions = await fetch(`${BLOCKCHAIN_URL}/account/${key}/history`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -193,7 +203,7 @@ const addr='https://sela-blockchain.herokuapp.com';
 
     async createAsset(property, token) {
         try {
-            let ProjectToken = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/create`, {
+            let ProjectToken = await fetch(`${BLOCKCHAIN_URL}/asset/create`, {
                 method: 'POST',
                 body: JSON.stringify(property),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
@@ -209,14 +219,14 @@ const addr='https://sela-blockchain.herokuapp.com';
     async getProjectBalancesOrhistory(project, token, history = false) {
         try {
             if (!history) {
-                let projectBalances = await fetch(`${process.env.BLOCKCHAIN_URL}/project/${project}/balance`, {
+                let projectBalances = await fetch(`${BLOCKCHAIN_URL}/project/${project}/balance`, {
                     headers: { 'Content-Type': 'application/json', 'authorization': token, },
                 });
 
                 return projectBalances = await projectBalances.json();
             }
 
-            let transactions = await fetch(`${process.env.BLOCKCHAIN_URL}/project/${project}/transaction-history`, {
+            let transactions = await fetch(`${BLOCKCHAIN_URL}/project/${project}/transaction-history`, {
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
             });
             // if(balances.status !==200){
@@ -237,7 +247,7 @@ const addr='https://sela-blockchain.herokuapp.com';
 
     async changeTrust(project, token) {
         try {
-            let trustline = await fetch(`${process.env.BLOCKCHAIN_URL}/asset/trustline`, {
+            let trustline = await fetch(`${BLOCKCHAIN_URL}/asset/trustline`, {
                 method: 'POST',
                 body: JSON.stringify({ project }),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
