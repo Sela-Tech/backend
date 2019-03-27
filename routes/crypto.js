@@ -8,5 +8,5 @@ module.exports = function(app) {
   // app.route("/trn").post(verifyToken, trn.confirmTransaction);
   // //   app.route("/trn/:projectId").get(trn.fetchTransactions);
 
-  app.route("/wallet-balance").get(verifyToken, Crypto.getBalances.bind(Crypto));
+  app.route("/balances").get(verifyToken, Crypto.getBalances.bind(Crypto));
 };
