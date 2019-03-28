@@ -134,18 +134,18 @@ class Crypto {
   async getBalances(req, res) {
 
     try {
-     
+
       this.user = req.userId;
       // const { projectId } = req.query;
 
       console.log('req: ' + req.userId);
-      console.log('this: '+ this.user);
+      console.log('this: ' + this.user);
 
-      this.CreatedProjectBalances=[];
-      this.CreatedProjects=[];
-      this.joinedProjects=[];
-      this.joinedProjectBalances=[];
-      this.nativeBalances=[];
+      this.CreatedProjectBalances = [];
+      this.CreatedProjects = [];
+      this.joinedProjects = [];
+      this.joinedProjectBalances = [];
+      this.nativeBalances = [];
 
       let user = await User.findById(this.user);
 
@@ -168,7 +168,7 @@ class Crypto {
       if (projects.length < 1) {
         const balance = balances.balances.balances;
         this.nativeBalances = balance.filter(balance => balance.type === "native");
-        return res.status(200).json({ myTokens:  this.nativeBalances})
+        return res.status(200).json({ myTokens: this.nativeBalances })
       }
 
       // seperate owned and joined projects
@@ -247,38 +247,45 @@ class Crypto {
     try {
       let the_user = User.findById(this.user);
       let the_project = Project.findOne({ _id: id });
-  
+
       const [user, project] = await Promise.all([the_user, the_project])
-  
+
       if (project == null || project == undefined) {
         return res.status(404).json({ message: "Project not found" })
       }
-  
+
       let projectOwner = project.owner._id.toString();
-  
+
       const isProjectOwner = projectOwner === this.user.toString();
-  
+
       let transactions;
-  
+
       switch (isProjectOwner) {
         case true:
+          let pstBalance = await helper.getProjectBalancesOrhistory(project._id, req.token, false)
           transactions = await Transaction.find({ project: project._id })
             .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
             .populate({ path: 'sender', select: 'firstName lastName profilePhoto' });
-          return res.status(200).json({ transactions });
-  
+          return res.status(200).json({
+            projectName: project.name,
+            distributorPublicKey: project.distributionAccount,
+            createdToken: pstBalance,
+            transactions
+          });
+
         case false:
-        let tokenBalance={};
+          let tokenBalance = {};
           let walletBalance = await helper.getWalletBalance(req.token, user.publicKey)
-          if(walletBalance.balances.success && walletBalance.balances.success == true){
+          if (walletBalance.balances.success && walletBalance.balances.success == true) {
             tokenBalance = walletBalance.balances.balances.find(token => token.token.toString() === project.pst);
+            tokenBalance = walletBalance.balances.balances
           }
-  
+
           transactions = await Transaction.find({ project: project._id, receiver: req.userId })
             .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
             .populate({ path: 'sender', select: 'firstName lastName profilePhoto' })
           // .populate('modelId');
-          return res.status(200).json({ projectName:project.name,pst:tokenBalance,transactions });
+          return res.status(200).json({ projectName: project.name, myTokens: tokenBalance, transactions });
         default:
           break;
       }
@@ -286,7 +293,7 @@ class Crypto {
       console.log(error)
       return res.status(500).json({ message: "internal server error" })
     }
-   
+
   }
 }
 
