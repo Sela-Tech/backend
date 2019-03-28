@@ -134,8 +134,18 @@ class Crypto {
   async getBalances(req, res) {
 
     try {
+     
       this.user = req.userId;
       // const { projectId } = req.query;
+
+      console.log('req: ' + req.userId);
+      console.log('this: '+ this.user);
+
+      this.CreatedProjectBalances=[];
+      this.CreatedProjects=[];
+      this.joinedProjects=[];
+      this.joinedProjectBalances=[];
+      this.nativeBalances=[];
 
       let user = await User.findById(this.user);
 
@@ -156,7 +166,9 @@ class Crypto {
         });
 
       if (projects.length < 1) {
-        return res.status(200).json({ balances })
+        const balance = balances.balances.balances;
+        this.nativeBalances = balance.filter(balance => balance.type === "native");
+        return res.status(200).json({ myTokens:  this.nativeBalances})
       }
 
       // seperate owned and joined projects
