@@ -203,7 +203,7 @@ class Proposals {
         let project = req.params.id;
 
         try {
-            let proposals = await Proposal.find({ project }).sort({ createdAt: -1 });
+            let proposals = await Proposal.find({ project }).sort({ createdAt: -1 }).populate('project');
             if (proposals.length < 1) {
                 return res.status(200).json({ proposals: [] })
             }

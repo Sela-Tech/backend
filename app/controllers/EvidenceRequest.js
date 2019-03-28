@@ -455,7 +455,7 @@ class Evidences {
                         // }
                         const transactionObj = {
                             hash: transaction.transactionResult.hash,
-                            link: `${'https://testnet.steexp.com/tx/'}transaction.transactionResult.hash`,
+                            link: `${'https://testnet.steexp.com/tx/'}${transaction.transactionResult.hash}`,
                             project: evidenceRequest.project._id,
                             asset: evidenceRequest.project.pst,
                             sender: evidenceRequest.project.owner._id,
@@ -523,7 +523,7 @@ class Evidences {
                         // }
                         const transactionObj = {
                             hash: transaction.transactionResult.hash,
-                            link: transaction.transactionResult._links.transaction.href,
+                            link: `${'https://testnet.steexp.com/tx/'}${transaction.transactionResult.hash}`,
                             project: evidenceRequest.project._id,
                             asset: evidenceRequest.project.pst,
                             sender: evidenceRequest.project.owner._id,
