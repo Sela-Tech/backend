@@ -174,14 +174,15 @@ class Crypto {
       if (balances.balances.success && balances.balances.success == true) {
         const balance = balances.balances.balances;
 
-        this.nativeBalances = balance.filter(balance => balance.type === "native" || !balance.token.includes('PST'));
+        this.nativeBalances = balance.filter(balance => balance.type === "native");
+        // this.nativeBalances = balance.filter(balance => balance.type === "native" || !balance.token.includes('PST'));
         this.PSTAssets = balance.filter(balance => balance.type !== "native" && balance.token.includes('PST'));
 
         if (this.CreatedProjects.length > 0) {
           this.CreatedProjectBalances = this.CreatedProjects.map(async (project) => {
             return {
-              _id: project._id,
-              name: project.name,
+              projectId: project._id,
+              projectName: project.name,
               balances: await helper.getProjectBalancesOrhistory(project._id, token, false)
             }
           })
@@ -195,8 +196,8 @@ class Crypto {
               if (PSTAsset.token.toString() === project.pst.toString()) {
                 this.joinedProjectBalances.push(
                   {
-                    _id: project._id,
-                    name: project.name,
+                    projectId: project._id,
+                    projectName: project.name,
                     type: PSTAsset.type,
                     token: project.pst,
                     balance: PSTAsset.balance
@@ -208,9 +209,9 @@ class Crypto {
         }
 
         return res.json({
-          native_balance: this.nativeBalances,
-          joinedProjects: this.joinedProjectBalances,
-          createdProjects: this.CreatedProjectBalances
+          // native_balance: this.nativeBalances,
+          myTokens: [...this.nativeBalances, ...this.joinedProjectBalances],
+          createdTokens: this.CreatedProjectBalances
         })
 
         // return res.status(balances.status).json({ success: balances.balances.success, balances: balances.balances.balances, link: balances.balances.links.self.href })
