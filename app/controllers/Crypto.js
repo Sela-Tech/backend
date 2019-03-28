@@ -143,7 +143,7 @@ class Crypto {
         return res.status(404).json({ message: "user not found" })
       }
 
-      const role = helper.getRole(user);
+      // const role = helper.getRole(user);
 
       let token = req.token;
 
@@ -250,8 +250,8 @@ class Crypto {
       switch (isProjectOwner) {
         case true:
           transactions = await Transaction.find({ project: project._id })
-            .populate({ path: 'receiver', select: 'firstName lastName' })
-            .populate({ path: 'sender', select: 'firstName lastName' });
+            .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
+            .populate({ path: 'sender', select: 'firstName lastName profilePhoto' });
           return res.status(200).json({ transactions });
   
         case false:
@@ -262,8 +262,8 @@ class Crypto {
           }
   
           transactions = await Transaction.find({ project: project._id, receiver: req.userId })
-            .populate({ path: 'receiver', select: 'firstName lastName' })
-            .populate({ path: 'sender', select: 'firstName lastName' })
+            .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
+            .populate({ path: 'sender', select: 'firstName lastName profilePhoto' })
           // .populate('modelId');
           return res.status(200).json({ projectName:project.name,pst:tokenBalance,transactions });
         default:
