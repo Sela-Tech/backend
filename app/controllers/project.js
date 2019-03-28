@@ -40,7 +40,7 @@ class Projects {
     let SHs = [];
     var newLocation = new Location(req.body.location);
     try {
-
+      // check user balance before creating a project
       if (projectObj.stakeholders && projectObj.stakeholders.length > 0) {
         // let shouldAddContractor = await helper.shouldAddContractor(projectObj.stakeholders, null)
         // if(shouldAddContractor){
@@ -595,12 +595,12 @@ class Projects {
       switch (isProjectOwner) {
         case true:
           transactions = await Transaction.find({ project: project._id },
-             { page: Number(page), limit: Number(limit) }).populate('');
+            { page: Number(page), limit: Number(limit) }).populate('');
           return res.status(200).json({ transactions });
 
         case false:
-          transactions = await Transaction.find({ project: project._id, receiver:req.userId },
-             { page: Number(page), limit: Number(limit) });
+          transactions = await Transaction.find({ project: project._id, receiver: req.userId },
+            { page: Number(page), limit: Number(limit) });
           return res.status(200).json({ transactions });
         default:
           break;
