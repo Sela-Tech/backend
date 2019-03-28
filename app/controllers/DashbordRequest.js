@@ -170,14 +170,26 @@ class Dashboard {
         let fundedProjects;
         let joinedProjects;
         let all = req.query.all;
+        console.log(req.userId)
         try {
 
             if (all && typeof (all) === 'string' && all === 'true') {
 
-                let projects = await Project.find({
-                    'stakeholders.user.information': req.userId,
-                    'stakeholders.user.status': 'ACCEPTED', 'stakeholders.user.agreed': true
-                });
+                // let projects = await Project.find({
+                //     'stakeholders.user.information': req.userId,
+                //     'stakeholders.user.status': 'ACCEPTED', 'stakeholders.user.agreed': true
+                // });
+
+                let projects = await Project.find(
+                    {
+                        stakeholders: {
+                            $elemMatch: {
+                                'user.information': req.userId, 'user.status': 'ACCEPTED',
+                                'user.agreed': true
+                            }
+                        }
+                    }
+                );
 
                 if (projects.length > 0) {
                     projects = projects.map((p) => {
@@ -204,9 +216,14 @@ class Dashboard {
 
             //fetch paginated projects here
             let projects = await Project.paginate({
-                'stakeholders.user.information': req.userId,
-                'stakeholders.user.status': 'ACCEPTED', 'stakeholders.user.agreed': true
-            }, { page: Number(page), limit: Number(limit) });
+                stakeholders: {
+                    $elemMatch: {
+                        'user.information': req.userId,
+                        'user.status': 'ACCEPTED', 'user.agreed': true
+                    }
+                }
+            },
+                { page: Number(page), limit: Number(limit) });
 
             let docs = projects.docs;
             if (docs.length > 0) {
@@ -338,7 +355,7 @@ class Dashboard {
         let joinedProjects = await this.fetchJoinedProjects(req, res);
         let areasOfInterest = await this.fetchAreaOfInterestP(req, res);
 
-         result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
+        result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
         return result;
     }
