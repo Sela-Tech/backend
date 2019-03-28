@@ -203,15 +203,21 @@ class Proposals {
         let project = req.params.id;
 
         try {
-            let proposals = await Proposal.find({ project }).sort({ createdAt: -1 }).populate('project');
+            let existingProject = await Project.findById(project);
+
+            let proposals = await Proposal.find({ project }).sort({ createdAt: -1 });
             if (proposals.length < 1) {
                 return res.status(200).json({ proposals: [] })
             }
 
+
+
             proposals = proposals.map((p) => {
                 return {
-                    _id: p._id,
 
+                    projectName:existingProject.name,
+                    projectId:existingProject._id,
+                    _id: p._id,
                     proposal_name: p.proposalName,
                     totalMilestones: p.milestones.length,
                     tasks:Array.prototype.concat.apply([], p.milestones.map((m)=>{

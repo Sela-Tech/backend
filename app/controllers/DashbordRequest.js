@@ -6,35 +6,35 @@ const User = mongoose.model("User"),
     Save = mongoose.model('Save');
 
 
-function formatData(data){
-   return {
+function formatData(data) {
+    return {
         _id: data._id,
         name: data.name,
-        status:data.status,
-        goal:data.goal,
-        location:{
-            name:data.location.name
+        status: data.status,
+        goal: data.goal,
+        location: {
+            name: data.location.name
         },
         avatar: data["project-avatar"],
         owner: {
             fullName: `${data.owner.firstName} ${data.owner.lastName}`,
             _id: data.owner._id
         },
-        tags:data.tags,
-        observationBudget:data.observationBudget,
-        implementationBudget:data.implementationBudget
+        tags: data.tags,
+        observationBudget: data.observationBudget,
+        implementationBudget: data.implementationBudget
     }
 }
 
 
 class Dashboard {
     constructor() {
-        this.savedProjects = {};
-        this.createdProjects = {};
-        this.joinedProjects = {};
-        this.areaOfInterest = {};
-        this.result = {};
-        this.fundedProjects = {};
+        // this.savedProjects = {};
+        // createdProjects = {};
+        // joinedProjects = {};
+        // areaOfInterest = {};
+        // result = {};
+        // fundedProjects = {};
 
 
         this.fetchSavedProject = this.fetchSavedProject.bind(this);
@@ -58,6 +58,7 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
         let all = req.query.all;
+        let savedProjects;
         try {
             if (all && typeof (all) === 'string' && all === 'true') {
                 let projects = await Save.find({ user: req.userId });
@@ -67,10 +68,10 @@ class Dashboard {
                     }).reverse();
                 }
 
-                this.savedProjects = {
+                savedProjects = {
                     docs: projects,
                 };
-                return this.savedProjects;
+                return savedProjects;
             }
 
             let projects = await Save.paginate({ user: req.userId }, { page: Number(page), limit: Number(limit) });
@@ -82,14 +83,14 @@ class Dashboard {
                 }).reverse();
             }
 
-            this.savedProjects = {
+            savedProjects = {
                 docs,
                 total: projects.total,
                 limit: projects.limit,
                 page: projects.page,
                 pages: projects.pages
             };
-            return this.savedProjects;
+            return savedProjects;
 
         } catch (error) {
             console.log(error)
@@ -110,6 +111,8 @@ class Dashboard {
         let limit = req.query.limit || 20;
         let all = req.query.all;
 
+        let createdProjects;
+
         try {
 
             if (req.roles.includes('isFunder') || req.roles.includes('isContractor')) {
@@ -122,10 +125,10 @@ class Dashboard {
                         }).reverse();
                     }
 
-                    this.createdProjects = {
+                    createdProjects = {
                         docs: projects,
                     };
-                    return this.createdProjects;
+                    return createdProjects;
                 }
 
                 let projects = await Project.paginate({ owner: req.userId }, { page: Number(page), limit: Number(limit) });
@@ -136,16 +139,16 @@ class Dashboard {
                     }).reverse();
                 }
 
-                this.createdProjects = {
+                createdProjects = {
                     docs,
                     total: projects.total,
                     limit: projects.limit,
                     page: projects.page,
                     pages: projects.pages
                 };
-                return this.createdProjects;
+                return createdProjects;
             }
-            return this.createdProjects;
+            return createdProjects;
         } catch (error) {
             console.log(error)
             return res.status(500).json({ message: "internal server error" })
@@ -164,7 +167,8 @@ class Dashboard {
         let page = req.query.page || 1;
         let limit = req.query.limit || 20;
 
-
+        let fundedProjects;
+        let joinedProjects;
         let all = req.query.all;
         try {
 
@@ -183,18 +187,18 @@ class Dashboard {
 
 
                 if (req.roles.includes('isContractor') || req.roles.includes('isEvaluator')) {
-                    this.joinedProjects = {
+                    joinedProjects = {
                         docs: projects,
                     };
-                    return { joinedProjects: this.joinedProjects };;
+                    return { joinedProjects: joinedProjects };;
 
                 }
                 else if (req.roles.includes('isFunder')) {
-                    this.fundedProjects = {
+                    fundedProjects = {
                         docs: projects,
 
                     };
-                    return { fundedProjects: this.fundedProjects };
+                    return { fundedProjects: fundedProjects };
                 }
             }
 
@@ -215,25 +219,25 @@ class Dashboard {
 
 
             if (req.roles.includes('isContractor') || req.roles.includes('isEvaluator')) {
-                this.joinedProjects = {
+                joinedProjects = {
                     docs,
                     total: projects.total,
                     limit: projects.limit,
                     page: projects.page,
                     pages: projects.pages
                 };
-                return { joinedProjects: this.joinedProjects };;
+                return { joinedProjects: joinedProjects };;
 
             }
             else if (req.roles.includes('isFunder')) {
-                this.fundedProjects = {
+                fundedProjects = {
                     docs,
                     total: projects.total,
                     limit: projects.limit,
                     page: projects.page,
                     pages: projects.pages
                 };
-                return { fundedProjects: this.fundedProjects };
+                return { fundedProjects: fundedProjects };
             }
         } catch (error) {
             console.log(error)
@@ -254,7 +258,7 @@ class Dashboard {
         let limit = req.query.limit || 20;
         let all = req.query.all;
         // let interests = req.decodedTokenData.areasOfInterest;
-
+        let areaOfInterest
         try {
 
             let user = await User.findById(req.userId);
@@ -279,18 +283,18 @@ class Dashboard {
                 if (projects.length > 0) {
                     // projects= projects.filter(p=>p.owner._id.toString() !== req.userId);
 
-                    
+
 
                     projects = projects.map((p) => {
                         return formatData(p)
-                        
+
                     }).reverse();
                 }
 
-                this.areaOfInterest = {
+                areaOfInterest = {
                     docs: projects,
                 };
-                return this.areaOfInterest;
+                return areaOfInterest;
             }
 
             let projects = await Project.paginate({ owner: { $ne: req.userId }, tags: { $in: [...interests] } }, { page: Number(page), limit: Number(limit) });
@@ -302,14 +306,14 @@ class Dashboard {
                 }).reverse();
             }
 
-            this.areaOfInterest = {
+            areaOfInterest = {
                 docs,
                 total: projects.total,
                 limit: projects.limit,
                 page: projects.page,
                 pages: projects.pages
             };
-            return this.areaOfInterest;
+            return areaOfInterest;
 
         } catch (error) {
             console.log(error)
@@ -327,16 +331,16 @@ class Dashboard {
      * @memberof Dashboard
      */
     async getAll(req, res) {
-
+        let result;
         let createdProjects = await this.fetchCreatedProjects(req, res);
         let savedProjects = await this.fetchSavedProject(req, res);
 
         let joinedProjects = await this.fetchJoinedProjects(req, res);
         let areasOfInterest = await this.fetchAreaOfInterestP(req, res);
 
-        return this.result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
+         result = { createdProjects, savedProjects, ...joinedProjects, areasOfInterest };
 
-
+        return result;
     }
 
 
