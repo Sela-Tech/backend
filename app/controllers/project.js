@@ -41,6 +41,7 @@ class Projects {
     var newLocation = new Location(req.body.location);
     try {
       // check user balance before creating a project
+      
       if (projectObj.stakeholders && projectObj.stakeholders.length > 0) {
         // let shouldAddContractor = await helper.shouldAddContractor(projectObj.stakeholders, null)
         // if(shouldAddContractor){

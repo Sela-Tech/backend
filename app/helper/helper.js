@@ -276,6 +276,23 @@ class Helper {
         }
     }
 
+    async transferFunds(token, amount, project, to, assetName){
+        try {
+            let transaction = await fetch(`${BLOCKCHAIN_URL}fund/transfer`, {
+                method: 'POST',
+                body: JSON.stringify({amount, project, to, assetName}),
+                headers: { 'Content-Type': 'application/json', 'authorization': token, },
+            });
+
+            transaction = await transaction.json();
+            // console.log(transaction)
+            return transaction;
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
 }
 
 module.exports = Helper;
