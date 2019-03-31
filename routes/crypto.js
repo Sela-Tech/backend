@@ -9,7 +9,10 @@ module.exports = function (app) {
   // //   app.route("/trn/:projectId").get(trn.fetchTransactions);
 
   app.route("/balances").get(verifyToken, Crypto.getBalances.bind(Crypto));
-  
+
   app.route("/project/:id/transaction-history")
     .get(verifyToken, Crypto.getTransactions.bind(Crypto));
+
+  app.route("/fund/transfer")
+    .post(verifyToken, Crypto.transferFund.bind(Crypto));
 };

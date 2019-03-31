@@ -6,10 +6,12 @@ const User = mongoose.model("User"),
     Save = mongoose.model('Save');
 
 
+
 function formatData(data) {
     return {
         _id: data._id,
         name: data.name,
+        description:data.description,
         status: data.status,
         goal: data.goal,
         location: {
@@ -18,9 +20,18 @@ function formatData(data) {
         avatar: data["project-avatar"],
         owner: {
             fullName: `${data.owner.firstName} ${data.owner.lastName}`,
-            _id: data.owner._id
+            _id: data.owner._id,
+            organization:data.owner.organization
         },
         tags: data.tags,
+        stakeholders:data.stakeholders.map((stakeholder)=>{
+            return{
+                fullName: `${stakeholder.user.information.firstName} ${stakeholder.user.information.lastName}`,
+                _id: stakeholder.user.information._id,
+                organization:stakeholder.user.information.organization,
+                profilePhoto:stakeholder.user.information.profilePhoto
+            }
+        }),
         observationBudget: data.observationBudget,
         implementationBudget: data.implementationBudget
     }
@@ -44,6 +55,7 @@ class Dashboard {
         this.fetchAreaOfInterestP = this.fetchAreaOfInterestP.bind(this);
 
     }
+
 
 
     /**
@@ -170,7 +182,6 @@ class Dashboard {
         let fundedProjects;
         let joinedProjects;
         let all = req.query.all;
-        console.log(req.userId)
         try {
 
             if (all && typeof (all) === 'string' && all === 'true') {

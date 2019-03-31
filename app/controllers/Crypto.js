@@ -131,15 +131,23 @@ class Crypto {
   }
 
 
+
+  /**
+   *
+   *
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Crypto
+   * @description returns the wallet balances for user, including the ones he has joined
+   *              and the balance of the projects he created
+   */
   async getBalances(req, res) {
 
     try {
 
       this.user = req.userId;
       // const { projectId } = req.query;
-
-      console.log('req: ' + req.userId);
-      console.log('this: ' + this.user);
 
       this.CreatedProjectBalances = [];
       this.CreatedProjects = [];
@@ -158,7 +166,19 @@ class Crypto {
       let token = req.token;
 
       const balances = await helper.getWalletBalance(token, user.publicKey);
-      let projects = await Project.find({ $or: [{ owner: this.user }, { 'stakeholders.user.information': this.user, 'stakeholders.user.status': 'ACCEPTED' }] },
+      let projects = await Project.find({
+        $or: [
+          { owner: this.user },
+          {
+            stakeholders: {
+              $elemMatch: {
+                'user.information': this.user,
+                'user.status': 'ACCEPTED', 'user.agreed': true
+              }
+            }
+          }
+        ]
+      },
         {
           'transactions': 0, 'documents': 0, "observationBudget": 0, 'proposals': 0, 'tags': 0,
           '"project-avatar': 0, 'endDate': 0, 'implementationBudget': 0, 'issuingAccount': 0, 'distributionAccount': 0, 'raised': 0,
@@ -240,6 +260,16 @@ class Crypto {
   }
 
 
+  /**
+   *
+   *
+   * @param {*} req
+   * @param {*} res
+   * @returns {object} 
+   * @memberof Crypto
+   * @description an object containing transaction history, token balances, project name
+   *                    distribution account pub. key
+   */
   async getTransactions(req, res) {
     const { id } = req.params
     this.user = req.userId
@@ -277,7 +307,7 @@ class Crypto {
           let tokenBalance = {};
           let walletBalance = await helper.getWalletBalance(req.token, user.publicKey)
           if (walletBalance.balances.success && walletBalance.balances.success == true) {
-            tokenBalance = walletBalance.balances.balances.find(token => token.token.toString() === project.pst);
+            tokenBalance = walletBalance.balances.balances.find(balance => balance.token.toString() === project.pst);
             tokenBalance = walletBalance.balances.balances
           }
 
@@ -289,6 +319,35 @@ class Crypto {
         default:
           break;
       }
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" })
+    }
+
+  }
+
+  async transferFund(req, res) {
+    this.user = req.userId
+    const { to, projectId, amount } = req.body;
+    const minimumBalanceForTransaction = 2;
+
+    try {
+      const [user, project] = await Promise.all([User.findById(this.user), Project.findById(projectId)]);
+      // get account balance
+      let accountBalance = await helper.getWalletBalance(req.token, user.publicKey);
+      // check to have minimum transaction fee
+      const balances = accountBalance.balances.balances
+      const lumenBalance = balances.find(balance => balance.type == "native")
+
+      if (Number(lumenBalance.balance) < minimumBalanceForTransaction) {
+        return res.status(400).json({ message: "You must have atleast 2 lumen balance to make a transaction" });
+      }
+
+      return res.json(lumenBalance.balance)
+
+      // check project distributionAccountBalance
+      // send fund
+
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: "internal server error" })
