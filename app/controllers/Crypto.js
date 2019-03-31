@@ -149,9 +149,6 @@ class Crypto {
       this.user = req.userId;
       // const { projectId } = req.query;
 
-      console.log('req: ' + req.userId);
-      console.log('this: ' + this.user);
-
       this.CreatedProjectBalances = [];
       this.CreatedProjects = [];
       this.joinedProjects = [];
@@ -169,7 +166,19 @@ class Crypto {
       let token = req.token;
 
       const balances = await helper.getWalletBalance(token, user.publicKey);
-      let projects = await Project.find({ $or: [{ owner: this.user }, { 'stakeholders.user.information': this.user, 'stakeholders.user.status': 'ACCEPTED' }] },
+      let projects = await Project.find({
+        $or: [
+          { owner: this.user },
+          {
+            stakeholders: {
+              $elemMatch: {
+                'user.information': this.user,
+                'user.status': 'ACCEPTED', 'user.agreed': true
+              }
+            }
+          }
+        ]
+      },
         {
           'transactions': 0, 'documents': 0, "observationBudget": 0, 'proposals': 0, 'tags': 0,
           '"project-avatar': 0, 'endDate': 0, 'implementationBudget': 0, 'issuingAccount': 0, 'distributionAccount': 0, 'raised': 0,
@@ -328,10 +337,10 @@ class Crypto {
       let accountBalance = await helper.getWalletBalance(req.token, user.publicKey);
       // check to have minimum transaction fee
       const balances = accountBalance.balances.balances
-      const lumenBalance = balances.find(balance=>balance.type=="native")
+      const lumenBalance = balances.find(balance => balance.type == "native")
 
-      if(Number(lumenBalance.balance) < minimumBalanceForTransaction){
-        return res.status(400).json({message:"You must have atleast 2 lumen balance to make a transaction"});
+      if (Number(lumenBalance.balance) < minimumBalanceForTransaction) {
+        return res.status(400).json({ message: "You must have atleast 2 lumen balance to make a transaction" });
       }
 
       return res.json(lumenBalance.balance)
