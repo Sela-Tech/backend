@@ -276,11 +276,11 @@ class Helper {
         }
     }
 
-    async transferFunds(token, amount, project, to, assetName){
+    async transferFunds(token, amount, project, receiver, assetName){
         try {
             let transaction = await fetch(`${BLOCKCHAIN_URL}fund/transfer`, {
                 method: 'POST',
-                body: JSON.stringify({amount, project, to, assetName}),
+                body: JSON.stringify({amount, project, to:receiver, assetName}),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 

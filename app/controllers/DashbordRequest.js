@@ -24,14 +24,7 @@ function formatData(data) {
             organization:data.owner.organization
         },
         tags: data.tags,
-        stakeholders:data.stakeholders.map((stakeholder)=>{
-            return{
-                fullName: `${stakeholder.user.information.firstName} ${stakeholder.user.information.lastName}`,
-                _id: stakeholder.user.information._id,
-                organization:stakeholder.user.information.organization,
-                profilePhoto:stakeholder.user.information.profilePhoto
-            }
-        }),
+        stakeholders:data.stakeholders,
         observationBudget: data.observationBudget,
         implementationBudget: data.implementationBudget
     }
