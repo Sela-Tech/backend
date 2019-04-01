@@ -326,13 +326,24 @@ class Crypto {
 
   }
 
+
+
+  /**
+   *
+   *
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Crypto
+   */
+
   async transferFund(req, res) {
     this.user = req.userId
-    const { to, projectId, amount } = req.body;
+    const { receiver, projectId, amount, assetType } = req.body;
     const minimumBalanceForTransaction = 2;
 
     try {
-      const [user, project] = await Promise.all([User.findById(this.user), Project.findById(projectId)]);
+      const user = await User.findById(this.user);
       // get account balance
       let accountBalance = await helper.getWalletBalance(req.token, user.publicKey);
       // check to have minimum transaction fee
@@ -343,10 +354,41 @@ class Crypto {
         return res.status(400).json({ message: "You must have atleast 2 lumen balance to make a transaction" });
       }
 
-      return res.json(lumenBalance.balance)
+      let project;
+      let assetName;
+      let transaction;
+      if (assetType.includes('pst') || assetType.includes('PST')) {
+        project = await Project.findById(projectId);
+        assetName = project.pst;
+        transaction = await helper.transferFunds(req.token, amount, projectId, receiver, assetName)
 
-      // check project distributionAccountBalance
-      // send fund
+      } else if (assetType.includes('native')) {
+        assetName = "native";
+        transaction = await helper.transferFunds(req.token, amount, null, receiver, assetName)
+
+      }
+
+      if (transaction && transaction.success===true && assetType.includes('pst') || assetType.includes('PST')) {
+
+        const transactionObj = {
+          hash: transaction.transactionResult.hash,
+          link: `${'https://testnet.steexp.com/tx/'}${transaction.transactionResult.hash}`,
+          project: project._id,
+          asset: project.pst,
+          sender: this.user,
+          receiver: receiver,
+          value: amount,
+          memo: `Payment for ${evidenceRequest.title}`,
+          modelId: evidenceRequest._id,
+          onModel: 'Evidence',
+          success: transaction.success,
+          status: "CONFIRMED"
+        }
+
+        await new Transaction(transactionObj).save();
+      }
+
+      return res.status(201).json( transaction )
 
     } catch (error) {
       console.log(error)
