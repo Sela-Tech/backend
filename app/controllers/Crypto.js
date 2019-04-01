@@ -378,9 +378,7 @@ class Crypto {
           sender: this.user,
           receiver: receiver,
           value: amount,
-          memo: `Payment for ${evidenceRequest.title}`,
-          modelId: evidenceRequest._id,
-          onModel: 'Evidence',
+          memo: `Cash Out`,
           success: transaction.success,
           status: "CONFIRMED"
         }

@@ -47,12 +47,13 @@ var transactionStructure = {
     // will look at the `onModel` property to find the right model. e.g task, transaction, proposal e.t.c
     refPath: 'onModel',
     // autoPopulate:true
+    default:null
   },
   onModel: {
     type: String,
     // can be either of the document in the enum
     enum: ['Task', 'Milestone',"Evidence"],
-    default:"Task"
+    default:null
   },
   status: {
     type: String,
