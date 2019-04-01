@@ -188,6 +188,7 @@ class Crypto {
       if (projects.length < 1) {
         const balance = balances.balances.balances;
         this.nativeBalances = balance.filter(balance => balance.type === "native");
+        console.log('this code runs?')
         return res.status(200).json({ myTokens: this.nativeBalances })
       }
 
