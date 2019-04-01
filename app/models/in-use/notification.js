@@ -83,6 +83,11 @@ var notificationStructure = {
     type: String,
     // can be either of the document in the enum
     enum: ['Task', 'Milestone',"Proposal", "Transaction"]
+  }, 
+  visibility:{
+    type:String,
+    enum:["private", "public"],
+    default:"private"
   }
   
 };

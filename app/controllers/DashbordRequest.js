@@ -15,7 +15,9 @@ function formatData(data) {
         status: data.status,
         goal: data.goal,
         location: {
-            name: data.location.name
+            name: data.location.name,
+            lat:data.location.lat,
+            lng:data.location.lng
         },
         avatar: data["project-avatar"],
         owner: {

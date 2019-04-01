@@ -111,7 +111,8 @@ class Notifications {
             user: data.project.owner._id,
             message,
             stakeholder: data.stakeholderId,
-            type
+            type,
+            visibility: "public"
         }
 
         try {
@@ -122,13 +123,13 @@ class Notifications {
             if (data.notificationId) {
                 await Notification.updateOne({ _id: data.notificationId, user: req.userId }, { $set: { action: action } });
             } else {
-                await Notification.updateOne({ project: data.project._id, user: req.userId, stakeholder: data.project.owner._id, type: "INVITATION_TO_JOIN_PROJECT", action:"REQUIRED" },
+                await Notification.updateOne({ project: data.project._id, user: req.userId, stakeholder: data.project.owner._id, type: "INVITATION_TO_JOIN_PROJECT", action: "REQUIRED" },
                     { $set: { action: action } }
                 );
             }
 
             let updateUser = await User.findById(req.userId);
-            updateUser.requests.pull({_id:data.project._id})
+            updateUser.requests.pull({ _id: data.project._id })
 
             await updateUser.save();
 
@@ -193,7 +194,9 @@ class Notifications {
             message,
             stakeholder: req.userId,
             type,
-            action: "REQUIRED"
+            action: "REQUIRED",
+            visibility: "public"
+
         }
 
         try {
@@ -266,7 +269,9 @@ class Notifications {
                     user: project.owner._id,
                     message,
                     stakeholder: u._id,
-                    type: "YOU_SENT_INVITATION_TO_JOIN"
+                    type: "YOU_SENT_INVITATION_TO_JOIN",
+                    visibility: "public"
+
                 }
 
             })
@@ -351,7 +356,9 @@ class Notifications {
             stakeholder: req.userId,
             type,
             model: proposal._id,
-            onModel: "Proposal"
+            onModel: "Proposal",
+            visibility:"public"
+
         }
 
         const msg = {
@@ -407,7 +414,9 @@ class Notifications {
             stakeholder: project.owner._id,
             type,
             model: proposal._id,
-            onModel: "Proposal"
+            onModel: "Proposal",
+            visibility:"public"
+
         }
 
         try {
@@ -455,7 +464,9 @@ class Notifications {
             stakeholder: project.owner._id,
             type,
             model: proposal._id,
-            onModel: "Proposal"
+            onModel: "Proposal",
+            visibility:"public"
+
         }
 
 
