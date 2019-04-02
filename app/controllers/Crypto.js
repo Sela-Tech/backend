@@ -5,6 +5,7 @@ const Transaction = mongoose.model("Transaction");
 const User = mongoose.model("User");
 const Project = mongoose.model("Project");
 const Helper = require('../helper/helper');
+const validate=require('../../middleware/validate')
 
 const helper = new Helper()
 
@@ -188,6 +189,7 @@ class Crypto {
       if (projects.length < 1) {
         const balance = balances.balances.balances;
         this.nativeBalances = balance.filter(balance => balance.type === "native");
+        console.log('this code runs?')
         return res.status(200).json({ myTokens: this.nativeBalances })
       }
 
@@ -339,7 +341,18 @@ class Crypto {
 
   async transferFund(req, res) {
     this.user = req.userId
-    const { receiver, projectId, amount, assetType } = req.body;
+
+    validate.validateFundTransfer(req, res)
+    const errors = req.validationErrors();
+
+    if (errors) {
+      return res.status(400).json({
+        message: errors
+      });
+    }
+
+    const { receiver, projectId, amount, assetType, remarks } = req.body;
+
     const minimumBalanceForTransaction = 2;
 
     try {
@@ -368,7 +381,14 @@ class Crypto {
 
       }
 
-      if (transaction && transaction.success===true && assetType.includes('pst') || assetType.includes('PST')) {
+      if (transaction && transaction.success === true && assetType.includes('pst') || assetType.includes('PST')) {
+
+        // let memo='';
+        // if(project.owner._id.toString()===this.user){
+        //   memo="Payment";
+        // }else{
+        //   memo="Transfer"
+        // }
 
         const transactionObj = {
           hash: transaction.transactionResult.hash,
@@ -378,7 +398,7 @@ class Crypto {
           sender: this.user,
           receiver: receiver,
           value: amount,
-          memo: `Cash Out`,
+          memo:remarks,
           success: transaction.success,
           status: "CONFIRMED"
         }
@@ -386,7 +406,7 @@ class Crypto {
         await new Transaction(transactionObj).save();
       }
 
-      return res.status(201).json( transaction )
+      return res.status(201).json(transaction)
 
     } catch (error) {
       console.log(error)
