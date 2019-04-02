@@ -287,7 +287,7 @@ exports.verify = async (req, res) => {
     firstName: user.firstName,
     lastName: user.lastName,
     organization: user.organization,
-    publicKey: verifiedUser.publicKey,
+    publicKey: user.publicKey,
     token
   });
 
