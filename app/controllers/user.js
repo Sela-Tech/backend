@@ -133,11 +133,11 @@ exports.register = async (req, res) => {
 
       // remove this code in a production environemnt
 
-      if(newUser){
+      if (newUser) {
         (async () => {
           let role = helper.getRole(newUser);
           let wallet = await helper.createWallet(newUser._id, role);
-  
+
           if (wallet.success == true) {
             newUser.publicKey = wallet.publicKey
             // updated user with detail
@@ -382,6 +382,7 @@ exports.login = (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           organization: user.organization,
+          publicKey: user.publicKey,
           token
         });
       } else if (user.activation === "pending" && user.isVerified === true) {
@@ -690,6 +691,7 @@ exports.verifyAccountToken = async (req, res) => {
         firstName: verifiedUser.firstName,
         lastName: verifiedUser.lastName,
         organization: verifiedUser.organization,
+        publicKey: verifiedUser.publicKey,
         token
       });
     }
@@ -847,7 +849,7 @@ exports.checkAccountBalances = async (req, res) => {
     let balances = await helper.getWalletBalance(token, user.publicKey);
 
     if (balances.balances.success == true) {
-      return res.status(balances.status).json({success:balances.balances.success,balances:balances.balances.balances, link:balances.balances.links.self.href})
+      return res.status(balances.status).json({ success: balances.balances.success, balances: balances.balances.balances, link: balances.balances.links.self.href })
     } else {
       return res.status(400).json({ message: "Could not retrieve wallet balance" })
       // return res.status(400).json({message:balances.message})
