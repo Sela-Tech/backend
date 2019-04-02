@@ -310,7 +310,7 @@ class Crypto {
           let walletBalance = await helper.getWalletBalance(req.token, user.publicKey)
           if (walletBalance.balances.success && walletBalance.balances.success == true) {
             tokenBalance = walletBalance.balances.balances.find(balance => balance.token.toString() === project.pst);
-            // tokenBalance = walletBalance.balances.balances
+            tokenBalance = walletBalance.balances.balances
           }
 
           transactions = await Transaction.find({ project: project._id, receiver: req.userId })
