@@ -507,6 +507,7 @@ exports.update = async (req, res) => {
           firstName: finalUserObj.firstName,
           lastName: finalUserObj.lastName,
           organization: finalUserObj.organization,
+          publicKey:finalUserObj.publicKey,
           token
         });
       } else {
