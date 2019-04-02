@@ -287,6 +287,7 @@ exports.verify = async (req, res) => {
     firstName: user.firstName,
     lastName: user.lastName,
     organization: user.organization,
+    publicKey: verifiedUser.publicKey,
     token
   });
 
@@ -506,6 +507,7 @@ exports.update = async (req, res) => {
           firstName: finalUserObj.firstName,
           lastName: finalUserObj.lastName,
           organization: finalUserObj.organization,
+          publicKey:finalUserObj.publicKey,
           token
         });
       } else {
