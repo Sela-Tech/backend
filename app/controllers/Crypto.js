@@ -5,7 +5,7 @@ const Transaction = mongoose.model("Transaction");
 const User = mongoose.model("User");
 const Project = mongoose.model("Project");
 const Helper = require('../helper/helper');
-const validate=require('../../middleware/validate')
+const validate = require('../../middleware/validate')
 
 const helper = new Helper()
 
@@ -371,8 +371,18 @@ class Crypto {
       let assetName;
       let transaction;
       if (assetType.includes('pst') || assetType.includes('PST')) {
+
         project = await Project.findById(projectId);
         assetName = project.pst;
+
+        // check pst balance on project for project owner
+        // check pst balance if this.user is a stakeholder
+        const assetBalance = balances.find(balance => balance.token === assetName);
+
+        if (Number(amount) > Number(assetBalance.balance)) {
+          return res.status(400).json({ message: "Insufficient Asset Balance. \n Amount cannot be more than asset balance" });
+
+        }
         transaction = await helper.transferFunds(req.token, amount, projectId, receiver, assetName)
 
       } else if (assetType.includes('native')) {
@@ -398,7 +408,7 @@ class Crypto {
           sender: this.user,
           receiver: receiver,
           value: amount,
-          memo:remarks,
+          memo: remarks,
           success: transaction.success,
           status: "CONFIRMED"
         }
