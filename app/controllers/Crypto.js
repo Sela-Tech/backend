@@ -291,7 +291,6 @@ class Crypto {
       const isProjectOwner = projectOwner === this.user.toString();
 
       let transactions;
-
       switch (isProjectOwner) {
         case true:
           let pstBalance = await helper.getProjectBalancesOrhistory(project._id, req.token, false)
@@ -313,10 +312,23 @@ class Crypto {
             tokenBalance = walletBalance.balances.balances
           }
 
-          transactions = await Transaction.find({ project: project._id, $or:[{sender:this.user},{receiver: this.user}] })
+          transactions = await Transaction.find({ project: project._id, $or: [{ sender: this.user }, { receiver: this.user }] })
             .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
             .populate({ path: 'sender', select: 'firstName lastName profilePhoto' })
           // .populate('modelId');
+
+         transactions= transactions.map((transaction) => {
+            transaction= transaction.toJSON();
+            if (transaction.sender._id.toString() === this.user) {
+              transaction['operation'] = 'sent';
+              return transaction;
+            } else if (transaction.receiver._id.toString() === this.user) {
+              // transaction.toJSON();
+              transaction['operation'] = 'received';
+              return transaction;
+            }
+          });
+
           return res.status(200).json({ projectName: project.name, myTokens: tokenBalance, transactions });
         default:
           break;
