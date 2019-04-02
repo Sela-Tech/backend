@@ -313,7 +313,7 @@ class Crypto {
             tokenBalance = walletBalance.balances.balances
           }
 
-          transactions = await Transaction.find({ project: project._id, receiver: req.userId })
+          transactions = await Transaction.find({ project: project._id, $or:[{sender:this.user},{receiver: this.user}] })
             .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
             .populate({ path: 'sender', select: 'firstName lastName profilePhoto' })
           // .populate('modelId');
