@@ -280,7 +280,7 @@ class Helper {
         try {
             let transaction = await fetch(`${BLOCKCHAIN_URL}fund/transfer`, {
                 method: 'POST',
-                body: JSON.stringify({amount, project, to:receiver, assetName}),
+                body: JSON.stringify({amount:amount.toString(), project, to:receiver, assetName}),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 
