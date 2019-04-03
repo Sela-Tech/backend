@@ -524,7 +524,7 @@ exports.update = async (req, res) => {
 };
 
 exports.find = async (req, res) => {
-  let users = await User.find({});
+  let users = await User.find({isVerified:true});
 
   users = users.filter(u => {
     u = u.toJSON();
