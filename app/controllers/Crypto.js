@@ -317,8 +317,8 @@ class Crypto {
             .populate({ path: 'sender', select: 'firstName lastName profilePhoto' })
           // .populate('modelId');
 
-         transactions= transactions.map((transaction) => {
-            transaction= transaction.toJSON();
+          transactions = transactions.map((transaction) => {
+            transaction = transaction.toJSON();
             if (transaction.sender._id.toString() === this.user) {
               transaction['operation'] = 'sent';
               return transaction;
@@ -388,13 +388,17 @@ class Crypto {
         assetName = project.pst;
 
         // check pst balance on project for project owner
-        // check pst balance if this.user is a stakeholder
-        const assetBalance = balances.find(balance => balance.token === assetName);
+        if (project.owner._id.toString() !== this.user) {
+          // check pst balance if this.user is a stakeholder
+          const assetBalance = balances.find(balance => balance.token === assetName);
+          // return console.log('stakeholder')
+          if (Number(amount) > Number(assetBalance.balance)) {
+            return res.status(400).json({ message: "Insufficient Asset Balance. \n Amount cannot be more than asset balance" });
 
-        if (Number(amount) > Number(assetBalance.balance)) {
-          return res.status(400).json({ message: "Insufficient Asset Balance. \n Amount cannot be more than asset balance" });
-
+          }
         }
+        // return console.log('project owner')
+
         transaction = await helper.transferFunds(req.token, amount, projectId, receiver, assetName)
 
       } else if (assetType.includes('native')) {
