@@ -391,13 +391,13 @@ class Crypto {
         if (project.owner._id.toString() !== this.user) {
           // check pst balance if this.user is a stakeholder
           const assetBalance = balances.find(balance => balance.token === assetName);
-          // return console.log('stakeholder')
+          // console.log('stakeholder')
           if (Number(amount) > Number(assetBalance.balance)) {
             return res.status(400).json({ message: "Insufficient Asset Balance. \n Amount cannot be more than asset balance" });
 
           }
         }
-        // return console.log('project owner')
+        // return console.log('got here')
 
         transaction = await helper.transferFunds(req.token, amount, projectId, receiver, assetName)
 
