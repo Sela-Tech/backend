@@ -15,6 +15,7 @@ const proposal = require("./proposal");
 const retrieveCred = require("./cred");
 const comment = require("./comment");
 const evidence = require("./evidence");
+const update = require("./updates");
 
 module.exports = function (app) {
   user(app);
@@ -34,4 +35,5 @@ module.exports = function (app) {
   retrieveCred(app);
   comment(app);
   evidence(app);
+  update(app);
 };

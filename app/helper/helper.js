@@ -2,6 +2,8 @@ const sgMail = require('@sendgrid/mail');
 "use strict";
 require("dotenv").config();
 const mongoose = require("mongoose"),
+    Project = mongoose.model("Project"),
+    Transaction = mongoose.model("Transaction"),
     User = mongoose.model("User");
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
@@ -20,7 +22,7 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 // const BLOCKCHAIN_URL='';
 // if(process.env.NODE_ENV =='development' || process.env.NODE_ENV=='test'){
-    const BLOCKCHAIN_URL=process.env.BLOCKCHAIN_URL.toString();
+const BLOCKCHAIN_URL = process.env.BLOCKCHAIN_URL.toString();
 // }
 
 /**
@@ -30,8 +32,8 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
  */
 class Helper {
 
-    constructor(){
-       
+    constructor() {
+
     }
 
     /**
@@ -73,6 +75,68 @@ class Helper {
 
         // return userRole;
 
+    }
+
+
+    async createOrUpdateBalances(projectId, amount, budgetType, create = false) {
+
+        switch (create) {
+
+            case false:
+                switch (budgetType) {
+                    case 'implementation':
+                        await Project.findByIdAndUpdate(projectId, { $inc: { implementationBalance: -Number(amount) } })
+                        break;
+                    case 'observation':
+                        await Project.findByIdAndUpdate(projectId, { $inc: { observationBalance: -Number(amount) } })
+
+                        break;
+
+                    default:
+                        break;
+                }
+                break;
+            case true:
+
+                // check for project
+
+                let project = await Project.findById(projectId);
+
+                // check transactions related to the project
+                let transactions = await Transaction.find({ sender: project.owner._id });
+                if (transactions.length > 0) {
+                    let observationSum = transactions.filter(transaction => transaction.modelId !== undefined)
+                        .map(transaction => transaction.value)
+                        .reduce((a, b) => a + b);
+
+                    let implementationSum = transactions.filter(transaction => transaction.modelId == undefined)
+                        .map(transaction => transaction.value)
+                        .reduce((a, b) => a + b);
+
+                    // update the implementationBalance and observationBalance with implementationBudget
+                    // and observationBudget respectively
+
+                    // update both balances from the existing transaction
+
+
+                    project.observationBalance = project.observationBudget - observationSum
+                    project.implementationBalance = project.implementationBudget - implementationSum
+                    await project.save();
+                    return project;
+                } else {
+                    project.observationBalance = project.observationBudget;
+                    project.implementationBalance = project.implementationBudget;
+                    await project.save();
+                    // return project
+
+                    return project;
+                }
+
+
+
+            default:
+                break;
+        }
     }
 
     generateAssetName() {
@@ -158,6 +222,15 @@ class Helper {
         }
     }
 
+
+    /**
+     *
+     *
+     * @param {*} token
+     * @param {*} key
+     * @returns
+     * @memberof Helper
+     */
     async getWalletBalance(token, key) {
         try {
             console.log(typeof BLOCKCHAIN_URL)
@@ -180,6 +253,16 @@ class Helper {
         }
     }
 
+
+
+    /**
+     *
+     *
+     * @param {*} token
+     * @param {*} key
+     * @returns
+     * @memberof Helper
+     */
     async getWalletTransactionHistory(token, key) {
         try {
             let transactions = await fetch(`${BLOCKCHAIN_URL}account/${key}/history`, {
@@ -201,6 +284,15 @@ class Helper {
     }
 
 
+
+    /**
+     *
+     *
+     * @param {*} property
+     * @param {*} token
+     * @returns
+     * @memberof Helper
+     */
     async createAsset(property, token) {
         try {
             let ProjectToken = await fetch(`${BLOCKCHAIN_URL}asset/create`, {
@@ -216,6 +308,17 @@ class Helper {
         }
     }
 
+
+
+    /**
+     *
+     *
+     * @param {*} project
+     * @param {*} token
+     * @param {boolean} [history=false]
+     * @returns
+     * @memberof Helper
+     */
     async getProjectBalancesOrhistory(project, token, history = false) {
         try {
             if (!history) {
@@ -245,6 +348,29 @@ class Helper {
     }
 
 
+   async getProjectBalancesPublic(project) {
+       try {
+               let projectBalances = await fetch(`${BLOCKCHAIN_URL}project/${project}/balance/public`, {
+                   headers: { 'Content-Type': 'application/json' },
+               });
+
+               return projectBalances = await projectBalances.json();
+
+
+       } catch (error) {
+           console.log(error)
+       }
+   }
+
+
+    /**
+     *
+     *
+     * @param {*} project
+     * @param {*} token
+     * @returns
+     * @memberof Helper
+     */
     async changeTrust(project, token) {
         try {
             let trustline = await fetch(`${BLOCKCHAIN_URL}asset/trustline`, {
@@ -259,11 +385,22 @@ class Helper {
         }
     }
 
-    async transferToken(token, amount, project){
+
+
+    /**
+     *
+     *
+     * @param {*} token
+     * @param {*} amount
+     * @param {*} project
+     * @returns
+     * @memberof Helper
+     */
+    async transferToken(token, amount, project) {
         try {
             let transaction = await fetch(`${BLOCKCHAIN_URL}asset/transfer-asset`, {
                 method: 'POST',
-                body: JSON.stringify({amount, project}),
+                body: JSON.stringify({ amount, project }),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 
@@ -276,11 +413,23 @@ class Helper {
         }
     }
 
-    async transferFunds(token, amount, project, receiver, assetName){
+
+    /**
+     *
+     *
+     * @param {*} token
+     * @param {*} amount
+     * @param {*} project
+     * @param {*} receiver
+     * @param {*} assetName
+     * @returns
+     * @memberof Helper
+     */
+    async transferFunds(token, amount, project, receiver, assetName) {
         try {
             let transaction = await fetch(`${BLOCKCHAIN_URL}fund/transfer`, {
                 method: 'POST',
-                body: JSON.stringify({amount:amount.toString(), project, to:receiver, assetName}),
+                body: JSON.stringify({ amount: amount.toString(), project, to: receiver, assetName }),
                 headers: { 'Content-Type': 'application/json', 'authorization': token, },
             });
 

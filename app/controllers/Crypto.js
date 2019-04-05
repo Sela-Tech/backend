@@ -440,6 +440,50 @@ class Crypto {
     }
 
   }
+
+
+  /**
+   *
+   *
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   * @memberof Crypto
+   */
+
+  async getTransactionsPublicView(req, res) {
+    const { id } = req.params;
+
+    try {
+      let project = await Project.findById(id);
+
+      if (!project) {
+        return res.status(404).json({ message: "Project was not found" })
+      }
+
+      let pstBalance = await helper.getProjectBalancesPublic(project._id);
+      let transactions = await Transaction.find({ project: project._id }).sort({ createdAt: -1 })
+        .populate({ path: 'receiver', select: 'firstName lastName profilePhoto' })
+        .populate({ path: 'sender', select: 'firstName lastName profilePhoto' });
+
+
+      if (transactions.length < 1) {
+        return res.status(200).json({ transactions: [] });
+      }
+
+      return res.status(200).json({
+        projectName: project.name,
+        totalBudget:project.implementationBudget + project.observationBudget,
+        distributorPublicKey: project.distributionAccount,
+        createdToken: pstBalance,
+        transactions
+      });
+
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" });
+    }
+  }
 }
 
 

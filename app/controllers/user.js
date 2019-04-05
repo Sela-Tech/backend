@@ -107,19 +107,36 @@ exports.register = async (req, res) => {
     lastName: req.body.lastName,
     password: req.body.password,
     phone: req.body.phone,
-    profilePhoto: req.body.profilePhoto
+    profilePhoto: req.body.profilePhoto,
   };
 
   try {
     let org = req.body.organization, signThis = {};
 
+    let taxId = org.taxId;
+
+    if (!taxId || taxId == undefined || taxId == null || taxId == "") {
+      return res.status(400).json({message:"please specify taxId"});
+    }
+
+    // check if it matches existng taxIDs
+    // proceed if it checks out
+    // reject if it doesn't checkout
     if (org.id !== "" && org.id !== undefined) {
+      // get taxID from body
+    
       let fetchOrg = await Organization.findOne({
         _id: req.body.organization.id
       });
+
+      if(fetchOrg.taxId.toString() !== taxId){
+        return res.status(400).json({message:"The taxID entered does not match that of the organization selected"});
+      }
+
       userObj.organization = fetchOrg.id;
     } else if (Boolean(org.id) == false && org.name !== "") {
-      let obj = await new Organization({ name: org.name }).save();
+
+      let obj = await new Organization({ name: org.name, taxId }).save();
       userObj.organization = obj._id;
     }
 
@@ -507,7 +524,7 @@ exports.update = async (req, res) => {
           firstName: finalUserObj.firstName,
           lastName: finalUserObj.lastName,
           organization: finalUserObj.organization,
-          publicKey:finalUserObj.publicKey,
+          publicKey: finalUserObj.publicKey,
           token
         });
       } else {
@@ -524,7 +541,7 @@ exports.update = async (req, res) => {
 };
 
 exports.find = async (req, res) => {
-  let users = await User.find({isVerified:true});
+  let users = await User.find({ isVerified: true });
 
   users = users.filter(u => {
     u = u.toJSON();
