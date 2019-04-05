@@ -90,6 +90,14 @@ var projectStructure = {
     type:Number,
     default:0
   },
+  implementationBalance:{
+    type:Number,
+    default:null
+  },
+  observationBalance:{
+    type:Number,
+    default:null
+  },
   issuingAccount:{
     type:String,
     default:null
@@ -150,6 +158,7 @@ var projectStructure = {
     type: Number,
     default: 20
   },
+  extra:[Schema.Types.Mixed],
   createdOn: {
     type: Date,
     default: Date.now()

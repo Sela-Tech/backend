@@ -15,4 +15,7 @@ module.exports = function (app) {
 
   app.route("/fund/transfer")
     .post(verifyToken, Crypto.transferFund.bind(Crypto));
+
+  app.route("/projects/:id/transaction-history/public")
+    .get(Crypto.getTransactionsPublicView.bind(Crypto));
 };

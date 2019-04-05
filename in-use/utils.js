@@ -4,7 +4,7 @@ var tokenHeaderField = "x-access-token";
 var jwt = require("jsonwebtoken");
 
 exports.verifyToken = (req, res, next) => {
-  const whitelisted = ["/projects", "/projects/:id"];
+  const whitelisted = ["/projects", "/projects/:id","/projects/:id/transaction-history/public"];
 
   const token = req.headers[tokenHeaderField] || req.headers['authorization'],
   publicView = req.headers[visibilityHeaderField];

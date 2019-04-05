@@ -75,7 +75,7 @@ class Projects {
 
         var newProject = new Project(projectObj);
 
-
+// return res.json(newProject)
 
         // newProject.save((err, project)=>{
         //   if (err) {
@@ -183,7 +183,7 @@ class Projects {
       checkQuery = otherQueryParams;
     }
 
-    Project.find(checkQuery)
+    Project.find(checkQuery).sort({ createdOn: -1 })
       .skip(skip)
       .limit(limit)
       .exec(function (err, projects) {
@@ -327,7 +327,14 @@ class Projects {
 
       // lazy load proposals related to project
 
-      let proposals = await Proposal.find({ project: project._id })
+      let proposals = await Proposal.find({ project: project._id });
+
+
+      // temporary code to update implementation and observationBudget,
+      // do not use in production
+      // if(project.observationBalance == null && implementationBalance==null){
+      //    project = await helper.createOrUpdateBalances(project._id,null,null,true);
+      // }
 
       if (project.activated === true || project.owner._id == req.userId) {
         project = project.toJSON();
