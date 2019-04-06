@@ -6,7 +6,7 @@ let update = require("../app/controllers/Update");
 module.exports = function (app) {
     //real routes
     app
-        .route("/updates")
+        .route("/project/:id/updates")
         .get(update.updates);
 
 };

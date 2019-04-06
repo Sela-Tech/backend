@@ -24,8 +24,9 @@ class Update {
      */
 
     static async updates(req, res) {
+        const {id}=req.params;
         try {
-            let updates = await Notificate.find({ visibility:'public' }).sort({ createdAt: -1 });
+            let updates = await Notificate.find({project:id, visibility:'public' }).sort({ createdAt: -1 });
 
             if (updates.length > 0) {
                 updates = updates.map((n) => {

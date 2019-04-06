@@ -135,6 +135,13 @@ exports.register = async (req, res) => {
 
       userObj.organization = fetchOrg.id;
     } else if (Boolean(org.id) == false && org.name !== "") {
+      // make sure taxID only belongs to an organization
+
+      let orgWithSameTaxID= await Organization.findOne({taxId});
+
+      if(orgWithSameTaxID){
+        return res.status(409).json({message:"An Organization with the taxID already exist"})
+      }
 
       let obj = await new Organization({ name: org.name, taxId }).save();
       userObj.organization = obj._id;
@@ -150,18 +157,18 @@ exports.register = async (req, res) => {
 
       // remove this code in a production environemnt
 
-      if (newUser) {
-        (async () => {
-          let role = helper.getRole(newUser);
-          let wallet = await helper.createWallet(newUser._id, role);
+      // if (newUser) {
+      //   (async () => {
+      //     let role = helper.getRole(newUser);
+      //     let wallet = await helper.createWallet(newUser._id, role);
 
-          if (wallet.success == true) {
-            newUser.publicKey = wallet.publicKey
-            // updated user with detail
-            await newUser.save();
-          }
-        })();
-      }
+      //     if (wallet.success == true) {
+      //       newUser.publicKey = wallet.publicKey
+      //       // updated user with detail
+      //       await newUser.save();
+      //     }
+      //   })();
+      // }
       // code above is only meant for testing
 
       const receiver = '+234' + req.body.phone;

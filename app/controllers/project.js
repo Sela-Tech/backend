@@ -355,6 +355,33 @@ class Projects {
   }
 
 
+  static async updateProject(req, res){
+    const {id}= req.params
+    try {
+      let project= await Project.findById(id);
+      if(project==null){
+        return res.status(404).json({message:"Project Not Found."})
+      }
+
+      if(project.owner._id.toString()!==req.userId){
+        return res.status(401).json({message:"You are not authorized to perform this action."})
+      }
+
+      const updateObj= req.body;
+
+      // return res.json(updateObj);
+      let updatedProject = await Project.findByIdAndUpdate(id, updateObj);
+
+      if(updatedProject){
+        return res.status(200).json({message:"Project has been updated"});
+
+      }
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "internal server error" })
+    }
+  }
+
   /**
    *
    *
