@@ -135,6 +135,13 @@ exports.register = async (req, res) => {
 
       userObj.organization = fetchOrg.id;
     } else if (Boolean(org.id) == false && org.name !== "") {
+      // make sure taxID only belongs to an organization
+
+      let orgWithSameTaxID= await Organization.findOne({taxId});
+
+      if(orgWithSameTaxID){
+        return res.status(409).json({message:"An Organization with the taxID already exist"})
+      }
 
       let obj = await new Organization({ name: org.name, taxId }).save();
       userObj.organization = obj._id;

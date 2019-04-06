@@ -15,6 +15,7 @@ module.exports = function (app) {
 
   //real routes
   app.route("/project/:id").get(verifyToken, Projects.find_one);
+  app.route("/project/:id").put(verifyToken, Projects.updateProject);
 
   app.route("/project/:id").delete(verifyToken, Projects.delete);
   app.route("/project/:id/contractor-preview").get(verifyToken, Projects.contractorViewProjectDetails);
