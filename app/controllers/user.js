@@ -110,42 +110,58 @@ exports.register = async (req, res) => {
     profilePhoto: req.body.profilePhoto,
   };
 
+  const role = helper.getRole(userObj);
+
   try {
-    let org = req.body.organization, signThis = {};
 
-    let taxId = org.taxId;
 
-    if (!taxId || taxId == undefined || taxId == null || taxId == "") {
-      return res.status(400).json({message:"please specify taxId"});
-    }
-
-    // check if it matches existng taxIDs
-    // proceed if it checks out
-    // reject if it doesn't checkout
-    if (org.id !== "" && org.id !== undefined) {
-      // get taxID from body
+    switch (role) {
+      case 'Evaluator':
+        userObj.organization=null
+        break;
     
-      let fetchOrg = await Organization.findOne({
-        _id: req.body.organization.id
-      });
+      default:
+      let org = req.body.organization, signThis = {};
 
-      if(fetchOrg.taxId.toString() !== taxId){
-        return res.status(400).json({message:"The taxID entered does not match that of the organization selected"});
+      let taxId = org.taxId;
+  
+      if (!taxId || taxId == undefined || taxId == null || taxId == "") {
+        return res.status(400).json({message:"please specify taxId"});
       }
-
-      userObj.organization = fetchOrg.id;
-    } else if (Boolean(org.id) == false && org.name !== "") {
-      // make sure taxID only belongs to an organization
-
-      let orgWithSameTaxID= await Organization.findOne({taxId});
-
-      if(orgWithSameTaxID){
-        return res.status(409).json({message:"An Organization with the taxID already exist"})
+  
+      // check if it matches existng taxIDs
+      // proceed if it checks out
+      // reject if it doesn't checkout
+      if (org.id !== "" && org.id !== undefined) {
+        // get taxID from body
+      
+        let fetchOrg = await Organization.findOne({
+          _id: req.body.organization.id
+        });
+  
+        if(fetchOrg.taxId.toString() !== taxId){
+          return res.status(400).json({message:"The taxID entered does not match that of the organization selected"});
+        }
+  
+        userObj.organization = fetchOrg.id;
+      } else if (Boolean(org.id) == false && org.name !== "") {
+        // make sure taxID only belongs to an organization
+  
+        let orgWithSameTaxID= await Organization.findOne({taxId});
+  
+        if(orgWithSameTaxID){
+          return res.status(409).json({message:"An Organization with the taxID already exist"})
+        }
+  
+  
+        let obj = await new Organization({ name: org.name, taxId }).save();
+        userObj.organization = obj._id;
       }
-
-      let obj = await new Organization({ name: org.name, taxId }).save();
-      userObj.organization = obj._id;
+  
+        break;
     }
+
+    // return res.send('got here')
 
     let medium;
 
@@ -157,18 +173,18 @@ exports.register = async (req, res) => {
 
       // remove this code in a production environemnt
 
-      if (newUser) {
-        (async () => {
-          let role = helper.getRole(newUser);
-          let wallet = await helper.createWallet(newUser._id, role);
+      // if (newUser) {
+      //   (async () => {
+      //     let role = helper.getRole(newUser);
+      //     let wallet = await helper.createWallet(newUser._id, role);
 
-          if (wallet.success == true) {
-            newUser.publicKey = wallet.publicKey
-            // updated user with detail
-            await newUser.save();
-          }
-        })();
-      }
+      //     if (wallet.success == true) {
+      //       newUser.publicKey = wallet.publicKey
+      //       // updated user with detail
+      //       await newUser.save();
+      //     }
+      //   })();
+      // }
       // code above is only meant for testing
 
       const receiver = '+234' + req.body.phone;
