@@ -1,6 +1,15 @@
 var mongoose = require("mongoose");
+var autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate = require('mongoose-paginate');
+
 var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
+
+// import related models
+
+const Project = require("./project");
+const Milestone = require("./milestone");
+const Evidence = require("./evidence");
 
 var taskStructure = {
   name: {
@@ -17,7 +26,7 @@ var taskStructure = {
   project: {
     type: ObjectId,
     ref: "Project",
-    required:true
+    required: true
   }, // reference to associated project
   dueDate: {
     type: Date,
@@ -34,66 +43,64 @@ var taskStructure = {
   },
   createdBy: {
     type: ObjectId,
-    ref: "User"
-  },
-  assignedTo: [{
-    type: ObjectId,
     ref: "User",
-    default: null
-  }],
-  evaluators: [{
-    type: ObjectId,
-    ref: "User",
-    default: null
-  }],
-  completedBy: {
-    type: ObjectId,
-    ref: "User",
-    default: null
-  },
-  contractorAgreed: {
-    type: Boolean,
-    default: false
-  },
-  ownerAgreed: {
-    type: Boolean,
-    default: false
-  },
-  agentEvaluations: [
-    {
-      type: ObjectId,
-      ref: "Evaluations",
-      default: null
+    autopopulate: {
+      select:
+        "isFunder isContractor isEvaluator  firstName lastName email"
     }
-  ],
-  contractorEvaluations: [
-    {
-      text: {
-        type: String,
-        default: null
-      },
-      isCompleted: {
-        type: Boolean,
-        default: false
-      },
-      proof: {
-        type: String,
-        default: ''
-      }
+  },
+  assignedTo: {
+    type: ObjectId,
+    ref: "User",
+    default: null,
+    autopopulate: {
+      select:
+        "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
-  ],
-  budget: {
+  },
+  // evaluators: [{
+  //   type: ObjectId,
+  //   ref: "User",
+  //   default: null
+  // }],
+  // completedBy: {
+  //   type: ObjectId,
+  //   ref: "User",
+  //   default: null
+  // },
+  
+  // agentEvaluations: [
+  //   {
+  //     type: ObjectId,
+  //     ref: "Evaluation",
+  //     default: null
+  //   }
+  // ],
+  // contractorEvaluations: [
+  //   {
+  //     text: {
+  //       type: String,
+  //       default: null
+  //     },
+  //     isCompleted: {
+  //       type: Boolean,
+  //       default: false
+  //     },
+  //     proof: {
+  //       type: String,
+  //       default: ''
+  //     }
+  //   }
+  // ],
+  estimatedCost: {
     type: Number,
     default: 0
   },
-  createdOn: {
-    type: Date,
-    default: Date.now()
-  },
-  updatedOn: {
-    type: Date,
-    default: Date.now()
+  isInMilestone:{
+    type:Boolean,
+    default:false
   }
+ 
 };
 
 var schemaOptions = {
@@ -114,6 +121,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
+  timestamps: true,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -125,67 +133,41 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var locationStructure = {
-  name: {
-    type: String,
-    required: true
-  },
-  lat: {
-    type: Number,
-    required: true
-  },
-  long: {
-    type: Number,
-    required: true
-  }
-};
-
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
-
-var LocationSchema = new Schema(locationStructure, schemaOptions);
 
 var TaskSchema = new Schema(taskStructure, schemaOptions);
 
-TaskSchema.pre("save", true, function (next, done) {
-  next();
+TaskSchema.post('remove', async (req, res) => {
+  try {
+    // await Project.update({}, { $pull: {} })
+    await Evidence.remove({ task: this._id });
+    await Milestone.update({}, { $pull: { tasks: { _id: this._id } } });
+  } catch (error) {
+    next(error)
+  }
+})
 
-  this.updatedOn = new Date();
+// TaskSchema.pre("save", true, function (next, done) {
+//   next();
 
-  done();
-});
+//   this.updatedOn = new Date();
 
-TaskSchema.pre("update", true, function (next, done) {
-  next();
+//   done();
+// });
 
-  this.update(
-    {},
-    {
-      $set: {
-        updatedOn: new Date()
-      }
-    }
-  );
+// TaskSchema.pre("update", true, function (next, done) {
+//   next();
 
-  done();
-});
+//   this.update(
+//     {},
+//     {
+//       $set: {
+//         updatedOn: new Date()
+//       }
+//     }
+//   );
 
+//   done();
+// });
+TaskSchema.plugin(mongoosePaginate);
+TaskSchema.plugin(autoPopulate);
 module.exports = mongoose.model("Task", TaskSchema);

@@ -5,12 +5,20 @@ const location = require("./location.js");
 const admin = require("./admin.js");
 const tasks = require("./task.js");
 const documents = require("./document.js");
-const trn = require("./transaction");
+const trn = require("./crypto");
 const forgotPassword = require("./forgot_password");
 const stakeholder = require("./stakeholder");
 const notification = require("./notifications")
+const milestone = require('./milestone');
+const dashboard = require("./dashboard");
+const proposal = require("./proposal");
+const retrieveCred = require("./cred");
+const comment = require("./comment");
+const evidence = require("./evidence");
+const update = require("./updates");
+const clean = require("./clean");
 
-module.exports = function(app) {
+module.exports = function (app) {
   user(app);
   admin(app);
   project(app);
@@ -22,4 +30,12 @@ module.exports = function(app) {
   forgotPassword(app);
   stakeholder(app);
   notification(app);
+  milestone(app);
+  dashboard(app);
+  proposal(app);
+  retrieveCred(app);
+  comment(app);
+  evidence(app);
+  update(app);
+  clean(app);
 };

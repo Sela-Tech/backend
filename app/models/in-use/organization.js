@@ -6,6 +6,10 @@ var OrganizationSchema = new Schema(
     name: {
       type: String,
       required: true
+    },
+    taxId:{
+      type:String,
+      required:true
     }
   },
   { timestamps: true }

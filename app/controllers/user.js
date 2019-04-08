@@ -5,14 +5,29 @@ var mongoose = require("mongoose");
 var User = mongoose.model("User");
 var Organization = mongoose.model("Organization");
 var Project = mongoose.model("Project");
+var Save = mongoose.model("Save");
 var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
-var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
+// var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
+var tokenValidityPeriod = 604800; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const Helper = require('../helper/helper');
 const Notifications = require('../helper/notifications');
 const validator = require('validator');
+const validate = require('../../middleware/validate');
+const _ = require('lodash');
+const async = require('async');
+
+const options = {
+  apiKey: process.env.AFRICAS_TALKING_API,
+  username: process.env.AFRICAS_TALKING_APP_USERNAME
+};
+
+const AfricasTalking = require('africastalking')(options);
+
+
+let sms = AfricasTalking.SMS;
 
 const helper = new Helper();
 const notify = new Notifications();
@@ -92,21 +107,61 @@ exports.register = async (req, res) => {
     lastName: req.body.lastName,
     password: req.body.password,
     phone: req.body.phone,
-    profilePhoto: req.body.profilePhoto
+    profilePhoto: req.body.profilePhoto,
   };
 
-  try {
-    let org = req.body.organization, signThis = {};
+  const role = helper.getRole(userObj);
 
-    if (org.id !== "" && org.id !== undefined) {
-      let fetchOrg = await Organization.findOne({
-        _id: req.body.organization.id
-      });
-      userObj.organization = fetchOrg.id;
-    } else if (Boolean(org.id) == false && org.name !== "") {
-      let obj = await new Organization({ name: org.name }).save();
-      userObj.organization = obj._id;
+  try {
+
+
+    switch (role) {
+      case 'Evaluator':
+        userObj.organization=null
+        break;
+    
+      default:
+      let org = req.body.organization, signThis = {};
+
+      let taxId = org.taxId;
+  
+      if (!taxId || taxId == undefined || taxId == null || taxId == "") {
+        return res.status(400).json({message:"please specify taxId"});
+      }
+  
+      // check if it matches existng taxIDs
+      // proceed if it checks out
+      // reject if it doesn't checkout
+      if (org.id !== "" && org.id !== undefined) {
+        // get taxID from body
+      
+        let fetchOrg = await Organization.findOne({
+          _id: req.body.organization.id
+        });
+  
+        if(fetchOrg.taxId.toString() !== taxId){
+          return res.status(400).json({message:"The taxID entered does not match that of the organization selected"});
+        }
+  
+        userObj.organization = fetchOrg.id;
+      } else if (Boolean(org.id) == false && org.name !== "") {
+        // make sure taxID only belongs to an organization
+  
+        let orgWithSameTaxID= await Organization.findOne({taxId});
+  
+        if(orgWithSameTaxID){
+          return res.status(409).json({message:"An Organization with the taxID already exist"})
+        }
+  
+  
+        let obj = await new Organization({ name: org.name, taxId }).save();
+        userObj.organization = obj._id;
+      }
+  
+        break;
     }
+
+    // return res.send('got here')
 
     let medium;
 
@@ -115,6 +170,22 @@ exports.register = async (req, res) => {
       medium = 'Phone Number';
 
       var newUser = await new User(userObj).save();
+
+      // remove this code in a production environemnt
+
+      // if (newUser) {
+      //   (async () => {
+      //     let role = helper.getRole(newUser);
+      //     let wallet = await helper.createWallet(newUser._id, role);
+
+      //     if (wallet.success == true) {
+      //       newUser.publicKey = wallet.publicKey
+      //       // updated user with detail
+      //       await newUser.save();
+      //     }
+      //   })();
+      // }
+      // code above is only meant for testing
 
       const receiver = '+234' + req.body.phone;
       const to = [receiver];
@@ -214,8 +285,52 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.verify = (req, res) => {
-  return res.json(req.decodedTokenData);
+exports.verify = async (req, res) => {
+  let user = await User.findById(req.userId);
+  let signThis = {};
+
+  const { isFunder, isEvaluator, isContractor } = user;
+  if (Boolean(user.organization)) {
+    signThis.organization = {
+      name: user.organization.name,
+      id: user.organization._id
+    }
+  } else {
+    signThis.organization = {
+      name: "No Organization",
+      id: ""
+    }
+  }
+
+  signThis = {
+    ...signThis,
+    profilePhoto: user.profilePhoto,
+    id: user._id,
+    isFunder,
+    isEvaluator,
+    isContractor,
+    firstName: user.firstName,
+    phone: user.phone,
+    email: user.email,
+    lastName: user.lastName,
+    areasOfInterest: user.areasOfInterest,
+
+  };
+
+  var token = jwt.sign(signThis, process.env.SECRET, {
+    expiresIn: tokenValidityPeriod
+  });
+
+
+  return res.status(200).json({
+    ...signThis,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    organization: user.organization,
+    publicKey: user.publicKey,
+    token
+  });
+
 };
 
 exports.login = (req, res) => {
@@ -240,76 +355,175 @@ exports.login = (req, res) => {
       return res.status(401).json(failRes);
     }
 
-    user.comparePassword(req.body.password, (passErr, isMatch) => {
-      if (passErr) {
-        failRes.message = passErr.name + ": " + passErr.message;
-        return res.status(500).json(failRes);
-      }
-      if (!isMatch) {
-        failRes.message =
-          "That is the wrong password for this account. Please try again";
-        return res.status(401).json(failRes);
+    // temporary code...remove later
+
+    if (user.activation === "approved" && user.isVerified === true) {
+
+      if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
+
+        // // create wallet for user have not wallet
+        (async (user) => {
+          let role = helper.getRole(user);
+          let wallet = await helper.createWallet(user._id, role);
+
+          if (wallet.success == true) {
+            user.publicKey = wallet.publicKey
+            // updated user with detail
+            await user.save();
+          }
+        })(user);
       }
 
-      if (user.activation === "approved" && user.isVerified === true) {
-        const { isFunder, isEvaluator, isContractor } = user;
+      const { isFunder, isEvaluator, isContractor } = user;
 
-        if (Boolean(user.organization)) {
-          signThis.organization = {
-            name: user.organization.name,
-            id: user.organization._id
-          }
-        } else {
-          signThis.organization = {
-            name: "No Organization",
-            id: ""
-          }
+      if (Boolean(user.organization)) {
+        signThis.organization = {
+          name: user.organization.name,
+          id: user.organization._id
         }
-
-        signThis = {
-          ...signThis,
-          profilePhoto: user.profilePhoto,
-          id: user._id,
-          isFunder,
-          isEvaluator,
-          isContractor,
-          firstName: user.firstName,
-          phone: user.phone,
-          email: user.email,
-          lastName: user.lastName
-        };
-
-        var token = jwt.sign(signThis, process.env.SECRET, {
-          expiresIn: tokenValidityPeriod
-        });
-
-
-        return res.status(200).json({
-          ...successRes,
-          ...signThis,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          organization: user.organization,
-          token
-        });
-      } else if (user.activation === "pending" && user.isVerified === true) {
-
-        failRes.message = inactiveAccountMsg;
-        return res.status(401).json(failRes);
-
-      } else if (user.activation === "approved" && user.isVerified === false) {
-
-        failRes.message = unverifiedAccount;
-        return res.status(401).json(failRes);
-
-      } else if (user.activation === "pending" && user.isVerified === false) {
-
-        failRes.message = [unverifiedAccount, inactiveAccountMsg]
-        return res.status(401).json(failRes);
+      } else {
+        signThis.organization = {
+          name: "No Organization",
+          id: ""
+        }
       }
 
+      signThis = {
+        ...signThis,
+        profilePhoto: user.profilePhoto,
+        id: user._id,
+        isFunder,
+        isEvaluator,
+        isContractor,
+        firstName: user.firstName,
+        phone: user.phone,
+        email: user.email,
+        lastName: user.lastName,
+        areasOfInterest: user.areasOfInterest,
 
-    });
+      };
+
+      var token = jwt.sign(signThis, process.env.SECRET, {
+        expiresIn: tokenValidityPeriod
+      });
+
+
+      return res.status(200).json({
+        ...successRes,
+        ...signThis,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        organization: user.organization,
+        publicKey: user.publicKey,
+        token
+      });
+    } else if (user.activation === "pending" && user.isVerified === true) {
+
+      failRes.message = inactiveAccountMsg;
+      return res.status(401).json(failRes);
+
+    } else if (user.activation === "approved" && user.isVerified === false) {
+
+      failRes.message = unverifiedAccount;
+      return res.status(401).json(failRes);
+
+    } else if (user.activation === "pending" && user.isVerified === false) {
+
+      failRes.message = [unverifiedAccount, inactiveAccountMsg]
+      return res.status(401).json(failRes);
+    }
+
+
+    // uncomment code below 
+    // user.comparePassword(req.body.password, (passErr, isMatch) => {
+    //   if (passErr) {
+    //     failRes.message = passErr.name + ": " + passErr.message;
+    //     return res.status(500).json(failRes);
+    //   }
+    //   if (!isMatch) {
+    //     failRes.message =
+    //       "That is the wrong password for this account. Please try again";
+    //     return res.status(401).json(failRes);
+    //   }
+
+    //   if (user.activation === "approved" && user.isVerified === true) {
+
+    //     if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
+
+    //       // // create wallet for user have not wallet
+    //       (async (user) => {
+    //         let role = helper.getRole(user);
+    //         let wallet = await helper.createWallet(user._id, role);
+
+    //         if (wallet.success == true) {
+    //           user.publicKey = wallet.publicKey
+    //           // updated user with detail
+    //           await user.save();
+    //         }
+    //       })(user);
+    //     }
+
+    //     const { isFunder, isEvaluator, isContractor } = user;
+
+    //     if (Boolean(user.organization)) {
+    //       signThis.organization = {
+    //         name: user.organization.name,
+    //         id: user.organization._id
+    //       }
+    //     } else {
+    //       signThis.organization = {
+    //         name: "No Organization",
+    //         id: ""
+    //       }
+    //     }
+
+    //     signThis = {
+    //       ...signThis,
+    //       profilePhoto: user.profilePhoto,
+    //       id: user._id,
+    //       isFunder,
+    //       isEvaluator,
+    //       isContractor,
+    //       firstName: user.firstName,
+    //       phone: user.phone,
+    //       email: user.email,
+    //       lastName: user.lastName,
+    //       areasOfInterest: user.areasOfInterest,
+
+    //     };
+
+    //     var token = jwt.sign(signThis, process.env.SECRET, {
+    //       expiresIn: tokenValidityPeriod
+    //     });
+
+
+    //     return res.status(200).json({
+    //       ...successRes,
+    //       ...signThis,
+    //       firstName: user.firstName,
+    //       lastName: user.lastName,
+    //       organization: user.organization,
+    //       publicKey: user.publicKey,
+    //       token
+    //     });
+    //   } else if (user.activation === "pending" && user.isVerified === true) {
+
+    //     failRes.message = inactiveAccountMsg;
+    //     return res.status(401).json(failRes);
+
+    //   } else if (user.activation === "approved" && user.isVerified === false) {
+
+    //     failRes.message = unverifiedAccount;
+    //     return res.status(401).json(failRes);
+
+    //   } else if (user.activation === "pending" && user.isVerified === false) {
+
+    //     failRes.message = [unverifiedAccount, inactiveAccountMsg]
+    //     return res.status(401).json(failRes);
+    //   }
+
+
+    // });
   });
 
 };
@@ -395,6 +609,7 @@ exports.update = async (req, res) => {
             isContractor,
             phone: finalUserObj.phone,
             firstName: finalUserObj.firstName,
+            areasOfInterest: finalUserObj.areasOfInterest,
             organization: {
               name: finalUserObj.organization.name,
               id: finalUserObj.organization._id
@@ -412,6 +627,7 @@ exports.update = async (req, res) => {
           firstName: finalUserObj.firstName,
           lastName: finalUserObj.lastName,
           organization: finalUserObj.organization,
+          publicKey: finalUserObj.publicKey,
           token
         });
       } else {
@@ -428,7 +644,7 @@ exports.update = async (req, res) => {
 };
 
 exports.find = async (req, res) => {
-  let users = await User.find({});
+  let users = await User.find({ isVerified: true });
 
   users = users.filter(u => {
     u = u.toJSON();
@@ -515,6 +731,7 @@ exports.verifyAccountToken = async (req, res) => {
       return res.status(400).json({ ...failRes, message: "Invalid verification token" })
     }
 
+    let role = helper.getRole(user);
 
     user.verificationToken = null;
     user.isVerified = true;
@@ -522,6 +739,15 @@ exports.verifyAccountToken = async (req, res) => {
     let verifiedUser = await user.save();
 
     if (verifiedUser) {
+
+      // create wallet for user
+      let wallet = await helper.createWallet(user._id, role);
+
+      if (wallet.success == true) {
+        verifiedUser.publicKey = wallet.publicKey
+        // updated user with detail
+        await verifiedUser.save();
+      }
       const { isFunder, isEvaluator, isContractor } = verifiedUser;
 
       if (Boolean(verifiedUser.organization)) {
@@ -546,12 +772,16 @@ exports.verifyAccountToken = async (req, res) => {
         firstName: verifiedUser.firstName,
         phone: verifiedUser.phone,
         email: verifiedUser.email,
-        lastName: verifiedUser.lastName
+        lastName: verifiedUser.lastName,
+        areasOfInterest: user.areasOfInterest,
+
       };
 
       var token = jwt.sign(signThis, process.env.SECRET, {
         expiresIn: tokenValidityPeriod
       });
+
+
 
 
       if (verificationToken.length < 10) {
@@ -583,6 +813,7 @@ exports.verifyAccountToken = async (req, res) => {
         firstName: verifiedUser.firstName,
         lastName: verifiedUser.lastName,
         organization: verifiedUser.organization,
+        publicKey: verifiedUser.publicKey,
         token
       });
     }
@@ -632,8 +863,8 @@ exports.resendVerificationToken = async (req, res) => {
         });
       }
 
-    }else if(validator.isMobilePhone(field,"any")){
-      
+    } else if (validator.isMobilePhone(field, "any")) {
+
       let user = await User.findOne({ phone: field, isVerified: false });
 
       if (!user) {
@@ -646,18 +877,18 @@ exports.resendVerificationToken = async (req, res) => {
       let updatedUser = await user.save();
 
       if (updatedUser) {
-        
+
         const receiver = '+234' + field;
         const to = [receiver];
-  
+
         const msg = {
           to: to,
           message: 'Please verify your phone number with this code: ' +
-          updatedUser.verificationToken
+            updatedUser.verificationToken
         }
 
         let result = await sms.send(msg);
-  
+
         return res.status(200).json({
           ...successRes,
           message: `An verification code has been sent to ${field}.`
@@ -669,5 +900,107 @@ exports.resendVerificationToken = async (req, res) => {
   } catch (error) {
     console.log(error)
     res.status(500).json({ ...failRes, message: "internal server error" })
+  }
+}
+
+exports.updateAreaOfInterest = async (req, res) => {
+  // validate.validateAddAreaOfInterest(req, res)
+  // const errors = req.validationErrors();
+
+  // if (errors) {
+  //   return res.status(400).json({
+  //     message: errors
+  //   });
+  // }
+  try {
+    const { body: { areasOfInterest } } = req;
+
+    let user = await User.findById(req.userId);
+
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "Bad Data" })
+    }
+
+    // let existingInterests = user.areasOfInterest;
+
+    let newInterests = [...areasOfInterest];
+    newInterests = _.uniq(newInterests);
+
+    let updateInterest = await User.update({ _id: req.userId }, { $set: { areasOfInterest: newInterests } })
+    if (Boolean(updateInterest)) return res.status(200).json({ message: "Areas of interest updated successfully" });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "internal server error" })
+  }
+}
+
+exports.saveProject = async (req, res) => {
+  const projectId = req.params.id;
+  try {
+    const project = await Save.findOne({ project: projectId, user: req.userId });
+    if (project) {
+      await project.remove();
+      return res.status(200).json({ message: "Project removed from saved projects" })
+    }
+
+    let saveObj = {
+      project: projectId,
+      user: req.userId
+    }
+
+    let savedProject = await new Save(saveObj).save();
+    if (savedProject) {
+      return res.status(201).json({ message: "Project has been saved", savedProject })
+    }
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
+  }
+}
+
+exports.checkAccountBalances = async (req, res) => {
+  try {
+    let user = await User.findById(req.userId);
+
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "user not found" })
+    }
+
+    let token = req.token;
+    let balances = await helper.getWalletBalance(token, user.publicKey);
+
+    if (balances.balances.success == true) {
+      return res.status(balances.status).json({ success: balances.balances.success, balances: balances.balances.balances, link: balances.balances.links.self.href })
+    } else {
+      return res.status(400).json({ message: "Could not retrieve wallet balance" })
+      // return res.status(400).json({message:balances.message})
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
+  }
+}
+
+exports.checkTransactionHistory = async (req, res) => {
+  try {
+    let user = await User.findById(req.userId);
+
+    if (user == null || user == undefined) {
+      return res.status(404).json({ message: "user not found" })
+    }
+
+    let token = req.headers['authorization'];
+    let transactions = await helper.getWalletTransactionHistory(token, user.publicKey);
+
+    if (transactions.transactions.success == true) {
+      return res.status(transactions.status).json(transactions.transactions)
+    } else {
+      return res.status(400).json({ message: "Could not retrieve account's transaction history" })
+      // return res.status(400).json({message:balances.message})
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "internal server error" })
   }
 }

@@ -1,20 +1,21 @@
 "use strict";
 
 var { verifyToken } = require("../in-use/utils");
-let task = require("../app/controllers/task");
+let { Tasks } = require("../app/controllers/task");
 
 module.exports = function(app) {
   //real routes
   app
     .route("/tasks")
-    .post(verifyToken, task.new)
-    .get(verifyToken, task.findAll);
+    .post(verifyToken,Tasks.newTask)
+    .get(verifyToken, Tasks.allTasks);
 
-  app.route("/tasks/:id").get(verifyToken, task.find);
+  app.route("/tasks/:id").get(verifyToken,Tasks.singleTask);
+  app.route("/task/:id/update").put(verifyToken, Tasks.updateTask);
 
   //test routes
-  app
-    .route("/tasks")
-    .post(task.new)
-    .get(task.find);
+  // app
+  //   .route("/tasks")
+  //   .post(task.new)
+  //   .get(task.find);
 };

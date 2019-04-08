@@ -38,7 +38,8 @@ module.exports = function(done) {
       mongoose.connect(
         process.env.MONGO_URI_UNIT_TEST,
         {
-          useMongoClient: true,
+          // useMongoClient: true,
+          useNewUrlParser: true,
           reconnectTries: 9999999999,
           connectTimeoutMS: 2000
         }
@@ -48,7 +49,8 @@ module.exports = function(done) {
       mongoose.connect(
         process.env.MONGO_URI,
         {
-          useMongoClient: true,
+          // useMongoClient: true,
+          useNewUrlParser: true,
           reconnectTries: 9999999999,
           connectTimeoutMS: 2000
         }

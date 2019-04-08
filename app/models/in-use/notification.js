@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.Types.ObjectId;
 var autoPopulate = require("mongoose-autopopulate");
 var _ = require("underscore");
+const mongoosePaginate=require('mongoose-paginate'); 
 
 
 
@@ -23,6 +24,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
+  timestamps: true ,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -33,7 +35,7 @@ var notificationStructure = {
     ref: "Project",
     autopopulate: {
       select:
-        "name activated _id, owner "
+        "name activated _id owner "
     }
   },
   user: {
@@ -59,21 +61,35 @@ var notificationStructure = {
   },
   type:{
     type:String,
-    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT",
-        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN"]
+    enum:["REQUEST_TO_JOIN_PROJECT","ACCEPT_INVITE_TO_JOIN_PROJECT","PROPOSAL_APPROVED", "PROPOSAL_REVERTED","PROPOSAL_REJECTED",
+        "REJECT_INVITE_TO_JOIN_PROJECT", "INVITATION_TO_JOIN_PROJECT","YOU_SENT_INVITATION_TO_JOIN","NEW_PROPOSAL","PROPOSAL_ASSIGNED"]
   },
   read:{
     type:Boolean,
     default:false
   },
-  createdOn: {
-    type: Date,
-    default: Date.now()
+  action:{
+    type:String,
+    enum:["ACCEPTED","REJECTED", "APPROVED", "REQUIRED", "NOT_REQUIRED"],
+    default:"NOT_REQUIRED"
   },
-  updatedOn: {
-    type: Date,
-    default: Date.now()
+  model:{
+    type: Schema.Types.ObjectId,
+    // will look at the `onModel` property to find the right model. e.g task, transaction, proposal e.t.c
+    refPath: 'onModel',
+    autoPopulate:true
+  },
+  onModel: {
+    type: String,
+    // can be either of the document in the enum
+    enum: ['Task', 'Milestone',"Proposal", "Transaction"]
+  }, 
+  visibility:{
+    type:String,
+    enum:["private", "public"],
+    default:"private"
   }
+  
 };
 
 
@@ -88,7 +104,8 @@ if (process.env.NODE_ENV === "development") {
 //   collection: "notifications"
 // });
   
-var notificationSchema = new Schema(notificationStructure,{ timestamps: true });
+var notificationSchema = new Schema(notificationStructure,schemaOptions);
 notificationSchema.plugin(autoPopulate);
+notificationSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Notification", notificationSchema);
