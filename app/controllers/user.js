@@ -153,7 +153,6 @@ exports.register = async (req, res) => {
           return res.status(409).json({message:"An Organization with the taxID already exist"})
         }
   
-  
         let obj = await new Organization({ name: org.name, taxId }).save();
         userObj.organization = obj._id;
       }

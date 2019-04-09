@@ -39,8 +39,28 @@ class Projects {
     projectObj.owner = req.userId;
     let SHs = [];
     var newLocation = new Location(req.body.location);
+    const mimimumBalanceToCreateProject = 10;
+
     try {
+      let user = await User.findById(req.userId);
+
       // check user balance before creating a project
+
+      const userWalletBalance = await helper.getWalletBalance(req.token, user.publicKey);
+
+      if (userWalletBalance.balances.success == true) {
+
+        const balances = userWalletBalance.balances.balances
+        // get lumen balance
+        let lumenBalance = balances.find(balance => balance.type === 'native');
+
+        if (Number(lumenBalance.balance) < mimimumBalanceToCreateProject) {
+          return res.json({ message: "You do not have enough XLM balance to create a project" })
+        }
+
+      } else {
+        return res.status(404).json({ message: userWalletBalance.message })
+      }
 
       if (projectObj.stakeholders && projectObj.stakeholders.length > 0) {
         // let shouldAddContractor = await helper.shouldAddContractor(projectObj.stakeholders, null)
@@ -75,7 +95,8 @@ class Projects {
 
         var newProject = new Project(projectObj);
 
-// return res.json(newProject)
+
+        // return res.json(newProject)
 
         // newProject.save((err, project)=>{
         //   if (err) {
@@ -88,10 +109,6 @@ class Projects {
         // });
 
         let newP = await newProject.save();
-
-        let user = await User.findById(req.userId);
-
-
 
         if (newP) {
 
@@ -355,25 +372,25 @@ class Projects {
   }
 
 
-  static async updateProject(req, res){
-    const {id}= req.params
+  static async updateProject(req, res) {
+    const { id } = req.params
     try {
-      let project= await Project.findById(id);
-      if(project==null){
-        return res.status(404).json({message:"Project Not Found."})
+      let project = await Project.findById(id);
+      if (project == null) {
+        return res.status(404).json({ message: "Project Not Found." })
       }
 
-      if(project.owner._id.toString()!==req.userId){
-        return res.status(401).json({message:"You are not authorized to perform this action."})
+      if (project.owner._id.toString() !== req.userId) {
+        return res.status(401).json({ message: "You are not authorized to perform this action." })
       }
 
-      const updateObj= req.body;
+      const updateObj = req.body;
 
       // return res.json(updateObj);
       let updatedProject = await Project.findByIdAndUpdate(id, updateObj);
 
-      if(updatedProject){
-        return res.status(200).json({message:"Project has been updated"});
+      if (updatedProject) {
+        return res.status(200).json({ message: "Project has been updated" });
 
       }
     } catch (error) {
