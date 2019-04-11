@@ -98,16 +98,6 @@ class Projects {
 
         // return res.json(newProject)
 
-        // newProject.save((err, project)=>{
-        //   if (err) {
-        //     failRes.message = err.name + ": " + err.message;
-        //     return res.status(400).json(failRes);
-        //   }
-
-        //    notify.notifyAddedStakeholders(req, req.body.stakeholders, project)
-        //   return res.status(200).json(successRes);
-        // });
-
         let newP = await newProject.save();
 
         if (newP) {
