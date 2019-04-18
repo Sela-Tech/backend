@@ -139,12 +139,12 @@ exports.register = async (req, res) => {
           _id: req.body.organization.id
         });
   
-        if(fetchOrg.taxId==null){
-          return res.status(400).json({message:"The selected Organization has no taxID"});
+        // if(fetchOrg.taxId==null){
+        //   return res.status(400).json({message:"The selected Organization has no taxID"});
 
-        }
+        // }
 
-        if(fetchOrg.taxId.toString() !== taxId){
+        if(fetchOrg.taxId==null || fetchOrg.taxId.toString() !== taxId){
           return res.status(400).json({message:"The taxID entered does not match that of the organization selected"});
         }
   

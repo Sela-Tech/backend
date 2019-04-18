@@ -54,7 +54,7 @@ const evidenceStructure = {
         ref: "Task",
         autopopulate: {
             select:
-                "name _id"
+                "name _id description"
         },
         default: null
     },
