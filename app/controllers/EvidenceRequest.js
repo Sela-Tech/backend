@@ -144,7 +144,7 @@ class Evidences {
         delete task.assignedTo
         delete task.createdBy
         delete task.status
-        delete task.description
+        // delete task.description
         delete task.estimatedCost
 
         task.totalSubmissions = requested.length + others.length;
