@@ -33,7 +33,6 @@ const BLOCKCHAIN_URL = process.env.BLOCKCHAIN_URL.toString();
 class Helper {
 
     constructor() {
-
     }
 
     /**

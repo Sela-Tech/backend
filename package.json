@@ -7,7 +7,8 @@
   },
   "main": "sela_app.js",
   "scripts": {
-    "start": "nodemon sela_app.js --watch",
+    "start": "node sela_app.js",
+    "start:dev": "nodemon sela_app.js --watch",
     "server": "nodemon sela_app.js",
     "client": "nodemon start-client.js",
     "prebuild": "rm -rf dist/*",
