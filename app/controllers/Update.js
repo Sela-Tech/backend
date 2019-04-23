@@ -93,14 +93,7 @@ class Update {
                 _id: requested._id,
                 title: requested.title,
                 datatype: requested.datatype,
-                updatedAt: requested.updatedAt,
-                stakeholders: requested.stakeholders.map(stakeholder => {
-                    return {
-                        hasSubmitted: stakeholder.hasSubmitted,
-                        quote: stakeholder.quote,
-                        user: Update.populateUser(stakeholder.user)
-                    }
-                }),
+                // updatedAt: requested.updatedAt,
                 fields: requested.fields,
                 submissions: requested.submissions
             }
@@ -114,22 +107,15 @@ class Update {
         let requested = evidenceRequestSub.filter(submission => submission.task._id.toString() === task._id.toString())
             .map((requested) => {
                 return {
-                    _id: requested._id,
-                    title: requested.title,
+                    // _id: requested._id,
+                    // title: requested.title,
                     datatype: requested.datatype,
-                    updatedAt: requested.updatedAt,
-                    task: {
-                        _id: requested.task._id,
-                        // title: requested.task.title,
-                        // description: requested.task.description
-                    },
-                    stakeholders: requested.stakeholders.map(stakeholder => {
-                        return {
-                            hasSubmitted: stakeholder.hasSubmitted,
-                            quote: stakeholder.quote,
-                            user: Update.populateUser(stakeholder.user)
-                        }
-                    }),
+                    // updatedAt: requested.updatedAt,
+                    // task: {
+                    //     _id: requested.task._id,
+                    //     // title: requested.task.title,
+                    //     // description: requested.task.description
+                    // },
                     fields: requested.fields,
                     submissions: requested.submissions,
                 }
@@ -139,11 +125,12 @@ class Update {
         delete task.assignedTo
         delete task.createdBy
         delete task.status
+        delete task.dueDate
         // delete task.description
         delete task.estimatedCost
         // task.totalSubmissions = requested.map((request)=>{return request.submissions.length}).reduce((a,b)=>a+b);
         // task.lastSubmitted = requested.length > 1 ? requested[requested.length - 1].updatedAt : null;
-        task.requested = requested;
+        task.data = requested;
         return task
         // return { requested, others };
     }
@@ -152,20 +139,20 @@ class Update {
     static getTaskLevelSubmissions(evidenceRequestSubmissions, proposals) {
 
         proposals = proposals.map((proposal) => {
-
+            const proposalName = proposal.proposalName
             proposal = proposal.milestones.map((milestone) => {
                 return {
+                    proposalName: proposalName,
                     milestoneTitle: milestone.title,
                     tasks: milestone.tasks.map((task) => {
                         return Update.formatTaskLevelSubmission(task, evidenceRequestSubmissions)
                     })
                 }
             });
-            return { proposal }
+            return proposal
         });
 
-
-        return proposals;
+        return Array.prototype.concat.apply([], proposals);
     }
 
 
@@ -181,8 +168,6 @@ class Update {
      */
     static async getSubmissionsPublic(req, res) {
         const { id } = req.params;
-        const { level } = req.query;
-        // let generalLevelSubmissions;
         try {
 
             // confirm project 
@@ -191,16 +176,6 @@ class Update {
                 return res.status(404).json({ message: "Project Not Found" })
             }
 
-
-            // if (project.owner._id.toString() === req.userId) {
-            //     // generalLevelSubmissions = Submission.find({ project: id });
-            // } else {
-            //     generalLevelSubmissions = Submission.find({ project: id, stakeholder: req.userId });
-            // }
-
-
-
-            // const [generalSubmissions, evidenceRequestSubmissions] = await Promise.all([generalLevelSubmissions, evidenceRequestLevelSubmissions])
             let evidenceRequestSubmissions
             let submissions = {};
             let projectLevelSubmissions;
@@ -208,75 +183,26 @@ class Update {
             let proposals
 
 
-            switch (level) {
-                case 'project':
+            proposals = await Proposal.find({ project: id, approved: true }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 }).sort({ proposalName: -1 });
 
-                    evidenceRequestSubmissions = await Evidence.find({ project: id, level: 'project', submissions: { $exists: true }, $where: 'this.submissions.length>0' });
-                    projectLevelSubmissions = Update.formatProjectLevelSubmission(evidenceRequestSubmissions)
-                    submissions.projectLevelSubmissions = projectLevelSubmissions;
-                    break;
-                case 'task':
+            evidenceRequestSubmissions = await Evidence.find({ project: id, submissions: { $exists: true }, $where: 'this.submissions.length>0' }, { "stakeholders": 0 });
 
-                    // get proposals related to the project
-
-                    // if (proposalId && proposalId.length > 0) {
-                    proposals = await Proposal.find({ project: id, approved: true }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
-                    // }
-
-                    if (proposals.length < 1) {
-                        submissions.taskLevelSubmissions = []
-
-                        return res.status(200).json(submissions )
-                    }
-
-                    evidenceRequestSubmissions = await Evidence.find({ project: id, level: 'task', submissions: { $exists: true }, $where: 'this.submissions.length>0' });
-
-                    taskLevelSubmissions = Update.getTaskLevelSubmissions(evidenceRequestSubmissions, proposals)
-                    submissions.taskLevelSubmissions = taskLevelSubmissions;
-                    break;
-
-                case 'both':
-
-                    // if (!proposalId || proposalId === "") {
-                    //     return res.status(400).json({ message: "invalid proposal Id" })
-                    // }
-
-                    // if (proposalId && proposalId.length > 0) {
-                    //     proposal = await Proposal.findOne({ _id: proposalId, $or: [{ proposedBy: req.userId }, { assignedTo: req.userId }] }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
-                    // }
-
-                    // if (!proposal) {
-                    //     return res.status(404).json({ message: "Proposal Not Found" })
-                    // }
-
-                    proposals = await Proposal.find({ project: id, approved: true }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 });
-                    // }
-
-                    evidenceRequestSubmissions = await Evidence.find({ project: id, submissions: { $exists: true }, $where: 'this.submissions.length>0' });
-
-                    let projectLevel = evidenceRequestSubmissions.filter(sub => sub.level === 'project');
-                    let taskLevel = evidenceRequestSubmissions.filter(sub => sub.level === 'task');
+            let projectLevel = evidenceRequestSubmissions.filter(sub => sub.level === 'project');
+            let taskLevel = evidenceRequestSubmissions.filter(sub => sub.level === 'task');
 
 
-                    if (proposals.length < 1) {
-                        projectLevelSubmissions = Update.formatProjectLevelSubmission(projectLevel)
-                        submissions.taskLevelSubmissions = [];
-                        return res.status(200).json(submissions)
-                    }
-
-
-                    projectLevelSubmissions = Update.formatProjectLevelSubmission(projectLevel)
-                    taskLevelSubmissions = Update.getTaskLevelSubmissions(taskLevel, proposals)
-
-                    submissions.projectLevelSubmissions = projectLevelSubmissions;
-                    submissions.taskLevelSubmissions = taskLevelSubmissions;
-
-                    break;
-
-                default:
-                    return res.status(400).json({ message: "please specify level" })
-                // break;
+            if (proposals.length < 1) {
+                projectLevelSubmissions = Update.formatProjectLevelSubmission(projectLevel)
+                submissions.taskLevelSubmissions = [];
+                return res.status(200).json(submissions)
             }
+
+
+            projectLevelSubmissions = Update.formatProjectLevelSubmission(projectLevel)
+            taskLevelSubmissions = Update.getTaskLevelSubmissions(taskLevel, proposals)
+
+            submissions.projectLevelSubmissions = projectLevelSubmissions;
+            submissions.taskLevelSubmissions = taskLevelSubmissions;
 
             return res.json(submissions)
 

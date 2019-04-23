@@ -9,6 +9,7 @@ var bodyParser = require("body-parser");
 var logger = require("morgan");
 var dotenv = require("dotenv");
 const validator = require('express-validator');
+const mongodb= require('mongodb');
 
 var http = require("http").Server(app);
 
@@ -35,18 +36,18 @@ const notification = require('./app/controllers/Notification');
 const Helper = require('./app/helper/helper');
 
 
-io.on('connection', (socket)=>{
-  socket.on('user', async(data)=>{
+io.on('connection', (socket) => {
+  socket.on('user', async (data) => {
     const helper = new Helper();
     await helper.updateUserSocket(data);
     const notifications = await notification.getUserNViaSocket(data);
-    socket.emit('notifications', {notifications});
+    socket.emit('notifications', { notifications });
   });
   console.log('user connected', socket.id)
-  socket.emit('connected', {user:socket.id});
+  socket.emit('connected', { user: socket.id });
   // setInterval(() => socket.emit('message', 'you are still connected...initiating attack on client'), 10000);
 
-  socket.on('disconnect',(data)=>{
+  socket.on('disconnect', (data) => {
     console.log(`user ${socket.id} disconnected,`, data);
   })
 });
@@ -63,19 +64,19 @@ app.use(cors());
 
 app.use(validator({
   customValidators: {
-     isArray: function(value) {
-        return Array.isArray(value);
-     },
-     notEmpty: function(array) {
-        return array.length > 0;
-     },
-     gte: function(param, num) {
-        return param >= num;
-     }
+    isArray: function (value) {
+      return Array.isArray(value);
+    },
+    notEmpty: function (array) {
+      return array.length > 0;
+    },
+    gte: function (param, num) {
+      return param >= num;
+    }
   }
 }));
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   req.io = io;
   next();
 });
@@ -103,6 +104,11 @@ app.use(
 
 // http.Server(app);
 
+// // backup database
+// (async () => {
+//   mongoexport 
+// })();
+
 if (process.env.NODE_ENV === "development") {
   environmentsDev.call(app);
 } else if (process.env.NODE_ENV === "production") {
@@ -118,8 +124,8 @@ app.use(pageNotFound);
 // error handler
 app.use(generalError);
 
-http.listen(port, function() {
+http.listen(port, function () {
   console.log("listening on port " + port);
 });
 
-module.exports=app;
+module.exports = app;
