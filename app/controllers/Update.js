@@ -91,7 +91,7 @@ class Update {
         let submissions = evidenceRequestSub.map((requested) => {
             return {
                 _id: requested._id,
-                title: requested.title,
+                kpiTitle: requested.title,
                 datatype: requested.datatype,
                 // updatedAt: requested.updatedAt,
                 fields: requested.fields,
@@ -108,7 +108,7 @@ class Update {
             .map((requested) => {
                 return {
                     // _id: requested._id,
-                    // title: requested.title,
+                    kpiTitle: requested.title,
                     datatype: requested.datatype,
                     // updatedAt: requested.updatedAt,
                     // task: {
@@ -139,10 +139,11 @@ class Update {
     static getTaskLevelSubmissions(evidenceRequestSubmissions, proposals) {
 
         proposals = proposals.map((proposal) => {
+
             const proposalName = proposal.proposalName
             proposal = proposal.milestones.map((milestone) => {
                 return {
-                    proposalName: proposalName,
+                    proposalName,
                     milestoneTitle: milestone.title,
                     tasks: milestone.tasks.map((task) => {
                         return Update.formatTaskLevelSubmission(task, evidenceRequestSubmissions)
@@ -183,7 +184,7 @@ class Update {
             let proposals
 
 
-            proposals = await Proposal.find({ project: id, approved: true }, { "comments": 0, "proposalName": 0, "approved": 0, "status": 0 }).sort({ proposalName: -1 });
+            proposals = await Proposal.find({ project: id, approved: true }, { "comments": 0, "approved": 0, "status": 0 }).sort({ proposalName: -1 });
 
             evidenceRequestSubmissions = await Evidence.find({ project: id, submissions: { $exists: true }, $where: 'this.submissions.length>0' }, { "stakeholders": 0 });
 
