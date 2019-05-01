@@ -94,7 +94,7 @@ var notificationStructure = {
 
 
 if (process.env.NODE_ENV === "development") {
-  projectStructure.test = {
+  notificationStructure.test = {
     type: Boolean,
     default: true
   };

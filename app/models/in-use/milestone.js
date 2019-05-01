@@ -49,7 +49,7 @@ var milestoneStructure = {
             ref: "Task",
             autopopulate: {
                 select:
-                    " name description assignedTo status estimatedCost _id createdOn updatedOn dueDate"
+                    " name description assignedTo status estimatedCost _id createdAt updatedAt dueDate"
             }
         }
     ],
@@ -80,7 +80,7 @@ var milestoneStructure = {
 
 
 if (process.env.NODE_ENV === "development") {
-    projectStructure.test = {
+    milestoneStructure.test = {
         type: Boolean,
         default: true
     };

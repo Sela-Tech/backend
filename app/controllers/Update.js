@@ -4,8 +4,18 @@ const mongoose = require("mongoose"),
     Project = mongoose.model("Project"),
     Proposal = mongoose.model("Proposal"),
     Evidence = mongoose.model("Evidence"),
+    TaskUpdate = mongoose.model("taskUpdate"),
+    Task = mongoose.model("Task"),
     Notificate = mongoose.model("Notification");
 
+const { AccessControl } = require('accesscontrol');
+
+const grantsObject = require('../helper/access_control');
+const Helper = require('../helper/helper');
+
+
+const helper = new Helper();
+const ac = new AccessControl(grantsObject);
 
 /**
  *
@@ -87,6 +97,8 @@ class Update {
             name: task.name
         }
     }
+
+
     static formatProjectLevelSubmission(evidenceRequestSub) {
         let submissions = evidenceRequestSub.map((requested) => {
             return {
@@ -215,8 +227,107 @@ class Update {
         }
     }
 
-    // }
+    /**
+     *
+     *
+     * @static
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Update
+     */
+    static async submitTaskReport(req, res) {
+        let { taskId, projectId } = req.params;
+        let { comment, supportEvidence, status } = req.body;
 
+        const permission = ac.can(helper.getRole(req.roles)).createOwn('report').granted;
+
+        if (permission) {
+            try {
+                // check project and make sure user is a stakeholder on project
+
+                let project = await Project.findById(projectId);
+
+                if (project == null) {
+                    return res.status(404).json({ message: "Project Not Found" });
+                }
+
+                // confirm if user is project stakeholder
+
+                let isProjectStakeholder = helper.isProjectStakeholder(req.userId, project.stakeholders);
+
+                if (!isProjectStakeholder) {
+                    return res.status(401).json({ message: "You are not a stakeholder on this project." })
+                }
+
+                // get task information
+                // ensure 1. if task status is on "NOT STARTED", only accept "IN_PROGRESS", 2. if status is "IN_PROGRESS", only accept "COMPLETED" as incoming status
+
+                let task = await Task.findOne({ _id: taskId, project: projectId, assignedTo: req.userId });
+
+
+                switch (task.status) {
+                    case "NOT_STARTED":
+                        if (status != "IN_PROGRESS" || status != task.status) {
+                            return res.status(403).json({ message: "You can only set status to either 'In Progress' or 'Not Started' at this time " })
+                        }
+                        break;
+
+                    case "IN_PROGRESS":
+                        if (status !== "IN_PROGRESS" || status !== "COMPLETED") {
+                            return res.status(403).json({ message: "You can only set status to either 'In Progress' or 'Completed' at this time " })
+                        }
+                        break;
+
+                    case "COMPLETED":
+                        if (task.status === "COMPLETED") {
+                            return res.status(403).json({ message: "You cannot submit update on a completed task " })
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+
+                // if (task.status === "NOT_STARTED" && (status != "IN_PROGRESS" || status != "NOT_STARTED")) {
+                // } else if (task.status === "IN_PROGRESS" && (status !== "IN_PROGRESS" || status !== "COMPLETED")) {
+                //     return res.status(403).json({ message: "You can only set status to either 'In Progress' or 'Completed' at this time " })
+                // } else if (task.status === "COMPLETED") {
+                //     return res.status(403).json({ message: "You cannot submit update on a completed task " })
+                // }
+
+                // get count all updates related to the task
+                let reportCount = await TaskUpdate.countDocuments({ task: taskId, project: projectId });
+
+                let updateObj = {
+                    task: taskId,
+                    project: projectId,
+                    reportNumber: reportCount + 1,
+                    stakeholder: req.userId,
+                    supportEvidence,
+                    comment
+                }
+
+
+                let update = await new TaskUpdate(updateObj);
+
+                return res.json(update)
+
+                if (update) {
+                    return res.status(201).json(update)
+                }
+
+            } catch (error) {
+                console.log(error);
+                return res.status(501).json({
+                    message: error.message
+                });
+            }
+
+        } else {
+            return res.status(403).json({ message: "Forbidden" })
+        }
+    }
 }
 
 module.exports = Update;

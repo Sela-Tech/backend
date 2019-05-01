@@ -17,6 +17,7 @@ const comment = require("./comment");
 const evidence = require("./evidence");
 const update = require("./updates");
 const clean = require("./clean");
+const donations = require("./donations");
 
 module.exports = function (app) {
   user(app);
@@ -38,4 +39,5 @@ module.exports = function (app) {
   evidence(app);
   update(app);
   clean(app);
+  donations(app);
 };

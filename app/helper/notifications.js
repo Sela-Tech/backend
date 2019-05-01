@@ -357,7 +357,7 @@ class Notifications {
             type,
             model: proposal._id,
             onModel: "Proposal",
-            visibility:"public"
+            visibility: "public"
 
         }
 
@@ -415,7 +415,7 @@ class Notifications {
             type,
             model: proposal._id,
             onModel: "Proposal",
-            visibility:"public"
+            visibility: "public"
 
         }
 
@@ -465,7 +465,7 @@ class Notifications {
             type,
             model: proposal._id,
             onModel: "Proposal",
-            visibility:"public"
+            visibility: "public"
 
         }
 

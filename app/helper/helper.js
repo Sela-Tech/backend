@@ -441,6 +441,16 @@ class Helper {
         }
     }
 
+    isProjectStakeholder(user, stakeholders){
+        const projectStakeholder = stakeholders.find(c => c.user.information._id.toString() === user.toString() && c.user.status==="ACCEPTED");
+
+        if(projectStakeholder === undefined || projectStakeholder==null || Object.getOwnPropertyNames(projectStakeholder).length === 0){
+            return false;
+        }
+
+        return true;
+    }
+
 }
 
 module.exports = Helper;
