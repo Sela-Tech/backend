@@ -5,7 +5,7 @@ var ObjectId = Schema.Types.ObjectId;
 
 const mongoosePaginate=require('mongoose-paginate'); 
 
-var transactionStructure = {
+var donationStructure = {
   hash: {
     type: String,
     required: true,
@@ -43,7 +43,7 @@ var transactionStructure = {
   },
   modelId:{
     type: ObjectId,
-    // will look at the `onModel` property to find the right model. e.g task, transaction, proposal e.t.c
+    // will look at the `onModel` property to find the right model. e.g task, Donation, proposal e.t.c
     refPath: 'onModel',
     // autoPopulate:true
   },
@@ -64,7 +64,7 @@ var transactionStructure = {
 };
 
 var schemaOptions = {
-  collection: "transactions",
+  collection: "donations",
   minimize: false,
   id: false,
   toJSON: {
@@ -88,7 +88,7 @@ var schemaOptions = {
 };
 
 if (process.env.NODE_ENV === "development") {
-  transactionStructure.test = {
+  donationStructure.test = {
     type: Boolean,
     default: true
   };
@@ -96,40 +96,9 @@ if (process.env.NODE_ENV === "development") {
 
 
 
-var TransactionSchema = new Schema(transactionStructure, schemaOptions);
+var DonationSchema = new Schema(donationStructure, schemaOptions);
 
-// TransactionSchema.pre("save", true, function(next, done) {
-//   next();
 
-//   this.updatedOn = new Date();
-
-//   done();
-// });
-
-// TransactionSchema.pre("update", true, function(next, done) {
-//   next();
-
-//   this.update(
-//     {},
-//     {
-//       $set: {
-//         updatedOn: new Date()
-//       }
-//     }
-//   );
-
-//   done();
-// });
-
-//Export model
-/*module.exports = function(connection) {
-
-    if (!connection) {
-        connection = mongoose;
-    }
-    connection.model('Transaction', TransactionSchema);
-};*/
-
-TransactionSchema.plugin(mongoosePaginate);
-// TransactionSchema.plugin(autoPopulate);
-module.exports = mongoose.model("Transaction", TransactionSchema);
+DonationSchema.plugin(mongoosePaginate);
+// DonationSchema.plugin(autoPopulate);
+module.exports = mongoose.model("Donation", DonationSchema);

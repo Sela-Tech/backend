@@ -146,7 +146,7 @@ const evidenceStructure = {
 
 
 if (process.env.NODE_ENV === "development") {
-    projectStructure.test = {
+    evidenceStructure.test = {
         type: Boolean,
         default: true
     };

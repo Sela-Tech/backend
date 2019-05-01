@@ -1,6 +1,8 @@
+
 ROOT = __dirname;
 FRONTEND = __dirname + "/public";
 
+require('dotenv').config({silent:true});
 var express = require("express");
 var app = express();
 var port = process.env.PORT || 3009;

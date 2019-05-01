@@ -38,8 +38,8 @@ var taskStructure = {
   },
   status: {
     type: String,
-    enum: ["UNASSIGNED", "ASSIGNED", "STARTED", "TERMINATED", "COMPLETED"],
-    default: "UNASSIGNED"
+    enum: ["UNASSIGNED", "ASSIGNED", "NOT_STARTED", "IN_PROGRESS", "TERMINATED", "COMPLETED"],
+    default: "NOT_STARTED"
   },
   createdBy: {
     type: ObjectId,
@@ -58,40 +58,7 @@ var taskStructure = {
         "isFunder isContractor isEvaluator  firstName lastName email _id"
     }
   },
-  // evaluators: [{
-  //   type: ObjectId,
-  //   ref: "User",
-  //   default: null
-  // }],
-  // completedBy: {
-  //   type: ObjectId,
-  //   ref: "User",
-  //   default: null
-  // },
-  
-  // agentEvaluations: [
-  //   {
-  //     type: ObjectId,
-  //     ref: "Evaluation",
-  //     default: null
-  //   }
-  // ],
-  // contractorEvaluations: [
-  //   {
-  //     text: {
-  //       type: String,
-  //       default: null
-  //     },
-  //     isCompleted: {
-  //       type: Boolean,
-  //       default: false
-  //     },
-  //     proof: {
-  //       type: String,
-  //       default: ''
-  //     }
-  //   }
-  // ],
+ 
   estimatedCost: {
     type: Number,
     default: 0

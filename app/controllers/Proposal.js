@@ -8,7 +8,7 @@ const mongoose = require("mongoose"),
     Milestone = mongoose.model('Milestone');
 const validate = require('../../middleware/validate');
 const _ = require('lodash');
-const noticate = require('../helper/notifications');
+const notificate = require('../helper/notifications');
 const { AccessControl } = require('accesscontrol');
 
 const grantsObject = require('../helper/access_control');
@@ -88,7 +88,7 @@ class Proposals {
                             task.dueDate = task.deadline;
                             task.isInMilestone = true;
                             contractor && contractor.length !== "" ? task.assignedTo = contractor : task.assignedTo = null;
-                            contractor && contractor.length !== "" ? task.status = "ASSIGNED" : task.status = "UNASSIGNED";
+                            // contractor && contractor.length !== "" ? task.status = "ASSIGNED" : task.status = "UNASSIGNED";
 
                         } else {
                             task.assignedTo = req.userId;
@@ -96,7 +96,7 @@ class Proposals {
                             task.estimatedCost = task.amount;
                             task.project = projectId;
                             task.dueDate = task.deadline;
-                            task.status = 'ASSIGNED';
+                            // task.status = 'ASSIGNED';
                             task.isInMilestone = true;
                         }
 
@@ -142,7 +142,7 @@ class Proposals {
                     proposal.assignedTo = req.userId;
                     await proposal.save();
                     // send notification to project owner
-                    await noticate.notifyOnSubmitProposal(req, project, proposal);
+                    await notificate.notifyOnSubmitProposal(req, project, proposal);
                 } else if (req.userId === project.owner._id.toString() && !contractor || contractor === "") {
                     proposal.approved = true;
                     proposal.status = "APPROVED";
@@ -168,7 +168,7 @@ class Proposals {
 
 
                     // send contractor a notification about been added to a project
-                    await noticate.notifyOnAssignedToProposal(req, project, proposal, contractor)
+                    await notificate.notifyOnAssignedToProposal(req, project, proposal, contractor)
                 }
 
                 return res.status(201).json({ proposal });
@@ -210,20 +210,31 @@ class Proposals {
                 return res.status(200).json({ proposals: [] })
             }
 
+            // temporary code below, remove from production
+            (async () => {
+                let tasks = await Task.find({ project: id });
 
+                const updateTasks = tasks.filter((task) => task.status === "UNASSIGNED" || task.status === "ASSIGNED").map((task) => task._id);
+
+                if (updateTasks.length > 0) {
+                    await Task.updateMany({ _id: [...updateTasks] }, { $set: { status: "NOT_STARTED" } });
+                }
+
+            })();
+            // temporary code above, remove from production
 
             proposals = proposals.map((p) => {
                 return {
 
-                    projectName:existingProject.name,
-                    projectId:existingProject._id,
+                    projectName: existingProject.name,
+                    projectId: existingProject._id,
                     _id: p._id,
                     proposal_name: p.proposalName,
                     totalMilestones: p.milestones.length,
-                    tasks:Array.prototype.concat.apply([], p.milestones.map((m)=>{
+                    tasks: Array.prototype.concat.apply([], p.milestones.map((m) => {
                         return m.tasks;
                     })),
-                    
+
                     totalTasks: p.milestones.map((m) => {
                         return m.tasks.length
                     }).reduce((x, y) => x + y),
@@ -429,7 +440,7 @@ class Proposals {
                                     'user.information': proposal.proposedBy._id, 'user.status': "ACCEPTED",
                                     'user.agreed': true
                                 },
-                               // proposals: { _id: proposal._id }
+                                // proposals: { _id: proposal._id }
 
                             }
 
@@ -445,7 +456,7 @@ class Proposals {
                         // await Project.updateOne({ _id: projectId }, { $push: { proposals: { _id: proposal._id } } });
                         // send notification here
 
-                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, null);
+                        await notificate.acceptOrRejectProposal(req, project, proposal, approved, null);
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
                     case "PENDING":
@@ -461,7 +472,7 @@ class Proposals {
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
-                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status);
+                        await notificate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status);
 
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
@@ -479,7 +490,7 @@ class Proposals {
 
                         // send notification here
                         //  update contractor notification to "ACCEPTED"
-                        await noticate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status)
+                        await notificate.acceptOrRejectProposal(req, project, proposal, approved, projectStakeholder.user.status)
 
                         return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal approved.` })
 
@@ -500,7 +511,7 @@ class Proposals {
             // project.proposals.pull({ _id: proposal._id });
             // await project.save();
 
-            await noticate.acceptOrRejectProposal(req, project, proposal, approved, null)
+            await notificate.acceptOrRejectProposal(req, project, proposal, approved, null)
 
             return res.status(200).json({ message: `${proposal.proposedBy.firstName} ${proposal.proposedBy.lastName}'s proposal reverted.` })
         } catch (error) {
@@ -550,10 +561,10 @@ class Proposals {
 
                 if (assingedProposal) {
                     //    assign every task in this proposal to the contractor
-                    await Task.updateMany({ createdBy: req.userId, project: projectId }, { $set: { assignedTo: contractorId, status: "ASSIGNED" } });
+                    await Task.updateMany({ createdBy: req.userId, project: projectId }, { $set: { assignedTo: contractorId } });
 
                     // send contractor a notification
-                    await noticate.notifyOnAssignedToProposal(req, project, proposal, contractorId)
+                    await notificate.notifyOnAssignedToProposal(req, project, proposal, contractorId)
                     return res.status(200).json({ message: `You successfully assigned a contractor to this proposal.` });
                 }
             } catch (error) {
@@ -566,6 +577,78 @@ class Proposals {
         } else {
             return res.status(403).json({ message: "Forbidden" })
         }
+    }
+
+
+
+    static async getContractorAssignedTasksAndMilestones(req, res) {
+        let { id } = req.params;
+
+        try {
+            // check if project exists
+            let project = await Project.findOne({ _id: id });
+
+            // project not found
+            if (!project) {
+                return res.status(404).json({ message: "Project Not Found" });
+            }
+
+            // check if req user is a stakeholder of the project
+            const isStakeholder = helper.isProjectStakeholder(req.userId, project.stakeholders);
+
+            if (!isStakeholder) {
+                return res.status(401).json({ messsage: "You are not a stakeholder on this project" });
+            }
+
+            // temporary code below, remove from production
+            (async () => {
+                let tasks = await Task.find({ project: id });
+
+                const updateTasks = tasks.filter((task) => task.status === "UNASSIGNED" || task.status === "ASSIGNED").map((task) => task._id);
+
+                if (updateTasks.length > 0) {
+                    await Task.updateMany({ _id: [...updateTasks] }, { $set: { status: "NOT_STARTED" } });
+                }
+
+            })();
+            // temporary code above, remove from production
+
+            // get proposal associted with the stakeholder
+            let proposal = await Proposal.findOne({ project: id, assignedTo: req.userId });
+            if (proposal == null) {
+                return res.status(404).json({ message: "No Proposal has been assigned to you." })
+            }
+
+            proposal = {
+                milestones: proposal.milestones.map((milestone) => {
+                    return {
+                        _id: milestone._id,
+                        milestoneTitle: milestone.title,
+                        tasks: milestone.tasks.map((task) => {
+                            return {
+                                _id: task._id,
+                                name: task.name,
+                                description: task.description,
+                                dueDate: task.dueDate,
+                                status: task.status,
+                                createdAt: task.createdAt
+                            }
+                        }).sort((a, b) => a.createdAt < b.createdAt)
+                    }
+                }),
+
+            }
+
+
+            return res.status(200).json(proposal)
+
+        } catch (error) {
+            console.log(error);
+            return res.status(501).json({
+                message: error.message
+            });
+        }
+
     }
 }
 

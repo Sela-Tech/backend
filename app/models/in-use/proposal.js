@@ -103,7 +103,7 @@ var proposalStructure = {
 
 
 if (process.env.NODE_ENV === "development") {
-    projectStructure.test = {
+    proposalStructure.test = {
         type: Boolean,
         default: true
     };

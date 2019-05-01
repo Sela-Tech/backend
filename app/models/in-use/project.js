@@ -34,7 +34,7 @@ var schemaOptions = {
     versionKey: false,
     retainKeyOrder: true
   },
-  usePushEach : true,
+  usePushEach: true,
   autoIndex: process.env.NODE_ENV === "development",
   strict: process.env.NODE_ENV !== "development"
 };
@@ -82,41 +82,45 @@ var projectStructure = {
     type: Number,
     default: 0
   },
-  implementationBudget:{
-    type:Number,
-    default:0
+  implementationBudget: {
+    type: Number,
+    default: 0
   },
-  observationBudget:{
-    type:Number,
-    default:0
+  observationBudget: {
+    type: Number,
+    default: 0
   },
-  implementationBalance:{
-    type:Number,
-    default:null
+  implementationBalance: {
+    type: Number,
+    default: null
   },
-  observationBalance:{
-    type:Number,
-    default:null
+  observationBalance: {
+    type: Number,
+    default: null
   },
-  issuingAccount:{
-    type:String,
-    default:null
+  issuingAccount: {
+    type: String,
+    default: null
   },
-  distributionAccount:{
-    type:String,
-    default:null
+  distributionAccount: {
+    type: String,
+    default: null
   },
-  pst:{
-    type:String,
-    default:null
+  pst: {
+    type: String,
+    default: null
   },
   raised: {
     type: Number,
     default: 0
   },
+  percentFunded: {
+    type: Number,
+    default: 0
+  },
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
-  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: { select: "proposalName milestones proposedBy assignedTo status" }}],
+  proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: { select: "proposalName milestones proposedBy assignedTo status" } }],
   stakeholders: [
     {
       user: {
@@ -151,14 +155,14 @@ var projectStructure = {
   },
   status: {
     type: String,
-    enum: ["PROPOSED","DORMANT", "STARTED", "TERMINATED", "COMPLETED"],
+    enum: ["PROPOSED", "DORMANT", "STARTED", "TERMINATED", "COMPLETED"],
     default: "PROPOSED"
   },
   numOfevaluators: {
     type: Number,
     default: 20
   },
-  extra:[Schema.Types.Mixed],
+  extra: [Schema.Types.Mixed],
   createdOn: {
     type: Date,
     default: Date.now()

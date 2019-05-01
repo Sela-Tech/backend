@@ -12,5 +12,6 @@ module.exports = function (app) {
         app.route("/proposal/:id").put(verifyToken, Proposals.acceptOrRejectProposal);
         app.route("/proposal/:id").get(verifyToken, Proposals.getProposalDetail);
         app.route("/proposal").put(verifyToken, Proposals.assignProposalToContractor);
+        app.route("/project/:id/milestones/tasks").get(verifyToken, Proposals.getContractorAssignedTasksAndMilestones);
 
 };

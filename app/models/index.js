@@ -13,4 +13,5 @@ module.exports = function(connection) {
   require("./in-use/save_project")(connection);
   require("./in-use/proposal")(connection);
   require("./in-use/submission")(connection);
+  require("./in-use/taskUpdate")(connection);
 };

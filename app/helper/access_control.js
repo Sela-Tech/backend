@@ -69,6 +69,11 @@ const grantsObject={
             'update:own':['*'],
             'read:own':['*'],
         },
+
+        report:{
+            'create:own':['*'],
+            'read:own':['*'],
+        }
     },
 
     Evaluator:{
