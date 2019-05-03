@@ -62,7 +62,7 @@ var projectStructure = {
     type: Date,
     required: true
   },
-  "project-avatar": {
+  'project-avatar': {
     type: String,
     default: "http://placehold.it/200"
   },
@@ -212,8 +212,8 @@ ProjectSchema.pre("update", true, function (next, done) {
 ProjectSchema.post('remove', async function (next) {
 
   try {
-    //all methods below are for development purpose, project never really gets deleted from the platform
-    //comment all methods below before pushing to production
+    // all methods below are for development purpose, project never really gets deleted from the platform
+    // comment all methods below before pushing to production
     await Save.remove({ project: this._id });
     await Proposal.remove({ project: this._id });
     await Notifications.remove({ project: this._id });
@@ -229,6 +229,6 @@ ProjectSchema.post('remove', async function (next) {
   }
 })
 
-ProjectSchema.plugin(autoPopulate);
-ProjectSchema.plugin(mongoosePaginate);
-module.exports = mongoose.model("Project", ProjectSchema);
+ProjectSchema.plugin(autoPopulate)
+ProjectSchema.plugin(mongoosePaginate)
+module.exports = mongoose.model("Project", ProjectSchema)

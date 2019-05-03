@@ -80,6 +80,11 @@ var userStructure = {
     required: true,
     default: false
   },
+  isPassiveFunder: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   activation: {
     type: String,
     enum: ["pending", "approved"],

@@ -39,13 +39,13 @@ exports.find_stakeholder_info = async (req, res) => {
   let transactions = await Transaction.find({ sender: req.body.id });
   let uploads = await Uploads.find({ owner: req.body.id });
 
-  userInfo = userInfo.toJSON();
+  userInfo = userInfo.toJSON()
 
-  delete userInfo.password;
-  delete userInfo.updateOn;
-  delete userInfo.activation;
-  delete userInfo.username;
-  delete userInfo.email;
+  delete userInfo.password
+  delete userInfo.updateOn
+  delete userInfo.activation
+  delete userInfo.username
+  delete userInfo.email
 
   let json = {
     userInfo,

@@ -1,6 +1,6 @@
 "use strict";
 
-const Donations = require('../app/controllers/Stripe');
+const Donations = require('../app/controllers/Donation');
 
 // const { verifyToken } = require('../util/utils');
 
