@@ -2,7 +2,7 @@
 ROOT = __dirname;
 FRONTEND = __dirname + "/public";
 
-require('dotenv').config({silent:true});
+require('dotenv').config({ silent: true });
 var express = require("express");
 var app = express();
 var port = process.env.PORT || 3009;
@@ -11,7 +11,7 @@ var bodyParser = require("body-parser");
 var logger = require("morgan");
 var dotenv = require("dotenv");
 const validator = require('express-validator');
-const mongodb= require('mongodb');
+const mongodb = require('mongodb');
 
 var http = require("http").Server(app);
 
@@ -59,7 +59,14 @@ io.on('connection', (socket) => {
 app.disable('x-powered-by');
 
 app.use(logger("dev"));
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+  verify: (req, res, buf) => {
+    let url = req.originalUrl;
+    if (url.startsWith('/charge/stripe/webhook')) {
+      req.rawBody = buf.toString()
+    }
+  }
+}));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(cors());

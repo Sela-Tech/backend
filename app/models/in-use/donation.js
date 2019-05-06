@@ -44,7 +44,7 @@ var donationStructure = {
     },
     paymentMethod:{
         type:String,
-        enum:['tranfer', 'card', 'crypto'],
+        enum:['transfer', 'card', 'crypto'],
         required:true
     },
     description:{
@@ -62,6 +62,11 @@ var donationStructure = {
     },
     customerId:{
         type:String
+    },
+    service:{
+        type:String,
+        enum:['stripe', 'paystack'],
+        default:'stripe'
     }
 
 };
