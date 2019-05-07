@@ -82,6 +82,7 @@ class Donations {
                     status,
                     chargeId: id,
                     email,
+                    service: "stripe"
 
                 }
 
@@ -158,7 +159,7 @@ class Donations {
 
 
         try {
-             // verify project
+            // verify project
             let project = await Project.findById(projectId);
 
             if (project == null) {
@@ -167,7 +168,7 @@ class Donations {
 
             // create charge object
 
-            const {id, status, balance_transaction}= await this.stripe.charges.create({
+            const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: sourceToken,
                 amount: amount,
                 description: description || "",
@@ -190,7 +191,9 @@ class Donations {
                     status,
                     chargeId: id,
                     email,
-                    accountId
+                    accountId,
+                    service: "stripe"
+
                 }
 
                 let user = await User.findOne({ email });
@@ -302,7 +305,9 @@ class Donations {
                                     status,
                                     chargeId: id,
                                     email,
-                                    accountId
+                                    accountId,
+                                    service: "stripe"
+
                                 }
 
                                 let user = await User.findOne({ email });
@@ -501,7 +506,7 @@ class Donations {
     }
 
 
-    
+
     /**
      *
      *
@@ -516,12 +521,12 @@ class Donations {
 
             const { id, status, amount } = data;
 
-            let donation = await Donation.findOne({ chargeId: id, status:'pending' });
+            let donation = await Donation.findOne({ chargeId: id, status: 'pending' });
 
             if (donation !== null) {
 
                 console.log('found donation')
-                console.log('donation status before '+ donation.status)
+                console.log('donation status before ' + donation.status)
                 let project = await Project.findById(donation.project._id);
 
                 if (project == null) {
@@ -530,7 +535,7 @@ class Donations {
 
                 console.log('found project')
 
-                console.log('before '+project.raised)
+                console.log('before ' + project.raised)
 
                 // update project to reflect increment in amount raised,
                 project.raised = Number(project.raised) + Number(amount);
@@ -542,8 +547,8 @@ class Donations {
 
                 let [proj, dontn] = await Promise.all([project.save(), donation.save()]);
 
-                console.log('after '+proj.raised)
-                console.log('donation status after '+ dontn.status)
+                console.log('after ' + proj.raised)
+                console.log('donation status after ' + dontn.status)
 
 
                 // notify user about their successfull contribution
@@ -562,7 +567,7 @@ class Donations {
     async handleFailureCharge(id, status) {
 
         // notify user that transaction was not successfull
-     }
+    }
 
 }
 
