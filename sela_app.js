@@ -62,7 +62,7 @@ app.use(logger("dev"));
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
     let url = req.originalUrl;
-    if (url.startsWith('/charge/stripe/webhook')) {
+    if (url.startsWith('/charge/stripe/webhook') || url.startsWith('/charge/stripe/webhook/dev') || url.startsWith('/charge/stripe/webhook/test')) {
       req.rawBody = buf.toString()
     }
   }

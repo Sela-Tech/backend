@@ -1135,7 +1135,7 @@ const emailTemplates = {
       </html>`
     },
 
-    newProposal: (host, project, user,proposal) => {
+    newProposal: (host, project, user, proposal) => {
         return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -1292,7 +1292,7 @@ const emailTemplates = {
     </html>`
     },
 
-   
+
     proposalStatus: (host, msg, project, proposedBy, proposal) => {
         return `<!DOCTYPE html>
       <html lang="en">
@@ -1450,7 +1450,7 @@ const emailTemplates = {
       </html>`
     },
 
-    assignedproposal: (host, project, contractor,proposal) => {
+    assignedproposal: (host, project, contractor, proposal) => {
         return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -1605,6 +1605,221 @@ const emailTemplates = {
         </table>  
     </body>
     </html>`
+    },
+
+
+    accountCreationOnDonation: () => {
+        return `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <link rel="stylesheet" type='text/css' href="https://sela-tech.github.io/assets/fonts/stylesheet.css" />
+            <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+            <style type="text/css">
+                html,body{
+                margin: 0;
+                font-family: 'Acumin Pro';
+                font-weight: 300;
+            }
+        
+            *{
+                outline: none;
+            }
+        
+            button{
+                cursor: pointer;
+            }
+        
+            body {
+                height: 100%;
+                width: 100%;
+                background: #FAFAFA;
+            }
+            </style>
+        </head>
+        <body>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td 
+                        style='
+                        background: #f5f5f8;
+                        display: block;
+                        border: 0;
+                        padding: 15px;
+                    '>
+                    </td>
+                </tr>
+                <tr style='background: #FAFAFA;'>
+                    <td bgcolor="#FFF" 
+                    style='
+                     margin: 20px auto;
+                    padding: 30px 7%;
+                    width: 80%;
+                    display: block;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                    border: 0;
+                    max-width: 600px;
+                    '>
+                           <img 
+                            style='display: block;
+                            margin: auto;
+                            height: 35px;
+                            '
+                            src="https://sela-tech.github.io/assets/public-logo.png" alt="logo" />
+                            
+                            <p style="
+                            line-height: 22px;
+                            font-size: 16px;
+                            margin: 25px 0;
+                            color: #222829;
+                            ">Dear Sponsor.</p>
+                          
+                            <p style="
+                            line-height: 22px;
+                            font-size: 16px;
+                            margin: 25px 0;
+                            color: #222829;
+                            ">We are grateful for you contributing to the cleanup of this pond. We will send you shortly credentials for your account on the Sela platform.</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                        <td style='text-align: center; background: #FAFAFA; height: 100px;'>
+                            
+                            <p 
+                                style='
+                            margin: 14px 0;
+                            line-height: normal;
+                            font-size: 12px;
+                            color: #696F74;
+                            '>Copyright &copy; Sela, All Rights Reserved</p>
+                    
+                            <p  style='
+                            margin: 14px 0;
+                            line-height: normal;
+                            font-size: 12px;
+                            color: #696F74;
+                            '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+        
+                        </td>
+                    </tr>
+        
+        
+                    
+                    
+            </table>  
+        </body>
+        </html>`
+    },
+
+    messageOnSuccessfulDonation: (amount, name, project) => {
+        return `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <link rel="stylesheet" type='text/css' href="https://sela-tech.github.io/assets/fonts/stylesheet.css" />
+            <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+            <style type="text/css">
+                html,body{
+                margin: 0;
+                font-family: 'Acumin Pro';
+                font-weight: 300;
+            }
+        
+            *{
+                outline: none;
+            }
+        
+            button{
+                cursor: pointer;
+            }
+        
+            body {
+                height: 100%;
+                width: 100%;
+                background: #FAFAFA;
+            }
+            </style>
+        </head>
+        <body>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td 
+                        style='
+                        background: #f5f5f8;
+                        display: block;
+                        border: 0;
+                        padding: 15px;
+                    '>
+                    </td>
+                </tr>
+                <tr style='background: #FAFAFA;'>
+                    <td bgcolor="#FFF" 
+                    style='
+                     margin: 20px auto;
+                    padding: 30px 7%;
+                    width: 80%;
+                    display: block;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                    border: 0;
+                    max-width: 600px;
+                    '>
+                           <img 
+                            style='display: block;
+                            margin: auto;
+                            height: 35px;
+                            '
+                            src="https://sela-tech.github.io/assets/public-logo.png" alt="logo" />
+                            
+                            <p style="
+                            line-height: 22px;
+                            font-size: 16px;
+                            margin: 25px 0;
+                            color: #222829;
+                            ">Dear ${name}.</p>
+                          
+                            <p style="
+                            line-height: 22px;
+                            font-size: 16px;
+                            margin: 25px 0;
+                            color: #222829;
+                            ">We are pleased to inform you that we have recieved the sum of ${amount} funding on <strong>${project}</strong> project.</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                        <td style='text-align: center; background: #FAFAFA; height: 100px;'>
+                            
+                            <p 
+                                style='
+                            margin: 14px 0;
+                            line-height: normal;
+                            font-size: 12px;
+                            color: #696F74;
+                            '>Copyright &copy; Sela, All Rights Reserved</p>
+                    
+                            <p  style='
+                            margin: 14px 0;
+                            line-height: normal;
+                            font-size: 12px;
+                            color: #696F74;
+                            '> 43W 23rd Str, 6th Floor, New York NY 10010 </p>
+        
+                        </td>
+                    </tr>
+        
+        
+                    
+                    
+            </table>  
+        </body>
+        </html>`
     },
 }
 

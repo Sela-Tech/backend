@@ -9,6 +9,9 @@ const mongoose = require("mongoose"),
     User = mongoose.model("User"),
     Project = mongoose.model("Project");
 
+const Notification = require("../helper/notifications");
+
+
 /**
  *
  *
@@ -16,26 +19,67 @@ const mongoose = require("mongoose"),
  */
 class Donations {
     constructor() {
+        this.stripe_secret = ''
+        this.plaid_client = '';
+        this.plaid_public_key = '';
+        this.plaid_secret = '';
+        this.stripe_webhook_secret = '';
+
+        this.notification= new Notification();
+
+
+
         if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
-            // initialize stripe
-            this.stripe = Stripe(process.env.STRIPE_TEST_SECRET);
+            const { STRIPE_TEST_SECRET, PLAID_TEST_CLIENT, PLAID_TEST_SECRET, PLAID_TEST_PUBLIC_KEY, STRIPE_TEST_WEBHOOK_SECRET } = process.env;
 
-            // initialize plaid
-            this.plaidClient = new Plaid.Client(
-                process.env.PLAID_TEST_CLIENT,
-                process.env.PLAID_TEST_SECRET,
-                process.env.PLAID_TEST_PUBLIC_KEY,
-                Plaid.environments.sandbox
-            );
+            this.stripe_secret = STRIPE_TEST_SECRET;
+            this.stripe_webhook_secret = STRIPE_TEST_WEBHOOK_SECRET;
+            this.plaid_client = PLAID_TEST_CLIENT;
+            this.plaid_public_key = PLAID_TEST_PUBLIC_KEY;
+            this.plaid_secret = PLAID_TEST_SECRET
 
         } else if (process.env.NODE_ENV = 'production') {
-            console.log('using the main network')
+            const { STRIPE_SECRET, PLAID_CLIENT, PLAID_SECRET, PLAID_PUBLIC_KEY, STRIPE_WEBHOOK_SECRET } = process.env;
+
+            this.stripe_secret=STRIPE_SECRET;
+            this.stripe_webhook_secret=STRIPE_WEBHOOK_SECRET;
+            this.plaid_client=PLAID_CLIENT;
+            this.plaid_public_key=PLAID_PUBLIC_KEY;
+            this.plaid_secret=PLAID_SECRET
+
         }
 
 
+        // initialize stripe
+        this.stripe = Stripe(this.stripe_secret);
+
+        // initialize plaid
+        this.plaidClient = new Plaid.Client(
+            this.plaid_client,
+            this.plaid_secret,
+            this.plaid_public_key,
+            this.getPlaidEnvironment(Plaid)
+        );
+
     }
 
+
+
+    /**
+     *
+     *
+     * @param {*} Plaid
+     * @returns
+     * @memberof Donations
+     * @description returns the plaid environment depending on the app environment
+     */
+    getPlaidEnvironment(Plaid) {
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+            return Plaid.environments.sandbox
+        }
+        return Plaid.environments.development
+    }
 
     /**
      *
@@ -48,6 +92,108 @@ class Donations {
      */
     async card(req, res) {
 
+        let { stripeToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
+
+        try {
+
+            // verify project
+            let project = await Project.findById(projectId);
+
+            if (project == null) {
+                return res.status(404).json({ message: "Project Not Found." });
+            }
+
+
+            // create charge on card
+            const { id, status, balance_transaction, } = await this.stripe.charges.create({
+                source: stripeToken,
+                amount: amount,
+                description: description || "",
+                currency: currency || "usd",
+
+            });
+
+
+            if (status === 'succeeded') {
+
+                let donationObj = {
+                    amountDonated: amount,
+                    project: projectId,
+                    currency,
+                    paymentMethod: req.body.method,
+                    description,
+                    transaction: balance_transaction,
+                    status,
+                    chargeId: id,
+                    email,
+                    service: "stripe"
+
+                }
+
+                let user = await User.findOne({ email });
+                let newUser;
+                let isNewUser = false;
+
+                if (user == null) {
+
+                    const userObj = {
+                        email,
+                        firstName,
+                        lastName,
+                        password: crypto.randomBytes(5).toString('hex'),
+                        isPassiveFunder: true
+                    }
+
+                    newUser = await new User(userObj).save();
+
+                    donationObj.firstName = newUser.firstName;
+                    donationObj.lastName = newUser.lastName;
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = newUser._id;
+
+                    isNewUser = true;
+
+                } else {
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = user._id;
+                    donationObj.firstName = user.firstName;
+                    donationObj.lastName = user.lastName;
+                }
+
+                // create a donation instance
+                let donation = new Donation(donationObj);
+
+
+                // update project
+                project.raised = Number(project.raised) + Number(amount);
+
+                await Promise.all([donation.save(), project.save()]);
+
+                if (isNewUser) {
+                    // send email to user notifying them about their account and 
+                    //  donation
+                    this.notification.accountCreationOnDonation(email);
+                }
+
+                return res.status(200).json({ message: `Thank You for funding this project.` })
+            }
+
+        } catch (error) {
+            if (error.type === 'StripeInvalidRequestError') {
+                return res.status(error.statusCode).send({ error: error.message });
+            }
+            return res.status(500).send({ error: error.message });
+
+        }
+    }
+
+
+
+
+
+
+
+    async transferWithIdeal(req, res) {
         let { stripeToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
 
         try {
@@ -143,7 +289,6 @@ class Donations {
     }
 
 
-
     /**
      *
      *
@@ -154,9 +299,7 @@ class Donations {
      */
     async transferWithSepa(req, res) {
 
-        const { sourceToken, email, firstName, lastName, projectId, amount, description } = req.body;
-
-
+        const { stripeToken, currency, email, firstName, lastName, projectId, amount, description } = req.body;
 
         try {
             // verify project
@@ -169,7 +312,7 @@ class Donations {
             // create charge object
 
             const { id, status, balance_transaction } = await this.stripe.charges.create({
-                source: sourceToken,
+                source: stripeToken,
                 amount: amount,
                 description: description || "",
                 currency: currency || "eur",
@@ -245,22 +388,16 @@ class Donations {
 
         } catch (error) {
             console.log(error)
+            if (error.type === 'StripeInvalidRequestError') {
+                return res.status(error.statusCode).send({ error: error.message });
+            }
             return res.status(500).send({ error: error.message });
         }
 
     }
 
-    // sponsor project via transfer.
-    /**
-     *
-     *
-     * @param {*} req
-     * @param {*} res
-     * @returns
-     * @memberof Donations
-     * @description sponsor project using bank transfer
-     */
-    async transfer(req, res) {
+
+    async transferWithPlaid(req, res) {
         const { accountId, publicToken, email, firstName, lastName, projectId, amount, description, currency } = req.body;
 
         try {
@@ -350,6 +487,7 @@ class Donations {
                                 if (isNewUser) {
                                     // send email to user notifying them about their account and 
                                     //  donation
+                                    this.notification.accountCreationOnDonation(email);
                                 }
 
                                 return res.status(200).json({ message: "Thank you for supporting. \nWe will notify you about the status of your transfer in the coming days" });
@@ -362,63 +500,97 @@ class Donations {
                     return res.status(500).send({ error: error.message });
                 })
 
-
-
-
-            // use below method for stripe.js account verification
-            // create token
-            // let token = await this.stripe.tokens.create({
-            //     bank_account: {
-            //         country: 'US',
-            //         currency: 'usd',
-            //         account_holder_name: 'Jenny Doe',
-            //         account_holder_type: 'individual',
-            //         routing_number: '110000000',
-            //         account_number: '000333333335'
-            //     }
-            // });
-
-            // // create customer
-
-            // let customer = await this.stripe.customers.create({
-            //     source: token.id,
-            //     description: "some payment"
-            // })
-
-
-            // // verify source
-
-            // let verifySource = await this.stripe.customers.verifySource(
-            //     customer.id,
-            //     customer.default_source,
-
-            //     {
-            //         amounts: [32, 45],
-            //     }
-            // );
-
-            // const { status } = verifySource;
-
-            // if (status === "verified") {
-
-
-            //     // create charge
-            //     let charge = await this.stripe.charges.create({
-            //         customer: customer.id,
-            //         amount,
-            //         description,
-            //         currency: "usd"
-            //     });
-
-            //     return res.json(charge)
-
-            // }
-
-
         } catch (error) {
             console.log(error)
             return res.status(500).send({ error: error.message });
         }
+    }
+
+    // sponsor project via transfer.
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     * @description sponsor project using bank transfer
+     */
+    async transfer(req, res) {
+        const { tranferMedium } = req.body;
+
+        switch (tranferMedium) {
+            case 'stripe.plaid':
+                await this.transferWithPlaid(req, res);
+                break;
+
+            case 'stripe.sepa':
+                await this.transferWithSepa(req, res);
+                break;
+
+            case 'stripe.ideal':
+                await this.transferWithIdeal(req, res);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+
+
+
+
+
+    async accountVerificationStripeJS() {
+        // use below method for stripe.js account verification
+        // create token
+        // let token = await this.stripe.tokens.create({
+        //     bank_account: {
+        //         country: 'US',
+        //         currency: 'usd',
+        //         account_holder_name: 'Jenny Doe',
+        //         account_holder_type: 'individual',
+        //         routing_number: '110000000',
+        //         account_number: '000333333335'
+        //     }
+        // });
+
+        // // create customer
+
+        // let customer = await this.stripe.customers.create({
+        //     source: token.id,
+        //     description: "some payment"
+        // })
+
+
+        // // verify source
+
+        // let verifySource = await this.stripe.customers.verifySource(
+        //     customer.id,
+        //     customer.default_source,
+
+        //     {
+        //         amounts: [32, 45],
+        //     }
+        // );
+
+        // const { status } = verifySource;
+
+        // if (status === "verified") {
+
+
+        //     // create charge
+        //     let charge = await this.stripe.charges.create({
+        //         customer: customer.id,
+        //         amount,
+        //         description,
+        //         currency: "usd"
+        //     });
+
+        //     return res.json(charge)
+
+        // }
     }
 
     /**
@@ -472,7 +644,7 @@ class Donations {
         let sig = req.headers['stripe-signature'];
 
         try {
-            let { type, data: { object } } = this.stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_TEST_WEBHOOK_SECRET);
+            let { type, data: { object } } = this.stripe.webhooks.constructEvent(req.rawBody, sig, this.stripe_webhook_secret);
 
             let { id, status, amount } = object;
             // Handle the event
@@ -547,11 +719,20 @@ class Donations {
 
                 let [proj, dontn] = await Promise.all([project.save(), donation.save()]);
 
+
+                // notify user about their successfull contribution
+
+                this.notification.donationUpdate({
+                    amount,
+                    name:dontn.firstName,
+                    email:dontn.email,
+                    project:proj.name
+                });
+
                 console.log('after ' + proj.raised)
                 console.log('donation status after ' + dontn.status)
 
 
-                // notify user about their successfull contribution
 
 
             }
@@ -559,7 +740,7 @@ class Donations {
             return res.status(200)
 
         } catch (error) {
-            conssole.log(error)
+            console.log(error)
             return json(500).json({ message: error.message })
         }
     }

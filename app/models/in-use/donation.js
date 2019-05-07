@@ -67,7 +67,10 @@ var donationStructure = {
         type:String,
         enum:['stripe', 'paystack'],
         default:'stripe'
-    }
+    },
+    sourceId:{
+        type:String
+    },
 
 };
 
