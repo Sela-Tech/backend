@@ -35,6 +35,9 @@ module.exports = (app) => {
   app
     .route("/charge/stripe/webhook").post(Donations.stripeChargeWebhook.bind(Donations));
 
+  app
+    .route("/charge/stripe/webhook/dev").post(Donations.stripeChargeWebhook.bind(Donations));
+
 }
 
 // addRawBody,

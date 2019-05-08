@@ -194,7 +194,7 @@ class Donations {
 
 
     async transferWithIdeal(req, res) {
-        let { stripeToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
+        let { sourceToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
 
         try {
 
@@ -208,7 +208,7 @@ class Donations {
 
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
-                source: stripeToken,
+                source: sourceToken,
                 amount: amount,
                 description: description || "",
                 currency: currency || "usd",
