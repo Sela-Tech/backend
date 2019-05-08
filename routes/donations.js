@@ -4,20 +4,21 @@ const Donations = require('../app/controllers/Donation');
 const bodyParser = require('body-parser');
 
 
-function addRawBody(req, res, next) {
-  req.setEncoding('utf8');
 
-  var data = '';
+function rawBody(req, res, next) {
+	req.setEncoding('utf8');
 
-  req.on('data', function (chunk) {
-    data += chunk;
-  });
+	var data = '';
 
-  req.on('end', function () {
-    req.rawBody = data;
+	req.on('data', function (chunk) {
+		data += chunk;
+	});
 
-    next();
-  });
+	req.on('end', function () {
+		req.rawBody = data;
+
+		next();
+	});
 }
 
 
@@ -37,6 +38,9 @@ module.exports = (app) => {
 
   app
     .route("/charge/stripe/webhook/dev").post(Donations.stripeChargeWebhook.bind(Donations));
+
+  app
+    .route("/charge/coinbase/webhook").post(Donations.coinbaseWebhook.bind(Donations));
 
 }
 

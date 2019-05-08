@@ -38,6 +38,7 @@
     "bootstrap-material-design": "^4.0.0-beta.3",
     "chai": "^4.2.0",
     "chai-http": "^4.2.0",
+    "coinbase-commerce-node": "^1.0.0",
     "concurrently": "^3.5.1",
     "connect-flash": "*",
     "connect-mongo": "2.0.0",

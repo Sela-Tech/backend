@@ -3,6 +3,7 @@
 const Stripe = require('stripe');
 const Plaid = require('plaid');
 const crypto = require('crypto');
+const coinBase = require('coinbase-commerce-node');
 
 const mongoose = require("mongoose"),
     Donation = mongoose.model("Donation"),
@@ -25,9 +26,9 @@ class Donations {
         this.plaid_secret = '';
         this.stripe_webhook_secret = '';
 
-        this.notification= new Notification();
+        this.coinBase = coinBase.Webhook;
 
-
+        this.notification = new Notification();
 
         if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
@@ -42,11 +43,11 @@ class Donations {
         } else if (process.env.NODE_ENV = 'production') {
             const { STRIPE_SECRET, PLAID_CLIENT, PLAID_SECRET, PLAID_PUBLIC_KEY, STRIPE_WEBHOOK_SECRET } = process.env;
 
-            this.stripe_secret=STRIPE_SECRET;
-            this.stripe_webhook_secret=STRIPE_WEBHOOK_SECRET;
-            this.plaid_client=PLAID_CLIENT;
-            this.plaid_public_key=PLAID_PUBLIC_KEY;
-            this.plaid_secret=PLAID_SECRET
+            this.stripe_secret = STRIPE_SECRET;
+            this.stripe_webhook_secret = STRIPE_WEBHOOK_SECRET;
+            this.plaid_client = PLAID_CLIENT;
+            this.plaid_public_key = PLAID_PUBLIC_KEY;
+            this.plaid_secret = PLAID_SECRET
 
         }
 
@@ -165,7 +166,7 @@ class Donations {
 
 
                 // update project
-                project.raised = Number(project.raised) + Number(amount);
+                project.raised = Number(project.raised) + Number(amount / 100);
 
                 await Promise.all([donation.save(), project.save()]);
 
@@ -207,14 +208,16 @@ class Donations {
 
 
             // create charge on card
-            const { id, status, balance_transaction, } = await this.stripe.charges.create({
+            const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: sourceToken,
                 amount: amount,
                 description: description || "",
-                currency: currency || "usd",
+                currency: currency || "eur",
 
             });
 
+
+            console.log(status);
 
             if (status === 'succeeded') {
 
@@ -267,7 +270,7 @@ class Donations {
 
 
                 // update project
-                project.raised = Number(project.raised) + Number(amount);
+                project.raised = Number(project.raised) + Number(amount / 100);
 
                 await Promise.all([donation.save(), project.save()]);
 
@@ -517,22 +520,23 @@ class Donations {
      * @description sponsor project using bank transfer
      */
     async transfer(req, res) {
-        const { tranferMedium } = req.body;
+        const { transferMedium } = req.body;
 
-        switch (tranferMedium) {
-            case 'stripe.plaid':
-                await this.transferWithPlaid(req, res);
+        switch (transferMedium) {
+            case 'transfer.plaid':
+                await this.transferWithPlaid(req, res); // stripe
                 break;
 
-            case 'stripe.sepa':
-                await this.transferWithSepa(req, res);
+            case 'transfer.sepa':
+                await this.transferWithSepa(req, res); //stripe
                 break;
 
-            case 'stripe.ideal':
-                await this.transferWithIdeal(req, res);
+            case 'transfer.ideal':
+                await this.transferWithIdeal(req, res); //stripe
                 break;
 
             default:
+                (()=>{return res.status(400).json({message:"invalid transfer medium. \n valid type:['transfer.plaid', 'transfer.sepa','transfer.ideal' ]"})})();
                 break;
         }
     }
@@ -710,7 +714,7 @@ class Donations {
                 console.log('before ' + project.raised)
 
                 // update project to reflect increment in amount raised,
-                project.raised = Number(project.raised) + Number(amount);
+                project.raised = Number(project.raised) + Number(amount/100);
 
                 // update donation status,
                 donation.status = status;
@@ -724,9 +728,9 @@ class Donations {
 
                 this.notification.donationUpdate({
                     amount,
-                    name:dontn.firstName,
-                    email:dontn.email,
-                    project:proj.name
+                    name: dontn.firstName,
+                    email: dontn.email,
+                    project: proj.name
                 });
 
                 console.log('after ' + proj.raised)
@@ -748,6 +752,31 @@ class Donations {
     async handleFailureCharge(id, status) {
 
         // notify user that transaction was not successfull
+    }
+
+
+    async coinbaseWebhook(req, res) {
+
+        let event;
+
+
+        try {
+            event = this.coinBase.verifyEventBody(
+                req.rawBody,
+                req.headers['x-cc-webhook-signature'],
+                process.env.COINBASE_WEBHOOK_SECRET
+            );
+        } catch (error) {
+            console.log('Error occured', error.message);
+
+            return res.status(400).send('Webhook Error:' + error.message);
+        }
+
+        console.log('Success', event.id);
+
+        console.log(event.data.payments[0].value.local.amount)
+
+        return res.status(200).send('Signed Webhook Received: ' + event.data.payments[0].value.local.amount);
     }
 
 }
