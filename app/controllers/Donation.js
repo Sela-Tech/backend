@@ -4,6 +4,9 @@ const Stripe = require('stripe');
 const Plaid = require('plaid');
 const crypto = require('crypto');
 const coinBase = require('coinbase-commerce-node');
+const paypalClient = require('../helper/paypalClient');
+const paypalCheckout = require('@paypal/checkout-server-sdk');
+
 
 const mongoose = require("mongoose"),
     Donation = mongoose.model("Donation"),
@@ -29,6 +32,10 @@ class Donations {
         this.coinBase = coinBase.Webhook;
 
         this.notification = new Notification();
+        this.paypalClient = paypalClient;
+
+        // (async () => { console.log(await this.paypalClient.client.execute('9902')) })();
+
 
         if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
@@ -50,6 +57,7 @@ class Donations {
             this.plaid_secret = PLAID_SECRET
 
         }
+
 
 
         // initialize stripe
@@ -82,6 +90,7 @@ class Donations {
         return Plaid.environments.development
     }
 
+
     /**
      *
      *
@@ -89,10 +98,10 @@ class Donations {
      * @param {*} res
      * @returns
      * @memberof Donations
-     * @description sponsor projects using card (e.g stripe)
+     * @description sponsor projects using card (stripe)
      */
-    async card(req, res) {
 
+    async stripeCard(req, res) {
         let { stripeToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
 
         try {
@@ -186,6 +195,32 @@ class Donations {
             return res.status(500).send({ error: error.message });
 
         }
+    }
+
+
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @memberof Donations
+     */
+    async card(req, res) {
+        const { transferMedium } = req.body
+        switch (transferMedium) {
+            case 'card.paypal':
+                await this.paypal(req, res)
+                break;
+
+            case 'card.stripe':
+                await this.stripeCard(req, res)
+                break;
+
+            default:
+                break;
+        }
+
     }
 
 
@@ -536,16 +571,18 @@ class Donations {
                 break;
 
             default:
-                (()=>{return res.status(400).json({message:"invalid transfer medium. \n valid type:['transfer.plaid', 'transfer.sepa','transfer.ideal' ]"})})();
+                (() => { return res.status(400).json({ message: "invalid transfer medium. \n valid type:['transfer.plaid', 'transfer.sepa','transfer.ideal' ]" }) })();
                 break;
         }
     }
 
 
 
-
-
-
+    /**
+     *
+     *
+     * @memberof Donations
+     */
     async accountVerificationStripeJS() {
         // use below method for stripe.js account verification
         // create token
@@ -596,6 +633,101 @@ class Donations {
 
         // }
     }
+
+
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     */
+    async paypal(req, res) {
+        const { orderId, amount, description, currency, projectId, email, firstName, lastName } = req.body;
+
+        let request = new paypalCheckout.orders.OrdersGetRequest(orderId);
+        let payment;
+
+        try {
+            payment = await this.paypalClient.client.execute(request);
+        } catch (error) {
+
+            // 4. Handle any errors from the call
+            console.error(error);
+            return res.status(500).json({ message: error.message });
+        }
+
+        if (payment.result.purchase_units[0].amount.value !== amount) {
+            return res.status(400).json({ message: "Amount don't match." });
+        }
+
+        let donationObj = {
+            amountDonated: amount,
+            project: projectId,
+            currency,
+            paymentMethod: req.body.method,
+            description,
+            // transaction: balance_transaction,
+            // status,
+            // chargeId: id,
+            customerId,
+            email,
+            service: "paypal"
+
+        }
+
+        let user = await User.findOne({ email });
+        let newUser;
+        let isNewUser = false;
+
+        if (user == null) {
+
+            const userObj = {
+                email,
+                firstName,
+                lastName,
+                password: crypto.randomBytes(5).toString('hex'),
+                isPassiveFunder: true
+            }
+
+            newUser = await new User(userObj).save();
+
+            donationObj.firstName = newUser.firstName;
+            donationObj.lastName = newUser.lastName;
+            donationObj.hasSelaAccount = true;
+            donationObj.userId = newUser._id;
+
+            isNewUser = true;
+
+        } else {
+            donationObj.hasSelaAccount = true;
+            donationObj.userId = user._id;
+            donationObj.firstName = user.firstName;
+            donationObj.lastName = user.lastName;
+        }
+
+        // create a donation instance
+        let donation = new Donation(donationObj);
+
+
+        // update project
+        project.raised = Number(project.raised) + Number(amount);
+
+        await Promise.all([donation.save(), project.save()]);
+
+        if (isNewUser) {
+            // send email to user notifying them about their account and 
+            //  donation
+            this.notification.accountCreationOnDonation(email);
+        }
+
+
+        return res.status(200).json({ message: `Thank You for funding this project.` })
+
+    }
+
 
     /**
      *
@@ -714,7 +846,7 @@ class Donations {
                 console.log('before ' + project.raised)
 
                 // update project to reflect increment in amount raised,
-                project.raised = Number(project.raised) + Number(amount/100);
+                project.raised = Number(project.raised) + Number(amount / 100);
 
                 // update donation status,
                 donation.status = status;
