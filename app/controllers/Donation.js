@@ -120,7 +120,7 @@ class Donations {
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
                 source: stripeToken,
-                amount: amount,
+                amount: Number(amount/100),
                 description: description || "",
                 currency: currency || "usd",
 
@@ -230,75 +230,73 @@ class Donations {
             return res.status(400).json({ message: "Amount don't match." });
         }
 
-        console.log(payment)
+        // if (payment.result.status === "COMPLETED") {
 
-        if (payment.result.status === "COMPLETED") {
+        try {
 
-            try {
+            let donationObj = {
+                amountDonated: amount,
+                project: projectId,
+                currency: currency.toLowerCase(),
+                paymentMethod: req.body.method,
+                description,
+                // transaction: balance_transaction,
+                status: payment.result.status,
+                chargeId: payment.result.id,
+                customerId: payerID,
+                email,
+                service: "paypal"
 
-                let donationObj = {
-                    amountDonated: amount,
-                    project: projectId,
-                    currency,
-                    paymentMethod: req.body.method,
-                    description: currency.toLowerCase(),
-                    // transaction: balance_transaction,
-                    status: payment.result.status,
-                    chargeId: payment.result.id,
-                    customerId: payerID,
-                    email,
-                    service: "paypal"
-
-                }
-
-                let user = await User.findOne({ email });
-                let newUser;
-                let isNewUser = false;
-
-                if (user == null) {
-
-                    const userObj = {
-                        email,
-                        firstName,
-                        lastName,
-                        password: crypto.randomBytes(5).toString('hex'),
-                        isPassiveFunder: true
-                    }
-
-                    newUser = await new User(userObj).save();
-
-                    donationObj.firstName = newUser.firstName;
-                    donationObj.lastName = newUser.lastName;
-                    donationObj.hasSelaAccount = true;
-                    donationObj.userId = newUser._id;
-
-                    isNewUser = true;
-
-                } else {
-                    donationObj.hasSelaAccount = true;
-                    donationObj.userId = user._id;
-                    donationObj.firstName = user.firstName;
-                    donationObj.lastName = user.lastName;
-                }
-
-                // create a donation instance
-                await new Donation(donationObj).save();
-
-                if (isNewUser) {
-                    // send email to user notifying them about their account and 
-                    //  donation
-                    this.notification.accountCreationOnDonation(email);
-                }
-
-                return res.status(200).json({ message: `Thank You for funding this project.` })
-            } catch (error) {
-                // 4. Handle any errors from the call
-                console.error(error);
-                return res.status(500).json({ message: error.message });
             }
 
+            let user = await User.findOne({ email });
+            let newUser;
+            let isNewUser = false;
 
+            if (user == null) {
+
+                const userObj = {
+                    email,
+                    firstName,
+                    lastName,
+                    password: crypto.randomBytes(5).toString('hex'),
+                    isPassiveFunder: true
+                }
+
+                newUser = await new User(userObj).save();
+
+                donationObj.firstName = newUser.firstName;
+                donationObj.lastName = newUser.lastName;
+                donationObj.hasSelaAccount = true;
+                donationObj.userId = newUser._id;
+
+                isNewUser = true;
+
+            } else {
+                donationObj.hasSelaAccount = true;
+                donationObj.userId = user._id;
+                donationObj.firstName = user.firstName;
+                donationObj.lastName = user.lastName;
+            }
+
+            // create a donation instance
+            await new Donation(donationObj).save();
+
+            if (isNewUser) {
+                // send email to user notifying them about their account and 
+                //  donation
+                this.notification.accountCreationOnDonation(email);
+            }
+
+            return res.status(200).json({ message: `Thank You for funding this project.` })
+        } catch (error) {
+            // 4. Handle any errors from the call
+            console.error(error);
+            return res.status(500).json({ message: error.message });
         }
+
+
+        // }
 
 
     }
@@ -333,7 +331,38 @@ class Donations {
 
     // ********************************************* Crypto *********************************************** //
 
-    // async 
+    async crypto(req, res) {
+        let { code, event, method, transferMedium, projectId } = req.body;
+
+        try {
+
+
+            // verify project
+            let project = await Project.findById(projectId);
+
+            if (project == null) {
+                return res.status(404).json({ message: "Project Not Found." });
+            }
+
+            let donationObj={
+                code,
+                status:event,
+                paymentMethod:method,
+                projectId,
+                service: "crypto:coinbase"
+            }
+
+            await new Donation(donationObj).save();
+
+            return res.status(200).json({ message: "Thank You for funding this project.\nWe will notifying about the status of the transfer shortly" });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: error.message });
+        }
+
+
+    }
     // ********************************************* Crypto *********************************************** //
 
 
@@ -364,7 +393,7 @@ class Donations {
             // create charge on card
             const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: sourceToken,
-                amount: amount,
+                amount: Number(amount/100),
                 description: description || "",
                 currency: currency || "eur",
 
@@ -471,7 +500,7 @@ class Donations {
 
             const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: stripeToken,
-                amount: amount,
+                amount: Number(amount/100),
                 description: description || "",
                 currency: currency || "eur",
             });
@@ -587,7 +616,7 @@ class Donations {
 
                             let { id, status, balance_transaction } = await this.stripe.charges.create({
                                 source: bankAccountToken,
-                                amount: amount,
+                                amount: Number(amount/100),
                                 description: description || "",
                                 currency: currency || "usd",
 
@@ -792,8 +821,7 @@ class Donations {
                 case "card":
                     return this.card(req, res);
                 case "crypto":
-
-                    break
+                    return this.crypto(req, res);
 
                 default:
                     break;

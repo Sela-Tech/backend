@@ -65,12 +65,14 @@ var donationStructure = {
     },
     service:{
         type:String,
-        enum:['stripe', 'paystack', 'paypal'],
-        default:'stripe'
+        enum:['stripe', 'paystack', 'paypal','crypto:coinbase'],
     },
     sourceId:{
         type:String
     },
+    code:{
+        type:String
+    }
 
 };
 
