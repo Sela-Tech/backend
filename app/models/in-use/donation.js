@@ -65,7 +65,7 @@ var donationStructure = {
     },
     service:{
         type:String,
-        enum:['stripe', 'paystack'],
+        enum:['stripe', 'paystack', 'paypal'],
         default:'stripe'
     },
     sourceId:{

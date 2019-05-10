@@ -171,13 +171,13 @@ class Donations {
                 }
 
                 // create a donation instance
-                let donation = new Donation(donationObj);
+                await new Donation(donationObj).save();
 
 
                 // update project
-                project.raised = Number(project.raised) + Number(amount / 100);
+                // project.raised = Number(project.raised) + Number(amount / 100);
 
-                await Promise.all([donation.save(), project.save()]);
+                // await Promise.all([donation.save()]);
 
                 if (isNewUser) {
                     // send email to user notifying them about their account and 
@@ -301,13 +301,14 @@ class Donations {
                 }
 
                 // create a donation instance
-                let donation = new Donation(donationObj);
+                let donation = await new Donation(donationObj).save();
 
 
                 // update project
-                project.raised = Number(project.raised) + Number(amount / 100);
+                // project.raised = Number(project.raised) + Number(amount / 100);
 
-                await Promise.all([donation.save(), project.save()]);
+                // await Promise.all([donation.save()]);
+                // await Promise.all([donation.save(), project.save()]);
 
                 if (isNewUser) {
                     // send email to user notifying them about their account and 
@@ -645,10 +646,12 @@ class Donations {
      * @memberof Donations
      */
     async paypal(req, res) {
-        const { orderId, amount, description, currency, projectId, email, firstName, lastName } = req.body;
+        const { orderID, amount, description, currency, projectId, email, firstName, lastName, payerID } = req.body;
 
-        let request = new paypalCheckout.orders.OrdersGetRequest(orderId);
+        let request = new paypalCheckout.orders.OrdersGetRequest(orderID);
         let payment;
+
+        console.log(req.body)
 
         try {
             payment = await this.paypalClient.client.execute(request);
@@ -663,68 +666,76 @@ class Donations {
             return res.status(400).json({ message: "Amount don't match." });
         }
 
-        let donationObj = {
-            amountDonated: amount,
-            project: projectId,
-            currency,
-            paymentMethod: req.body.method,
-            description,
-            // transaction: balance_transaction,
-            // status,
-            // chargeId: id,
-            customerId,
-            email,
-            service: "paypal"
+        console.log(payment)
 
-        }
+        if (payment.result.status === "COMPLETED") {
 
-        let user = await User.findOne({ email });
-        let newUser;
-        let isNewUser = false;
+            try {
 
-        if (user == null) {
+                let donationObj = {
+                    amountDonated: amount,
+                    project: projectId,
+                    currency,
+                    paymentMethod: req.body.method,
+                    description,
+                    // transaction: balance_transaction,
+                    status: payment.result.status,
+                    chargeId: payment.result.id,
+                    customerId: payerID,
+                    email,
+                    service: "paypal"
 
-            const userObj = {
-                email,
-                firstName,
-                lastName,
-                password: crypto.randomBytes(5).toString('hex'),
-                isPassiveFunder: true
+                }
+
+                let user = await User.findOne({ email });
+                let newUser;
+                let isNewUser = false;
+
+                if (user == null) {
+
+                    const userObj = {
+                        email,
+                        firstName,
+                        lastName,
+                        password: crypto.randomBytes(5).toString('hex'),
+                        isPassiveFunder: true
+                    }
+
+                    newUser = await new User(userObj).save();
+
+                    donationObj.firstName = newUser.firstName;
+                    donationObj.lastName = newUser.lastName;
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = newUser._id;
+
+                    isNewUser = true;
+
+                } else {
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = user._id;
+                    donationObj.firstName = user.firstName;
+                    donationObj.lastName = user.lastName;
+                }
+
+                // create a donation instance
+                await new Donation(donationObj).save();
+
+                if (isNewUser) {
+                    // send email to user notifying them about their account and 
+                    //  donation
+                    this.notification.accountCreationOnDonation(email);
+                }
+
+                return res.status(200).json({ message: `Thank You for funding this project.` })
+            } catch (error) {
+                // 4. Handle any errors from the call
+                console.error(error);
+                return res.status(500).json({ message: error.message });
             }
 
-            newUser = await new User(userObj).save();
 
-            donationObj.firstName = newUser.firstName;
-            donationObj.lastName = newUser.lastName;
-            donationObj.hasSelaAccount = true;
-            donationObj.userId = newUser._id;
-
-            isNewUser = true;
-
-        } else {
-            donationObj.hasSelaAccount = true;
-            donationObj.userId = user._id;
-            donationObj.firstName = user.firstName;
-            donationObj.lastName = user.lastName;
         }
 
-        // create a donation instance
-        let donation = new Donation(donationObj);
-
-
-        // update project
-        project.raised = Number(project.raised) + Number(amount);
-
-        await Promise.all([donation.save(), project.save()]);
-
-        if (isNewUser) {
-            // send email to user notifying them about their account and 
-            //  donation
-            this.notification.accountCreationOnDonation(email);
-        }
-
-
-        return res.status(200).json({ message: `Thank You for funding this project.` })
 
     }
 
@@ -841,19 +852,20 @@ class Donations {
                     console.log("null project")
                 }
 
-                console.log('found project')
+                // console.log('found project')
 
-                console.log('before ' + project.raised)
+                // console.log('before ' + project.raised)
 
                 // update project to reflect increment in amount raised,
-                project.raised = Number(project.raised) + Number(amount / 100);
+                // project.raised = Number(project.raised) + Number(amount / 100);
 
                 // update donation status,
                 donation.status = status;
 
                 console.log(donation.status)
 
-                let [proj, dontn] = await Promise.all([project.save(), donation.save()]);
+                // let [proj, dontn] = await Promise.all([project.save(), donation.save()]);
+                await donation.save();
 
 
                 // notify user about their successfull contribution
@@ -862,10 +874,10 @@ class Donations {
                     amount,
                     name: dontn.firstName,
                     email: dontn.email,
-                    project: proj.name
+                    project: project.name
                 });
 
-                console.log('after ' + proj.raised)
+                // console.log('after ' + proj.raised)
                 console.log('donation status after ' + dontn.status)
 
 
