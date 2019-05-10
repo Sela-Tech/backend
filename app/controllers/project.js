@@ -232,7 +232,14 @@ class Projects {
 
         let projectIds = projects.map((project) => project._id)
 
-        let donations = await Donation.find({ project: [...projectIds], $or: [{ status: "succeeded" }, { status: "charge:confirmed" },{ status: "COMPLETED" }] });
+        let donations = await Donation.find({
+          project: [...projectIds],
+          $or: [
+            { status: "succeeded" },
+            { status: "charge:confirmed" },
+            { status: "COMPLETED" },
+            { status: "charge_confirmed" }]
+        });
 
         let p = successRes.projects
 
@@ -248,6 +255,17 @@ class Projects {
   }
 
 
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} projectId
+   * @param {*} donations
+   * @returns
+   * @memberof Projects
+   * @description, extracts and sum the donations for a particular project
+   */
   static extractProjectDonations(projectId, donations) {
     let projectDonations = donations.filter(donation => donation.project.toString() === projectId.toString())
       .map(amount => amount.amountDonated)
@@ -389,8 +407,19 @@ class Projects {
         //       { _id: '$project', raised: { $sum: '$amount' } }
         //   }])
 
-        let donations = await Donation.find({ project: project._id, $or: [{ status: "succeeded" }, { status: "charge:confirmed" }, {status:"COMPLETED"}] });
-        donations = donations.map((donation) => { return donation.amountDonated }).reduce((current, next) => current + next);
+        let donations = await Donation.find({
+          project: project._id,
+          $or: [
+            { status: "succeeded" },
+            { status: "charge:confirmed" },
+            { status: "COMPLETED" },
+            { status: "charge_confirmed" }]
+        });
+        if(donations.length>0){
+          donations = donations.map((donation) => { return donation.amountDonated }).reduce((current, next) => current + next);
+        }else{
+          donations = 0
+        }
 
 
         project.isOwner = project.owner._id == req.userId;

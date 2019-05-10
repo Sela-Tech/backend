@@ -91,6 +91,9 @@ class Donations {
     }
 
 
+
+
+    // ********************************************* Card ************************************************** //
     /**
      *
      *
@@ -198,6 +201,108 @@ class Donations {
     }
 
 
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     */
+    async paypal(req, res) {
+        const { orderID, amount, description, currency, projectId, email, firstName, lastName, payerID } = req.body;
+
+        let request = new paypalCheckout.orders.OrdersGetRequest(orderID);
+        let payment;
+
+        console.log(req.body)
+
+        try {
+            payment = await this.paypalClient.client.execute(request);
+        } catch (error) {
+
+            // 4. Handle any errors from the call
+            console.error(error);
+            return res.status(500).json({ message: error.message });
+        }
+
+        if (payment.result.purchase_units[0].amount.value !== amount) {
+            return res.status(400).json({ message: "Amount don't match." });
+        }
+
+        console.log(payment)
+
+        if (payment.result.status === "COMPLETED") {
+
+            try {
+
+                let donationObj = {
+                    amountDonated: amount,
+                    project: projectId,
+                    currency,
+                    paymentMethod: req.body.method,
+                    description: currency.toLowerCase(),
+                    // transaction: balance_transaction,
+                    status: payment.result.status,
+                    chargeId: payment.result.id,
+                    customerId: payerID,
+                    email,
+                    service: "paypal"
+
+                }
+
+                let user = await User.findOne({ email });
+                let newUser;
+                let isNewUser = false;
+
+                if (user == null) {
+
+                    const userObj = {
+                        email,
+                        firstName,
+                        lastName,
+                        password: crypto.randomBytes(5).toString('hex'),
+                        isPassiveFunder: true
+                    }
+
+                    newUser = await new User(userObj).save();
+
+                    donationObj.firstName = newUser.firstName;
+                    donationObj.lastName = newUser.lastName;
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = newUser._id;
+
+                    isNewUser = true;
+
+                } else {
+                    donationObj.hasSelaAccount = true;
+                    donationObj.userId = user._id;
+                    donationObj.firstName = user.firstName;
+                    donationObj.lastName = user.lastName;
+                }
+
+                // create a donation instance
+                await new Donation(donationObj).save();
+
+                if (isNewUser) {
+                    // send email to user notifying them about their account and 
+                    //  donation
+                    this.notification.accountCreationOnDonation(email);
+                }
+
+                return res.status(200).json({ message: `Thank You for funding this project.` })
+            } catch (error) {
+                // 4. Handle any errors from the call
+                console.error(error);
+                return res.status(500).json({ message: error.message });
+            }
+
+
+        }
+
+
+    }
+
 
     /**
      *
@@ -223,12 +328,26 @@ class Donations {
 
     }
 
+    // ********************************************* Card ************************************************** //
+
+
+    // ********************************************* Crypto *********************************************** //
+
+    // async 
+    // ********************************************* Crypto *********************************************** //
 
 
 
+    // ********************************************* Transfer ********************************************* //
 
-
-
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     */
     async transferWithIdeal(req, res) {
         let { sourceToken, amount, description, currency, projectId, email, firstName, lastName } = req.body;
 
@@ -436,6 +555,14 @@ class Donations {
     }
 
 
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     */
     async transferWithPlaid(req, res) {
         const { accountId, publicToken, email, firstName, lastName, projectId, amount, description, currency } = req.body;
 
@@ -636,109 +763,12 @@ class Donations {
     }
 
 
-
-    /**
-     *
-     *
-     * @param {*} req
-     * @param {*} res
-     * @returns
-     * @memberof Donations
-     */
-    async paypal(req, res) {
-        const { orderID, amount, description, currency, projectId, email, firstName, lastName, payerID } = req.body;
-
-        let request = new paypalCheckout.orders.OrdersGetRequest(orderID);
-        let payment;
-
-        console.log(req.body)
-
-        try {
-            payment = await this.paypalClient.client.execute(request);
-        } catch (error) {
-
-            // 4. Handle any errors from the call
-            console.error(error);
-            return res.status(500).json({ message: error.message });
-        }
-
-        if (payment.result.purchase_units[0].amount.value !== amount) {
-            return res.status(400).json({ message: "Amount don't match." });
-        }
-
-        console.log(payment)
-
-        if (payment.result.status === "COMPLETED") {
-
-            try {
-
-                let donationObj = {
-                    amountDonated: amount,
-                    project: projectId,
-                    currency,
-                    paymentMethod: req.body.method,
-                    description,
-                    // transaction: balance_transaction,
-                    status: payment.result.status,
-                    chargeId: payment.result.id,
-                    customerId: payerID,
-                    email,
-                    service: "paypal"
-
-                }
-
-                let user = await User.findOne({ email });
-                let newUser;
-                let isNewUser = false;
-
-                if (user == null) {
-
-                    const userObj = {
-                        email,
-                        firstName,
-                        lastName,
-                        password: crypto.randomBytes(5).toString('hex'),
-                        isPassiveFunder: true
-                    }
-
-                    newUser = await new User(userObj).save();
-
-                    donationObj.firstName = newUser.firstName;
-                    donationObj.lastName = newUser.lastName;
-                    donationObj.hasSelaAccount = true;
-                    donationObj.userId = newUser._id;
-
-                    isNewUser = true;
-
-                } else {
-                    donationObj.hasSelaAccount = true;
-                    donationObj.userId = user._id;
-                    donationObj.firstName = user.firstName;
-                    donationObj.lastName = user.lastName;
-                }
-
-                // create a donation instance
-                await new Donation(donationObj).save();
-
-                if (isNewUser) {
-                    // send email to user notifying them about their account and 
-                    //  donation
-                    this.notification.accountCreationOnDonation(email);
-                }
-
-                return res.status(200).json({ message: `Thank You for funding this project.` })
-            } catch (error) {
-                // 4. Handle any errors from the call
-                console.error(error);
-                return res.status(500).json({ message: error.message });
-            }
+    // ********************************************* Transfer ********************************************* //
 
 
-        }
 
 
-    }
-
+    // ****************************** Main method called by sponsor endpoint ***************************** //
 
     /**
      *
@@ -775,6 +805,13 @@ class Donations {
         }
 
     }
+
+
+    // ****************************** Main method called by sponsor endpoint ***************************** //
+
+
+
+    // ***************************************** web hooks ********************************************** //
 
 
     /**
@@ -825,6 +862,41 @@ class Donations {
     }
 
 
+
+    async coinbaseWebhook(req, res) {
+
+        let event;
+
+
+        try {
+            event = this.coinBase.verifyEventBody(
+                req.rawBody,
+                req.headers['x-cc-webhook-signature'],
+                process.env.COINBASE_WEBHOOK_SECRET
+            );
+        } catch (error) {
+            console.log('Error occured', error.message);
+
+            return res.status(400).send('Webhook Error:' + error.message);
+        }
+
+        console.log('Success', event.data.metadata);
+
+        console.log(event.data.payments[0].value.local.amount)
+
+        return res.status(200).send('Signed Webhook Received: ' + event.data.payments[0].value.local.amount);
+    }
+
+
+    async paypalWebhook(req, res) {
+
+    }
+
+    // ***************************************** web hooks ********************************************** //
+
+
+
+    // ************************************* web hook hnadlers ****************************************** //
 
     /**
      *
@@ -893,35 +965,20 @@ class Donations {
         }
     }
 
+    /**
+     *
+     *
+     * @param {*} id
+     * @param {*} status
+     * @memberof Donations
+     */
     async handleFailureCharge(id, status) {
 
         // notify user that transaction was not successfull
     }
 
+    // ************************************* web hook hnadlers ****************************************** //
 
-    async coinbaseWebhook(req, res) {
-
-        let event;
-
-
-        try {
-            event = this.coinBase.verifyEventBody(
-                req.rawBody,
-                req.headers['x-cc-webhook-signature'],
-                process.env.COINBASE_WEBHOOK_SECRET
-            );
-        } catch (error) {
-            console.log('Error occured', error.message);
-
-            return res.status(400).send('Webhook Error:' + error.message);
-        }
-
-        console.log('Success', event.id);
-
-        console.log(event.data.payments[0].value.local.amount)
-
-        return res.status(200).send('Signed Webhook Received: ' + event.data.payments[0].value.local.amount);
-    }
 
 }
 
