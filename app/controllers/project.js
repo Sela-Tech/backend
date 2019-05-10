@@ -5,7 +5,8 @@ const mongoose = require("mongoose"),
   User = mongoose.model("User"),
   Location = mongoose.model("Location"),
   Transaction = mongoose.model("Transaction"),
-  Proposal = mongoose.model("Proposal");
+  Proposal = mongoose.model("Proposal"),
+  Donation = mongoose.model("Donation");
 const moment = require('moment')
 
 const notify = require('../helper/notifications');
@@ -190,14 +191,17 @@ class Projects {
       checkQuery = otherQueryParams;
     }
 
+
+
     Project.find(checkQuery).sort({ createdOn: -1 })
       .skip(skip)
       .limit(limit)
-      .exec(function (err, projects) {
+      .exec(async function (err, projects) {
         if (!req.tokenExists)
           projects = projects.filter(p => {
             return p.activated === true;
           });
+
 
         if (err) {
           failRes.message = err.message;
@@ -207,6 +211,9 @@ class Projects {
           return res.json({
             message: "No Projects Found"
           });
+
+
+        // get donations for project 
 
         if (locationName) {
           successRes.projects = projects.filter(p => {
@@ -223,8 +230,30 @@ class Projects {
         }
 
 
+        let projectIds = projects.map((project) => project._id)
+
+        let donations = await Donation.find({ project: [...projectIds], $or: [{ status: "succeeded" }, { status: "charge:confirmed" },{ status: "COMPLETED" }] });
+
+        let p = successRes.projects
+
+        successRes.projects = p.map((project) => {
+          project = project.toJSON();
+          delete project.raised;
+          project.raised = Projects.extractProjectDonations(project._id, donations)
+          return project
+        })
+
         return res.json(successRes);
       });
+  }
+
+
+  static extractProjectDonations(projectId, donations) {
+    let projectDonations = donations.filter(donation => donation.project.toString() === projectId.toString())
+      .map(amount => amount.amountDonated)
+    if (projectDonations.length == 0) return 0;
+
+    return projectDonations.reduce((current, next) => current + next);
   }
 
   /**
@@ -346,8 +375,27 @@ class Projects {
       if (project.activated === true || project.owner._id == req.userId) {
         project = project.toJSON();
 
+        if (project.raised) {
+          delete project.raised;
+        }
+
+        // get success full donations related to project
+
+        // let donations = await Donation.aggregate([{
+        //   $match: { project: project._id }
+        // },
+        //   {
+        //     $group:
+        //       { _id: '$project', raised: { $sum: '$amount' } }
+        //   }])
+
+        let donations = await Donation.find({ project: project._id, $or: [{ status: "succeeded" }, { status: "charge:confirmed" }, {status:"COMPLETED"}] });
+        donations = donations.map((donation) => { return donation.amountDonated }).reduce((current, next) => current + next);
+
+
         project.isOwner = project.owner._id == req.userId;
         project.proposals = proposals;
+        project.raised = donations
         res.status(200).json(project);
       } else {
         res.status(400).json({
