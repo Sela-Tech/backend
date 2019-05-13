@@ -532,6 +532,21 @@ class Notifications {
         });
     }
 
+    donationUpdateFailed(data) {
+        const msg = {
+            to: `${data.email}`,
+            from: 'Sela Labs' + '<' + `${process.env.sela_email}` + '>',
+            subject: "Status of Funding",
+            html: EmailTemplates.messageOnfailedDonation(data.amount,data.name, data.project)
+        };
+
+        sgMail.send(msg, false, (error, result) => {
+            if (error) return console.log(error);
+
+            // console.log(result);
+        });
+    }
+
 }
 
 module.exports = Notifications;

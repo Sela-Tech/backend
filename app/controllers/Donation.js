@@ -34,8 +34,6 @@ class Donations {
         this.notification = new Notification();
         this.paypalClient = paypalClient;
 
-        // (async () => { console.log(await this.paypalClient.client.execute('9902')) })();
-
 
         if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
@@ -120,7 +118,7 @@ class Donations {
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
                 source: stripeToken,
-                amount: Number(amount/100),
+                amount: Number(amount / 100),
                 description: description || "",
                 currency: currency || "usd",
 
@@ -215,7 +213,6 @@ class Donations {
         let request = new paypalCheckout.orders.OrdersGetRequest(orderID);
         let payment;
 
-        console.log(req.body)
 
         try {
             payment = await this.paypalClient.client.execute(request);
@@ -344,10 +341,10 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
-            let donationObj={
+            let donationObj = {
                 code,
-                status:event,
-                paymentMethod:method,
+                status: event,
+                paymentMethod: method,
                 projectId,
                 service: "crypto:coinbase"
             }
@@ -393,7 +390,7 @@ class Donations {
             // create charge on card
             const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: sourceToken,
-                amount: Number(amount/100),
+                amount: Number(amount / 100),
                 description: description || "",
                 currency: currency || "eur",
 
@@ -500,7 +497,7 @@ class Donations {
 
             const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: stripeToken,
-                amount: Number(amount/100),
+                amount: Number(amount / 100),
                 description: description || "",
                 currency: currency || "eur",
             });
@@ -616,7 +613,7 @@ class Donations {
 
                             let { id, status, balance_transaction } = await this.stripe.charges.create({
                                 source: bankAccountToken,
-                                amount: Number(amount/100),
+                                amount: Number(amount / 100),
                                 description: description || "",
                                 currency: currency || "usd",
 
@@ -862,14 +859,10 @@ class Donations {
             // Handle the event
             switch (type) {
                 case 'charge.succeeded':
-                    console.log(id + ' ' + status)
-                    await this.handleSuccessfullCharge(req, res, { id, status, amount })
-                    // res.status(200)
+                    await this.handleSuccessfullStripeCharge(req, res, { id, status, amount })
                     break;
                 case 'charge.failed':
-                    console.log(id + ' ' + status)
-                    // res.json(chargeObjFailed)
-                    res.status(200)
+                    await this.handleSuccessfullStripeCharge(req, res, { id, status, amount })
                     break;
 
                 // ... handle other event types
@@ -890,11 +883,17 @@ class Donations {
     }
 
 
-
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof Donations
+     */
     async coinbaseWebhook(req, res) {
 
         let event;
-
 
         try {
             event = this.coinBase.verifyEventBody(
@@ -902,20 +901,60 @@ class Donations {
                 req.headers['x-cc-webhook-signature'],
                 process.env.COINBASE_WEBHOOK_SECRET
             );
+
+            const type = event.type;
+
+            switch (type) {
+                case 'charge:created':
+                    await this.handleCoinbaseOtherEvent(req, res, event)
+                    break;
+
+                case 'charge:confirmed':
+                    await this.handleSuccessfullCoinbaseCharge(req, res, event)
+                    break;
+
+                case 'charge:failed':
+                    await this.handleCoinbaseOtherEvent(req, res, event)
+                    break;
+
+                case 'charge:delayed':
+                    await this.handleCoinbaseOtherEvent(req, res, event)
+                    break;
+
+                case 'charge:pending':
+                    await this.handleCoinbaseOtherEvent(req, res, event)
+                    break;
+
+                case 'charge:resolved':
+                    await this.handleCoinbaseOtherEvent(req, res, event)
+                    break;
+
+                default:
+                    break;
+            }
+
+            // console.log(event);
+
+            // console.log('------------------below----------------')
+            // console.log(event.data.payments[0]);
+
         } catch (error) {
             console.log('Error occured', error.message);
 
             return res.status(400).send('Webhook Error:' + error.message);
         }
 
-        console.log('Success', event.data.metadata);
-
-        console.log(event.data.payments[0].value.local.amount)
-
         return res.status(200).send('Signed Webhook Received: ' + event.data.payments[0].value.local.amount);
     }
 
 
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @memberof Donations
+     */
     async paypalWebhook(req, res) {
 
     }
@@ -924,7 +963,156 @@ class Donations {
 
 
 
-    // ************************************* web hook hnadlers ****************************************** //
+    // ************************************* web hook handlers ****************************************** //
+
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @param {*} event
+     * @returns
+     * @memberof Donations
+     */
+    async handleSuccessfullCoinbaseCharge(req, res, event) {
+        const { type, data } = event;
+
+        try {
+
+            let donation = await Donation.findOne({ code: data.code });
+
+            if (donation !== null) {
+
+                console.log('found donation')
+                console.log('donation status before ' + donation.status);
+
+                let project = await Project.findById(donation.project._id);
+
+                if (project == null) {
+                    console.log("null project")
+                }
+
+                console.log('found project')
+
+                // extract user information from metadata
+                const { payments, metadata: { email, name } } = data
+                // lookup user in User Model
+                // create new User is not user
+                const payment = payments[0];
+
+
+                let user = await User.findOne({ email });
+                let newUser;
+                let isNewUser = false;
+
+                if (user == null) {
+
+                    const userObj = {
+                        email,
+                        firstName: name.split(' ')[0],
+                        lastName: (() => {
+                            name = name.split(' ');
+                            if (name.length == 1) { return name[0]; }
+                            else {
+                                delete name[0];
+                                return name.join(' ');
+                            }
+                        })(name),
+                        password: crypto.randomBytes(5).toString('hex'),
+                        isPassiveFunder: true
+                    }
+
+                    newUser = await new User(userObj).save();
+
+                    console.log(donation.status)
+
+                    // update donation,
+                    donation.status = type;
+                    donation.email
+                    donation.firstName = newUser.firstName;
+                    donation.lastName = newUser.lastName;
+                    donation.hasSelaAccount = true;
+                    donation.userId = newUser._id;
+                    donation.amountDonated = payment.value.local.amount;
+                    donation.currency = payment.value.local.currency.toLowerCase() + ' (' + payment.value.crypto.currency + ')';
+                    donation.description = data.description;
+                    donation.chargeId = data.id
+
+                    isNewUser = true;
+                } else {
+
+                    // update donation,
+                    donation.status = type;
+                    donation.email
+                    donation.firstName = user.firstName;
+                    donation.lastName = user.lastName;
+                    donation.hasSelaAccount = true;
+                    donation.userId = user._id;
+                    donation.amountDonated = payment.value.local.amount;
+                    donation.currency = payment.value.local.currency.toLowerCase() + ' (' + payment.value.crypto.currency + ')';
+                    donation.description = data.description;
+                    donation.chargeId = data.id
+                }
+
+                let dontn = await donation.save();
+
+
+                // notify user about their successfull contribution
+
+                this.notification.donationUpdate({
+                    amount,
+                    name: dontn.firstName,
+                    email: dontn.email,
+                    project: project.name
+                });
+
+                console.log('donation status after ' + dontn.status)
+
+
+                if (isNewUser) {
+                    // send email to user notifying them about their account and 
+                    //  donation
+                    this.notification.accountCreationOnDonation(email);
+                }
+            }
+
+
+            return res.status(200)
+
+        } catch (error) {
+            console.log(error)
+            return json(500).json({ message: error.message })
+        }
+
+
+    }
+
+
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @param {*} event
+     * @returns
+     * @memberof Donations
+     */
+    async handleCoinbaseOtherEvent(req, res, event) {
+        const { type, data } = event;
+
+        let donation = await Donation.findOne({ code: data.code });
+
+        if (donation !== null) {
+            donation.status = type;
+
+            await donation.save();
+        }
+
+        return res.status(200)
+
+    }
 
     /**
      *
@@ -935,7 +1123,7 @@ class Donations {
      * @returns
      * @memberof Donations
      */
-    async handleSuccessfullCharge(req, res, data) {
+    async handleSuccessfullStripeCharge(req, res, data) {
         try {
 
             const { id, status, amount } = data;
@@ -964,7 +1152,6 @@ class Donations {
 
                 console.log(donation.status)
 
-                // let [proj, dontn] = await Promise.all([project.save(), donation.save()]);
                 await donation.save();
 
 
@@ -972,15 +1159,13 @@ class Donations {
 
                 this.notification.donationUpdate({
                     amount,
-                    name: dontn.firstName,
-                    email: dontn.email,
+                    name: donation.firstName,
+                    email: donation.email,
                     project: project.name
                 });
 
                 // console.log('after ' + proj.raised)
-                console.log('donation status after ' + dontn.status)
-
-
+                console.log('donation status after ' + donation.status)
 
 
             }
@@ -1000,9 +1185,39 @@ class Donations {
      * @param {*} status
      * @memberof Donations
      */
-    async handleFailureCharge(id, status) {
+    async handleFailureStripeCharge(req, res, data) {
 
-        // notify user that transaction was not successfull
+        const { id, status, amount } = data;
+
+        let donation = await Donation.findOne({ chargeId: id, status: 'pending' });
+
+        if (donation !== null) {
+
+            console.log('found donation')
+            console.log('donation status before ' + donation.status)
+            let project = await Project.findById(donation.project._id);
+
+            if (project == null) {
+                console.log("null project")
+            }
+
+            donation.status = status;
+
+            await donation.save();
+
+
+            // notify user about their failed contribution
+
+            this.notification.donationUpdateFailed({
+                amount,
+                name: donation.firstName,
+                email: donation.email,
+                project: project.name
+            });
+
+        }
+
+        return res.status(200)
     }
 
     // ************************************* web hook hnadlers ****************************************** //

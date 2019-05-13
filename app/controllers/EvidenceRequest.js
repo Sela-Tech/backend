@@ -231,6 +231,14 @@ class Evidences {
                 return res.status(403).json({ message: "You cannot assign evidence request to yourself." })
             }
 
+            // verify that no clashing kpi request titles
+            let existingKPITitle = await Evidence.findOne({ 'title': { $regex: new RegExp('^' + title, 'i') } });
+
+            if (existingKPITitle !== null) {
+                return res.status(409).json({ message: `You already have a KPI request with thesame title` })
+            }
+
+
             const KPIObj = {
                 title,
                 project,
@@ -357,7 +365,7 @@ class Evidences {
             //     return res.status(403).json({ message: "You cannot submit more than one evidence for this request" })
             // }
 
-            let hasBeenPaid=extractedStakeholder.hasBeenPaid;
+            let hasBeenPaid = extractedStakeholder.hasBeenPaid;
 
             switch (evidenceRequest.datatype) {
                 // when evidence require table
@@ -474,9 +482,13 @@ class Evidences {
 
 
                     await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
-                        { $set: { 'stakeholders.$.hasSubmitted': true, 
-                        'stakeholders.$.submissionCount': submissionCount,
-                        'stakeholders.$.hasBeenPaid': hasBeenPaid } });
+                        {
+                            $set: {
+                                'stakeholders.$.hasSubmitted': true,
+                                'stakeholders.$.submissionCount': submissionCount,
+                                'stakeholders.$.hasBeenPaid': hasBeenPaid
+                            }
+                        });
 
                     return res.status(200).json({ message: "Your Evidence has been submitted" });
 
@@ -514,7 +526,7 @@ class Evidences {
                     // return res.json(evidenceRequest);
                     await evidenceRequest.save();
 
-                   
+
 
                     // send token to who submitted evidence one
                     if (extractedStakeholder.submissionCount < 1) {
@@ -541,9 +553,13 @@ class Evidences {
                     }
 
                     await Evidence.updateOne({ _id: evidenceRequestId, 'stakeholders.user': req.userId },
-                    { $set: { 'stakeholders.$.hasSubmitted': true, 
-                    'stakeholders.$.submissionCount': submissionCount,
-                    'stakeholders.$.hasBeenPaid': hasBeenPaid } });
+                        {
+                            $set: {
+                                'stakeholders.$.hasSubmitted': true,
+                                'stakeholders.$.submissionCount': submissionCount,
+                                'stakeholders.$.hasBeenPaid': hasBeenPaid
+                            }
+                        });
 
                     return res.status(200).json({ message: "Your Evidence has been submitted" });
 
