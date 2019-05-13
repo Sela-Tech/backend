@@ -212,7 +212,14 @@ class Proposals {
 
             // temporary code below, remove from production
             (async () => {
-                let tasks = await Task.find({ project });
+                let tasks = await Task.find({ project: existingProject._id });
+
+                if (existingProject.status === "COMPLETED") {
+                    // complete all tasks
+                    let tasksToUpdate = tasks.map(task=>task._id);
+                    await Task.updateMany({_id:[...tasksToUpdate]}, { $set: { status: "COMPLETED" } });
+                    console.log('updated ' + tasksToUpdate.length+ ' tasks.')
+                }
 
                 const updateTasks = tasks.filter((task) => task.status === "UNASSIGNED" || task.status === "ASSIGNED").map((task) => task._id);
 
@@ -222,7 +229,7 @@ class Proposals {
 
                 console.log(updateTasks.length + ' tasks updated')
 
-            })(project);
+            })(existingProject);
             // temporary code above, remove from production
 
             proposals = proposals.map((p) => {
