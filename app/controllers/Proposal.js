@@ -212,7 +212,7 @@ class Proposals {
 
             // temporary code below, remove from production
             (async () => {
-                let tasks = await Task.find({ project: id });
+                let tasks = await Task.find({ project });
 
                 const updateTasks = tasks.filter((task) => task.status === "UNASSIGNED" || task.status === "ASSIGNED").map((task) => task._id);
 
@@ -220,7 +220,7 @@ class Proposals {
                     await Task.updateMany({ _id: [...updateTasks] }, { $set: { status: "NOT_STARTED" } });
                 }
 
-            })();
+            })(project);
             // temporary code above, remove from production
 
             proposals = proposals.map((p) => {
