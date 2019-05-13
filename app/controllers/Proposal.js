@@ -216,7 +216,7 @@ class Proposals {
 
                 if (existingProject.status === "COMPLETED") {
                     // complete all tasks
-                    let tasksToUpdate = tasks.map(task=>task._id);
+                    let tasksToUpdate = tasks.filter(task=>task.status !=="COMPLETED").map(task=>task._id);
                     await Task.updateMany({_id:[...tasksToUpdate]}, { $set: { status: "COMPLETED" } });
                     console.log('updated ' + tasksToUpdate.length+ ' tasks.')
                 }
