@@ -220,6 +220,8 @@ class Proposals {
                     await Task.updateMany({ _id: [...updateTasks] }, { $set: { status: "NOT_STARTED" } });
                 }
 
+                console.log(updateTasks.length + ' tasks updated')
+
             })(project);
             // temporary code above, remove from production
 
