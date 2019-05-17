@@ -459,6 +459,8 @@ class Donations {
                 if (isNewUser) {
                     // send email to user notifying them about their account and 
                     //  donation
+                    this.notification.accountCreationOnDonation(email);
+
                 }
 
                 return res.status(200).json({ message: `Thank You for funding this project.` })
@@ -1064,7 +1066,7 @@ class Donations {
                 // notify user about their successfull contribution
 
                 this.notification.donationUpdate({
-                    amount,
+                    amount:this.formatValue({amount:payment.value.local.amount, currency:payment.value.local.currency}),
                     name: dontn.firstName,
                     email: dontn.email,
                     project: project.name
@@ -1096,7 +1098,7 @@ class Donations {
     /**
      *
      *
-     * @param {*} req
+     * @param {*} req l let amount = et amount = 
      * @param {*} res
      * @param {*} event
      * @returns
@@ -1153,7 +1155,7 @@ class Donations {
                 // update donation status,
                 donation.status = status;
 
-                let amount = donation.amountDonated
+                let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
 
                 console.log(donation.status)
 
@@ -1192,7 +1194,7 @@ class Donations {
      */
     async handleFailureStripeCharge(req, res, data) {
 
-        const { id, status, amount } = data;
+        const { id, status } = data;
 
         let donation = await Donation.findOne({ chargeId: id, status: 'pending' });
 
@@ -1211,6 +1213,8 @@ class Donations {
             await donation.save();
 
 
+            let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
+
             // notify user about their failed contribution
 
             this.notification.donationUpdateFailed({
@@ -1228,10 +1232,11 @@ class Donations {
     // ************************************* web hook hnadlers ****************************************** //
 
 
-    // formatCurrency(data){
-    //     const symbols = ['$', 'N']
-    // }
-
+    formatValue(data) {
+        const { amount, currency } = data;
+        const currencies = ['USD', 'NGN', 'EUR'];
+        return amount.toLocaleString() + ' '+ currencies.find(c => c.toLowerCase().includes(currency.toLowerCase()));
+      }
 }
 
 module.exports = new Donations();
