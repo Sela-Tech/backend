@@ -1228,6 +1228,10 @@ class Donations {
     // ************************************* web hook hnadlers ****************************************** //
 
 
+    // formatCurrency(data){
+    //     const symbols = ['$', 'N']
+    // }
+
 }
 
 module.exports = new Donations();
