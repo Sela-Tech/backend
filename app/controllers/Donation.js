@@ -114,7 +114,7 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
-
+            amount = Number(amount / 100);
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
                 source: stripeToken,
@@ -386,11 +386,12 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
+            amount = Number(amount / 100);
 
             // create charge on card
             const { id, status, balance_transaction } = await this.stripe.charges.create({
                 source: sourceToken,
-                amount: Number(amount / 100),
+                amount,
                 description: description || "",
                 currency: currency || "eur",
 
@@ -458,6 +459,8 @@ class Donations {
                 if (isNewUser) {
                     // send email to user notifying them about their account and 
                     //  donation
+                    this.notification.accountCreationOnDonation(email);
+
                 }
 
                 return res.status(200).json({ message: `Thank You for funding this project.` })
@@ -600,6 +603,8 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
+            amount = Number(amount / 100)
+
             // using plaid
             // create an exchange token with plaid
             this.plaidClient.exchangePublicToken(publicToken)
@@ -613,7 +618,7 @@ class Donations {
 
                             let { id, status, balance_transaction } = await this.stripe.charges.create({
                                 source: bankAccountToken,
-                                amount: Number(amount / 100),
+                                amount,
                                 description: description || "",
                                 currency: currency || "usd",
 
@@ -855,14 +860,14 @@ class Donations {
         try {
             let { type, data: { object } } = this.stripe.webhooks.constructEvent(req.rawBody, sig, this.stripe_webhook_secret);
 
-            let { id, status, amount } = object;
+            let { id, status } = object;
             // Handle the event
             switch (type) {
                 case 'charge.succeeded':
-                    await this.handleSuccessfullStripeCharge(req, res, { id, status, amount })
+                    await this.handleSuccessfullStripeCharge(req, res, { id, status })
                     break;
                 case 'charge.failed':
-                    await this.handleSuccessfullStripeCharge(req, res, { id, status, amount })
+                    await this.handleSuccessfullStripeCharge(req, res, { id, status })
                     break;
 
                 // ... handle other event types
@@ -1061,7 +1066,7 @@ class Donations {
                 // notify user about their successfull contribution
 
                 this.notification.donationUpdate({
-                    amount,
+                    amount:this.formatValue({amount:payment.value.local.amount, currency:payment.value.local.currency}),
                     name: dontn.firstName,
                     email: dontn.email,
                     project: project.name
@@ -1093,7 +1098,7 @@ class Donations {
     /**
      *
      *
-     * @param {*} req
+     * @param {*} req l let amount = et amount = 
      * @param {*} res
      * @param {*} event
      * @returns
@@ -1126,7 +1131,7 @@ class Donations {
     async handleSuccessfullStripeCharge(req, res, data) {
         try {
 
-            const { id, status, amount } = data;
+            const { id, status } = data;
 
             let donation = await Donation.findOne({ chargeId: id, status: 'pending' });
 
@@ -1149,6 +1154,8 @@ class Donations {
 
                 // update donation status,
                 donation.status = status;
+
+                let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
 
                 console.log(donation.status)
 
@@ -1187,7 +1194,7 @@ class Donations {
      */
     async handleFailureStripeCharge(req, res, data) {
 
-        const { id, status, amount } = data;
+        const { id, status } = data;
 
         let donation = await Donation.findOne({ chargeId: id, status: 'pending' });
 
@@ -1206,6 +1213,8 @@ class Donations {
             await donation.save();
 
 
+            let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
+
             // notify user about their failed contribution
 
             this.notification.donationUpdateFailed({
@@ -1223,6 +1232,11 @@ class Donations {
     // ************************************* web hook hnadlers ****************************************** //
 
 
+    formatValue(data) {
+        const { amount, currency } = data;
+        const currencies = ['USD', 'NGN', 'EUR'];
+        return amount.toLocaleString() + ' '+ currencies.find(c => c.toLowerCase().includes(currency.toLowerCase()));
+      }
 }
 
 module.exports = new Donations();
