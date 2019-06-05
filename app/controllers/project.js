@@ -7,10 +7,12 @@ const mongoose = require("mongoose"),
   Transaction = mongoose.model("Transaction"),
   Proposal = mongoose.model("Proposal"),
   Donation = mongoose.model("Donation");
-const moment = require('moment')
+const moment = require('moment');
 
 const notify = require('../helper/notifications');
 const Helper = require('../helper/helper');
+const validator = require('validator');
+const _= require('lodash');
 
 let helper = new Helper();
 
@@ -415,9 +417,9 @@ class Projects {
             { status: "COMPLETED" },
             { status: "charge_confirmed" }]
         });
-        if(donations.length>0){
+        if (donations.length > 0) {
           donations = donations.map((donation) => { return donation.amountDonated }).reduce((current, next) => current + next);
-        }else{
+        } else {
           donations = 0
         }
 
@@ -476,18 +478,45 @@ class Projects {
    * @memberof Projects
    */
   static async add_stakeholder(req, res) {
+
     try {
 
-      let stakeholders = req.body.stakeholders.map(s => {
+
+      let stakeholderArray = req.body.stakeholders;
+
+      // separate emails from the list of stakeholders
+      let extractEmail = stakeholderArray.filter((data) => {
+        return data && validator.isEmail(data)
+      });
+
+      // remove extracted email from stakeholderArray
+      for (let item of extractEmail) {
+        let index = stakeholderArray.indexOf(item);
+        stakeholderArray.splice(index, 1);
+      }
+
+      // get the users via the email
+      // let usersIdFromEmail= await Projects.getUserFromEmail(extractEmail)
+
+      // merge back the retrieved ids from email into the stakeholderArray
+      // stakeholderArray= [...new Set([...stakeholderArray,...usersIdFromEmail])];
+
+
+      let stakeholders = stakeholderArray.map(s => {
         return {
           user: {
             information: s
           }
         }
       });
+
+
+
       let project = await Project.findOne({ _id: req.body.id });
 
-      // let shouldAddContractor = await helper.shouldAddContractor(req.body.stakeholders, project.stakeholders);
+
+
+      // let shouldAddContractor = await helper.shouldAddContractor(stakeholderArray, project.stakeholders);
 
       const old_stakeholders = project.stakeholders.map(s => ({
         user: {
@@ -502,7 +531,7 @@ class Projects {
       let foundMatch = false;
       let foundPerson = {};
 
-      if (req.body.stakeholders.length > 0) {
+      if (stakeholderArray.length > 0) {
         while (breakCode === false) {
 
           foundMatch = old_stakeholders.some(e => {
@@ -514,7 +543,7 @@ class Projects {
           if (foundMatch === true) breakCode = true;
           count = count + 1;
 
-          if (count === req.body.stakeholders.length) breakCode = true;
+          if (count === stakeholderArray.length) breakCode = true;
         }
 
         if (breakCode === true && foundMatch === true) {
@@ -542,7 +571,7 @@ class Projects {
         let saveResponse = await project.save();
 
         if (saveResponse) {
-          await notify.notifyAddedStakeholders(req, req.body.stakeholders, project);
+          await notify.notifyAddedStakeholders(req, stakeholderArray, project);
           return res.status(200).json({
             message: "Stakeholder Added Sucessfully"
           });
@@ -742,6 +771,18 @@ class Projects {
       console.log(error)
       return res.status(500).json({ message: "internal server error" })
     }
+  }
+
+
+  // extract user id from email(s)
+  static async getUserFromEmail(emails) {
+    let users = await User.find({ email: [...emails] });
+    // extract user ids
+    if (users.length < 1) {
+      return [];
+    }
+    let ids = users.map(user => user._id.toString());
+    return ids;
   }
 }
 

@@ -9,7 +9,6 @@ var port = process.env.PORT || 3009;
 var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
-var dotenv = require("dotenv");
 const validator = require('express-validator');
 const mongodb = require('mongodb');
 
@@ -21,7 +20,7 @@ const io = require('socket.io')(http);
 
 var { pageNotFound, generalError } = require("./in-use/utils");
 
-dotenv.config();
+// dotenv.config();
 
 var mongooseInit = require(ROOT + "/config/initializers/mongoose");
 var passportInit = require(ROOT + "/config/initializers/passport");
