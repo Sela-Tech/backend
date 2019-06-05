@@ -89,6 +89,58 @@ class Donations {
     }
 
 
+    // ********************************************* static ************************************************** //
+    static async updateProjectStakeholder(project, donator) {
+        let stakeholders;
+
+        if (typeof project === 'object') {
+            stakeholders = project.stakeholders;
+
+            try {
+                if (stakeholders.map(stakeholder => stakeholder.user.information._id.toString()).includes(donator.toString())) {
+                    console.log('already a stakeholder')
+                    return;
+                }
+
+                project.stakeholders.push({ user: { agreed: true, status: "ACCEPTED", information: donator } });
+                await project.save();
+                return;
+
+            } catch (error) {
+                console.log(error.message)
+                return
+
+            }
+
+        } else if (typeof project === 'string') {
+            try {
+                let projectId = project;
+
+                project = await Project.findById(projectId);
+                stakeholders = project.stakeholders;
+
+
+                if (stakeholders.map(stakeholder => stakeholder.user.information._id.toString()).includes(donator.toString())) {
+                    console.log('already a stakeholder')
+                    return;
+                }
+
+                project.stakeholders.push({ user: { agreed: true, status: "ACCEPTED", information: donator } });
+                await project.save();
+                return;
+
+            } catch (error) {
+                console.log(error.message)
+                return
+            }
+        }
+
+
+
+    }
+
+    // ********************************************* static ************************************************** //
+
 
 
     // ********************************************* Card ************************************************** //
@@ -114,16 +166,16 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
+
             amount = Number(amount / 100);
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
                 source: stripeToken,
-                amount: Number(amount / 100),
+                amount,
                 description: description || "",
                 currency: currency || "usd",
 
             });
-
 
             if (status === 'succeeded') {
 
@@ -186,13 +238,22 @@ class Donations {
                     this.notification.accountCreationOnDonation(email);
                 }
 
+                const donator = donationObj.userId;
+
+                // update project stakeholder
+                await Donations.updateProjectStakeholder(project, donator)
+
                 return res.status(200).json({ message: `Thank You for funding this project.` })
             }
 
         } catch (error) {
             if (error.type === 'StripeInvalidRequestError') {
+                console.log(error)
+                console.log(error.message)
                 return res.status(error.statusCode).send({ error: error.message });
             }
+
+            console.log(error)
             return res.status(500).send({ error: error.message });
 
         }
@@ -284,6 +345,8 @@ class Donations {
                 //  donation
                 this.notification.accountCreationOnDonation(email);
             }
+
+            await Donations.updateProjectStakeholder(donationObj.project, donationObj.userId)
 
             return res.status(200).json({ message: `Thank You for funding this project.` })
         } catch (error) {
@@ -398,8 +461,6 @@ class Donations {
             });
 
 
-            console.log(status);
-
             if (status === 'succeeded') {
 
                 let donationObj = {
@@ -462,6 +523,8 @@ class Donations {
                     this.notification.accountCreationOnDonation(email);
 
                 }
+
+                await Donations.updateProjectStakeholder(project, donationObj.userId);
 
                 return res.status(200).json({ message: `Thank You for funding this project.` })
             }
@@ -1066,7 +1129,7 @@ class Donations {
                 // notify user about their successfull contribution
 
                 this.notification.donationUpdate({
-                    amount:this.formatValue({amount:payment.value.local.amount, currency:payment.value.local.currency}),
+                    amount: this.formatValue({ amount: payment.value.local.amount, currency: payment.value.local.currency }),
                     name: dontn.firstName,
                     email: dontn.email,
                     project: project.name
@@ -1080,6 +1143,9 @@ class Donations {
                     //  donation
                     this.notification.accountCreationOnDonation(email);
                 }
+
+                await Donations.updateProjectStakeholder(project, dontn.userId)
+
             }
 
 
@@ -1155,7 +1221,7 @@ class Donations {
                 // update donation status,
                 donation.status = status;
 
-                let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
+                let amount = this.formatValue({ amount: donation.amountDonated, currency: donation.currency });
 
                 console.log(donation.status)
 
@@ -1174,6 +1240,7 @@ class Donations {
                 // console.log('after ' + proj.raised)
                 console.log('donation status after ' + donation.status)
 
+                await Donations.updateProjectStakeholder(project, donation.userId)
 
             }
 
@@ -1213,7 +1280,7 @@ class Donations {
             await donation.save();
 
 
-            let amount = this.formatValue({amount:donation.amountDonated, currency:donation.currency});
+            let amount = this.formatValue({ amount: donation.amountDonated, currency: donation.currency });
 
             // notify user about their failed contribution
 
@@ -1235,8 +1302,8 @@ class Donations {
     formatValue(data) {
         const { amount, currency } = data;
         const currencies = ['USD', 'NGN', 'EUR'];
-        return amount.toLocaleString() + ' '+ currencies.find(c => c.toLowerCase().includes(currency.toLowerCase()));
-      }
+        return amount.toLocaleString() + ' ' + currencies.find(c => c.toLowerCase().includes(currency.toLowerCase()));
+    }
 }
 
 module.exports = new Donations();
