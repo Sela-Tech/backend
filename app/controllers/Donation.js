@@ -167,7 +167,6 @@ class Donations {
             }
 
 
-            amount = Number(amount / 100);
             // create charge on card
             const { id, status, balance_transaction, } = await this.stripe.charges.create({
                 source: stripeToken,
@@ -178,6 +177,8 @@ class Donations {
             });
 
             if (status === 'succeeded') {
+
+                amount = Number(amount / 100);
 
                 let donationObj = {
                     amountDonated: amount,
@@ -449,7 +450,6 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
-            amount = Number(amount / 100);
 
             // create charge on card
             const { id, status, balance_transaction } = await this.stripe.charges.create({
@@ -462,6 +462,7 @@ class Donations {
 
 
             if (status === 'succeeded') {
+                amount = Number(amount / 100);
 
                 let donationObj = {
                     amountDonated: amount,
@@ -666,7 +667,6 @@ class Donations {
                 return res.status(404).json({ message: "Project Not Found." });
             }
 
-            amount = Number(amount / 100)
 
             // using plaid
             // create an exchange token with plaid
@@ -692,6 +692,8 @@ class Donations {
                                 return res.status(200).json({ message: "Transaction successfull" });
 
                             } else if (status === 'pending') {
+                                amount = Number(amount / 100)
+
                                 let donationObj = {
                                     amountDonated: amount,
                                     project: projectId,

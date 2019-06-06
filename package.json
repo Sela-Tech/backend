@@ -86,6 +86,7 @@
     "validator": "^10.10.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.5",
     "concurrently": "^3.5.1",
     "coveralls": "^3.0.2",
     "faker": "^4.1.0",
