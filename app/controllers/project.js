@@ -12,7 +12,7 @@ const moment = require('moment');
 const notify = require('../helper/notifications');
 const Helper = require('../helper/helper');
 const validator = require('validator');
-const _= require('lodash');
+const _ = require('lodash');
 
 let helper = new Helper();
 
@@ -45,25 +45,25 @@ class Projects {
     const mimimumBalanceToCreateProject = 10;
 
     try {
-      let user = await User.findById(req.userId);
+      // let user = await User.findById(req.userId);                                                      //uncomment to restore blockchain
 
       // check user balance before creating a project
 
-      const userWalletBalance = await helper.getWalletBalance(req.token, user.publicKey);
+      // const userWalletBalance = await helper.getWalletBalance(req.token, user.publicKey);              //uncomment to restore blockchain
 
-      if (userWalletBalance.balances.success == true) {
+      // if (userWalletBalance.balances.success == true) {                                                //uncomment to restore blockchain
 
-        const balances = userWalletBalance.balances.balances
-        // get lumen balance
-        let lumenBalance = balances.find(balance => balance.type === 'native');
+      //   const balances = userWalletBalance.balances.balances                                           //uncomment to restore blockchain
+      //   // get lumen balance
+      //   let lumenBalance = balances.find(balance => balance.type === 'native');                        //uncomment to restore blockchain
 
-        if (Number(lumenBalance.balance) < mimimumBalanceToCreateProject) {
-          return res.json({ message: "You do not have enough XLM balance to create a project" })
-        }
+      //   if (Number(lumenBalance.balance) < mimimumBalanceToCreateProject) {                            //uncomment to restore blockchain
+      //     return res.json({ message: "You do not have enough XLM balance to create a project" })       //uncomment to restore blockchain
+      //   }                                                                                              //uncomment to restore blockchain
 
-      } else {
-        return res.status(404).json({ message: userWalletBalance.message })
-      }
+      // } else {                                                                                         //uncomment to restore blockchain
+      //   return res.status(404).json({ message: userWalletBalance.message })                            //uncomment to restore blockchain
+      // }                                                                                                //uncomment to restore blockchain
 
       if (projectObj.stakeholders && projectObj.stakeholders.length > 0) {
         // let shouldAddContractor = await helper.shouldAddContractor(projectObj.stakeholders, null)
@@ -105,23 +105,23 @@ class Projects {
 
         if (newP) {
 
-          const assetName = helper.generateAssetName();
-          let projectToken = {
-            assetName,
-            project: newProject._id,
-            implementationBudget: newProject.implementationBudget,
-            observationBudget: newProject.observationBudget,
-            publicKey: user.publicKey
-          }
+          // const assetName = helper.generateAssetName();                                                    //uncomment to restore blockchaine
+          // let projectToken = {                                                                             //uncomment to restore blockchaine
+          //   assetName,                                                                                     //uncomment to restore blockchaine
+          //   project: newProject._id,                                                                       //uncomment to restore blockchaine
+          //   implementationBudget: newProject.implementationBudget,                                         //uncomment to restore blockchaine
+          //   observationBudget: newProject.observationBudget,                                               //uncomment to restore blockchaine
+          //   publicKey: user.publicKey                                                                      //uncomment to restore blockchaine
+          // }                                                                                                //uncomment to restore blockchaine
 
-          let createdAsset = await helper.createAsset(projectToken, req.token);
+          // let createdAsset = await helper.createAsset(projectToken, req.token);                            //uncomment to restore blockchaine
 
-          if (createdAsset.success == true) {
-            newP.pst = assetName;
-            newP.issuingAccount = createdAsset.newProject.issuingAccount.pk
-            newP.distributionAccount = createdAsset.newProject.distributionAccount.pk
-            await newP.save();
-          }
+          // if (createdAsset.success == true) {                                                              //uncomment to restore blockchaine
+          //   newP.pst = assetName;                                                                           //uncomment to restore blockchaine
+          //   newP.issuingAccount = createdAsset.newProject.issuingAccount.pk                                  //uncomment to restore blockchaine
+          //   newP.distributionAccount = createdAsset.newProject.distributionAccount.pk                        //uncomment to restore blockchaine
+          //   await newP.save();                                                                               //uncomment to restore blockchaine
+          // }                                                                                                  //uncomment to restore blockchaine
 
           if (SHs.length > 0) {
             let project = await Project.findById(newP._id);

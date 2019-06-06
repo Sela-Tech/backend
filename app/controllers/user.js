@@ -361,173 +361,173 @@ exports.login = (req, res) => {
 
     // temporary code...remove later
 
-    if (user.activation === "approved" && user.isVerified === true) {
+    // if (user.activation === "approved" && user.isVerified === true) {
 
-      if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
+    //   if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
 
-        // // create wallet for user have not wallet
-        (async (user) => {
-          let role = helper.getRole(user);
-          let wallet = await helper.createWallet(user._id, role);
+    //     // // create wallet for user have not wallet
+    //     (async (user) => {
+    //       let role = helper.getRole(user);
+    //       let wallet = await helper.createWallet(user._id, role);
 
-          if (wallet.success == true) {
-            user.publicKey = wallet.publicKey
-            // updated user with detail
-            await user.save();
-          }
-        })(user);
-      }
+    //       if (wallet.success == true) {
+    //         user.publicKey = wallet.publicKey
+    //         // updated user with detail
+    //         await user.save();
+    //       }
+    //     })(user);
+    //   }
 
-      const { isFunder, isEvaluator, isContractor } = user;
+    //   const { isFunder, isEvaluator, isContractor } = user;
 
-      if (Boolean(user.organization)) {
-        signThis.organization = {
-          name: user.organization.name,
-          id: user.organization._id
-        }
-      } else {
-        signThis.organization = {
-          name: "No Organization",
-          id: ""
-        }
-      }
+    //   if (Boolean(user.organization)) {
+    //     signThis.organization = {
+    //       name: user.organization.name,
+    //       id: user.organization._id
+    //     }
+    //   } else {
+    //     signThis.organization = {
+    //       name: "No Organization",
+    //       id: ""
+    //     }
+    //   }
 
-      signThis = {
-        ...signThis,
-        profilePhoto: user.profilePhoto,
-        id: user._id,
-        isFunder,
-        isEvaluator,
-        isContractor,
-        firstName: user.firstName,
-        phone: user.phone,
-        email: user.email,
-        lastName: user.lastName,
-        areasOfInterest: user.areasOfInterest,
+    //   signThis = {
+    //     ...signThis,
+    //     profilePhoto: user.profilePhoto,
+    //     id: user._id,
+    //     isFunder,
+    //     isEvaluator,
+    //     isContractor,
+    //     firstName: user.firstName,
+    //     phone: user.phone,
+    //     email: user.email,
+    //     lastName: user.lastName,
+    //     areasOfInterest: user.areasOfInterest,
 
-      };
+    //   };
 
-      var token = jwt.sign(signThis, process.env.SECRET, {
-        expiresIn: tokenValidityPeriod
-      });
+    //   var token = jwt.sign(signThis, process.env.SECRET, {
+    //     expiresIn: tokenValidityPeriod
+    //   });
 
 
-      return res.status(200).json({
-        ...successRes,
-        ...signThis,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        organization: user.organization,
-        publicKey: user.publicKey,
-        token
-      });
-    } else if (user.activation === "pending" && user.isVerified === true) {
+    //   return res.status(200).json({
+    //     ...successRes,
+    //     ...signThis,
+    //     firstName: user.firstName,
+    //     lastName: user.lastName,
+    //     organization: user.organization,
+    //     publicKey: user.publicKey,
+    //     token
+    //   });
+    // } else if (user.activation === "pending" && user.isVerified === true) {
 
-      failRes.message = inactiveAccountMsg;
-      return res.status(401).json(failRes);
+    //   failRes.message = inactiveAccountMsg;
+    //   return res.status(401).json(failRes);
 
-    } else if (user.activation === "approved" && user.isVerified === false) {
+    // } else if (user.activation === "approved" && user.isVerified === false) {
 
-      failRes.message = unverifiedAccount;
-      return res.status(401).json(failRes);
+    //   failRes.message = unverifiedAccount;
+    //   return res.status(401).json(failRes);
 
-    } else if (user.activation === "pending" && user.isVerified === false) {
+    // } else if (user.activation === "pending" && user.isVerified === false) {
 
-      failRes.message = [unverifiedAccount, inactiveAccountMsg]
-      return res.status(401).json(failRes);
-    }
+    //   failRes.message = [unverifiedAccount, inactiveAccountMsg]
+    //   return res.status(401).json(failRes);
+    // }
 
 
     // uncomment code below 
-    // user.comparePassword(req.body.password, (passErr, isMatch) => {
-    //   if (passErr) {
-    //     failRes.message = passErr.name + ": " + passErr.message;
-    //     return res.status(500).json(failRes);
-    //   }
-    //   if (!isMatch) {
-    //     failRes.message =
-    //       "That is the wrong password for this account. Please try again";
-    //     return res.status(401).json(failRes);
-    //   }
+    user.comparePassword(req.body.password, (passErr, isMatch) => {
+      if (passErr) {
+        failRes.message = passErr.name + ": " + passErr.message;
+        return res.status(500).json(failRes);
+      }
+      if (!isMatch) {
+        failRes.message =
+          "That is the wrong password for this account. Please try again";
+        return res.status(401).json(failRes);
+      }
 
-    //   if (user.activation === "approved" && user.isVerified === true) {
+      if (user.activation === "approved" && user.isVerified === true) {
 
-    //     if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
+        if (!user.publicKey || user.publicKey == null || user.publicKey == "") {
 
-    //       // // create wallet for user have not wallet
-    //       (async (user) => {
-    //         let role = helper.getRole(user);
-    //         let wallet = await helper.createWallet(user._id, role);
+          // // create wallet for user have not wallet
+          (async (user) => {
+            let role = helper.getRole(user);
+            let wallet = await helper.createWallet(user._id, role);
 
-    //         if (wallet.success == true) {
-    //           user.publicKey = wallet.publicKey
-    //           // updated user with detail
-    //           await user.save();
-    //         }
-    //       })(user);
-    //     }
+            if (wallet.success == true) {
+              user.publicKey = wallet.publicKey
+              // updated user with detail
+              await user.save();
+            }
+          })(user);
+        }
 
-    //     const { isFunder, isEvaluator, isContractor } = user;
+        const { isFunder, isEvaluator, isContractor } = user;
 
-    //     if (Boolean(user.organization)) {
-    //       signThis.organization = {
-    //         name: user.organization.name,
-    //         id: user.organization._id
-    //       }
-    //     } else {
-    //       signThis.organization = {
-    //         name: "No Organization",
-    //         id: ""
-    //       }
-    //     }
+        if (Boolean(user.organization)) {
+          signThis.organization = {
+            name: user.organization.name,
+            id: user.organization._id
+          }
+        } else {
+          signThis.organization = {
+            name: "No Organization",
+            id: ""
+          }
+        }
 
-    //     signThis = {
-    //       ...signThis,
-    //       profilePhoto: user.profilePhoto,
-    //       id: user._id,
-    //       isFunder,
-    //       isEvaluator,
-    //       isContractor,
-    //       firstName: user.firstName,
-    //       phone: user.phone,
-    //       email: user.email,
-    //       lastName: user.lastName,
-    //       areasOfInterest: user.areasOfInterest,
+        signThis = {
+          ...signThis,
+          profilePhoto: user.profilePhoto,
+          id: user._id,
+          isFunder,
+          isEvaluator,
+          isContractor,
+          firstName: user.firstName,
+          phone: user.phone,
+          email: user.email,
+          lastName: user.lastName,
+          areasOfInterest: user.areasOfInterest,
 
-    //     };
+        };
 
-    //     var token = jwt.sign(signThis, process.env.SECRET, {
-    //       expiresIn: tokenValidityPeriod
-    //     });
-
-
-    //     return res.status(200).json({
-    //       ...successRes,
-    //       ...signThis,
-    //       firstName: user.firstName,
-    //       lastName: user.lastName,
-    //       organization: user.organization,
-    //       publicKey: user.publicKey,
-    //       token
-    //     });
-    //   } else if (user.activation === "pending" && user.isVerified === true) {
-
-    //     failRes.message = inactiveAccountMsg;
-    //     return res.status(401).json(failRes);
-
-    //   } else if (user.activation === "approved" && user.isVerified === false) {
-
-    //     failRes.message = unverifiedAccount;
-    //     return res.status(401).json(failRes);
-
-    //   } else if (user.activation === "pending" && user.isVerified === false) {
-
-    //     failRes.message = [unverifiedAccount, inactiveAccountMsg]
-    //     return res.status(401).json(failRes);
-    //   }
+        var token = jwt.sign(signThis, process.env.SECRET, {
+          expiresIn: tokenValidityPeriod
+        });
 
 
-    // });
+        return res.status(200).json({
+          ...successRes,
+          ...signThis,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          organization: user.organization,
+          publicKey: user.publicKey,
+          token
+        });
+      } else if (user.activation === "pending" && user.isVerified === true) {
+
+        failRes.message = inactiveAccountMsg;
+        return res.status(401).json(failRes);
+
+      } else if (user.activation === "approved" && user.isVerified === false) {
+
+        failRes.message = unverifiedAccount;
+        return res.status(401).json(failRes);
+
+      } else if (user.activation === "pending" && user.isVerified === false) {
+
+        failRes.message = [unverifiedAccount, inactiveAccountMsg]
+        return res.status(401).json(failRes);
+      }
+
+
+    });
   });
 
 };
