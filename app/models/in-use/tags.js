@@ -18,6 +18,11 @@ const impactTagStructure = {
         default: null
     },
 
+    description: {
+        type: String,
+        default: null
+    },
+
     impactStandardId: {
         type: ObjectId,
         ref: "ImpactStandard",
