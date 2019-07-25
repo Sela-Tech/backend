@@ -1,10 +1,10 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate=require('mongoose-paginate'); 
 
-var stakeholderStructure = {
+const stakeholderStructure = {
   project: {
     type: ObjectId,
     ref: "Project"
@@ -20,7 +20,7 @@ var stakeholderStructure = {
   }
 };
 
-var stakeholderSchema = new Schema(stakeholderStructure);
+const stakeholderSchema = new Schema(stakeholderStructure);
 stakeholderSchema.plugin(autoPopulate);
 stakeholderSchema.plugin(mongoosePaginate);
 module.exports = mongoose.model("Stakeholder", stakeholderSchema);

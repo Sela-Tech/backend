@@ -1,10 +1,10 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate=require('mongoose-paginate'); 
 
-var uploadsSchema = new Schema({
+const uploadsSchema = new Schema({
   url: {
     type: String,
     required: true

@@ -1,10 +1,12 @@
-var _ = require("underscore");
-var bcrypt = require("bcrypt");
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
+const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
+
 
 // import related models
 const Project = require("./project");
@@ -16,7 +18,7 @@ const Save = require("./save_project");
 const Task = require("./task");
 const Upload = require("./upload");
 
-var userStructure = {
+const userStructure = {
   organization: {
     type: ObjectId,
     ref: "Organization",
@@ -161,38 +163,17 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var transformer = function (doc, ret) { };
+const transformer = function (doc, ret) { };
 
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  autoIndex: false,
-  safe: true,
-  strict: process.env.NODE_ENV !== "development" // Only use strict in production
-};
 
-var userSchemaOptions = _.extend({}, schemaOptions, {
+const userSchemaOptions = _.extend({}, schemaOptions, {
   collection: "users",
   toJSON: {
     transform: transformer // Add a Transformer to remove hide private fields
   }
 });
 
-var UserSchema = new Schema(userStructure, userSchemaOptions);
+const UserSchema = new Schema(userStructure, userSchemaOptions);
 
 UserSchema.pre("save", true, function (next, done) {
   next();

@@ -1,8 +1,10 @@
-var _ = require("underscore");
-// var moment = require("moment");
-var mongoose = require("mongoose");
-var autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
+// const moment = require("moment");
+const mongoose = require("mongoose");
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
+
 
 //import related models
 const Save = require('./save_project');
@@ -14,32 +16,11 @@ const Milestone = require("./milestone");
 const Task = require("./task");
 const Transaction = require("./transaction");
 
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  usePushEach: true,
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
 
-var projectStructure = {
+const projectStructure = {
   name: {
     type: String,
     required: true,
@@ -177,11 +158,11 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var projectSchemaOptions = _.extend({}, schemaOptions, {
+const projectSchemaOptions = _.extend({}, schemaOptions, {
   collection: "projects"
 });
 
-var ProjectSchema = new Schema(projectStructure, projectSchemaOptions);
+const ProjectSchema = new Schema(projectStructure, projectSchemaOptions);
 
 ProjectSchema.pre("save", true, function (next, done) {
   next();

@@ -1,9 +1,10 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
-var _ = require("underscore");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
 const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
 
 
 
@@ -11,29 +12,7 @@ const mongoosePaginate = require('mongoose-paginate');
 const Project = require('./project');
 const Proposal = require('./proposal');
 
-var schemaOptions = {
-    minimize: false,
-    id: false,
-    toJSON: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    toObject: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    timestamps: true,
-    autoIndex: process.env.NODE_ENV === "development",
-    strict: process.env.NODE_ENV !== "development"
-};
-
-var milestoneStructure = {
+const milestoneStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
@@ -87,7 +66,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var milestoneSchema = new Schema(milestoneStructure, schemaOptions);
+const milestoneSchema = new Schema(milestoneStructure, schemaOptions);
 
 milestoneSchema.post('remove', async (next) => {
     try {

@@ -1,35 +1,16 @@
-var _ = require("underscore");
-var mongoose = require("mongoose");
-var autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
+const mongoose = require("mongoose");
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
 
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var Mixed = Schema.Types.Mixed;
 
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  usePushEach : true,
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const Mixed = Schema.Types.Mixed;
 
-var traceLogInitEntryStructure = {
+
+const traceLogInitEntryStructure = {
   tableName: {
     type: String,
     required: true,
@@ -60,11 +41,11 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-var traceLogInitEntrySchemaOptions = _.extend({}, schemaOptions, {
+const traceLogInitEntrySchemaOptions = _.extend({}, schemaOptions, {
   collection: "traceLogInitEntry"
 });
 
-var TraceLogInitEntrySchema = new Schema(traceLogInitEntryStructure, traceLogInitEntrySchemaOptions);
+const TraceLogInitEntrySchema = new Schema(traceLogInitEntryStructure, traceLogInitEntrySchemaOptions);
 
 TraceLogInitEntrySchema.plugin(autoPopulate);
 TraceLogInitEntrySchema.plugin(mongoosePaginate);

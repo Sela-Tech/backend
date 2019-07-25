@@ -218,31 +218,6 @@ class Milestones {
         }
     }
 
-
-    /**
-     *
-     *
-     * @static
-     * @param {*} req
-     * @param {*} res
-     * @memberof Milestones
-     */
-    static async updateMilestone(req, res) {
-
-    }
-
-
-    /**
-     *
-     *
-     * @static
-     * @param {*} req
-     * @param {*} res
-     * @memberof Milestones
-     */
-    static async deleteMilestone(req, res) {
-
-    }
 }
 
 module.exports = { Milestones };

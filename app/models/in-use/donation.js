@@ -1,11 +1,12 @@
-var autoPopulate = require("mongoose-autopopulate");
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const {schemaOptions} =require("./schemaOptions")
 
 const mongoosePaginate = require('mongoose-paginate');
 
-var donationStructure = {
+const donationStructure = {
     email: {
         type: String,
         required: true
@@ -76,29 +77,6 @@ var donationStructure = {
 
 };
 
-var schemaOptions = {
-    collection: "donations",
-    minimize: false,
-    id: false,
-    toJSON: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    toObject: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    timestamps: true,
-    usePushEach: true,
-    autoIndex: process.env.NODE_ENV === "development",
-    strict: process.env.NODE_ENV !== "development"
-};
 
 if (process.env.NODE_ENV === "development") {
     donationStructure.test = {
@@ -109,7 +87,7 @@ if (process.env.NODE_ENV === "development") {
 
 
 
-var DonationSchema = new Schema(donationStructure, schemaOptions);
+const DonationSchema = new Schema(donationStructure, schemaOptions);
 
 
 DonationSchema.plugin(mongoosePaginate);

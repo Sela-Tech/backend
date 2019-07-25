@@ -311,7 +311,7 @@ class Update {
 
                 let update = await new TaskUpdate(updateObj);
 
-                return res.json(update)
+                // return res.json(update)
 
                 if (update) {
                     return res.status(201).json(update)

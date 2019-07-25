@@ -248,9 +248,6 @@ class Stakeholder {
 
     }
 
-    acceptRequestToJoinProject(req, res) {
-
-    }
 }
 
 module.exports = Stakeholder;

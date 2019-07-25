@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const coinBase = require('coinbase-commerce-node');
 const paypalClient = require('../helper/paypalClient');
 const paypalCheckout = require('@paypal/checkout-server-sdk');
+const Paystack = require('paystack-api')
 
 
 const mongoose = require("mongoose"),
@@ -28,6 +29,7 @@ class Donations {
         this.plaid_public_key = '';
         this.plaid_secret = '';
         this.stripe_webhook_secret = '';
+        this.paystack_secret = ''
 
         this.coinBase = coinBase.Webhook;
 
@@ -37,22 +39,24 @@ class Donations {
 
         if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
-            const { STRIPE_TEST_SECRET, PLAID_TEST_CLIENT, PLAID_TEST_SECRET, PLAID_TEST_PUBLIC_KEY, STRIPE_TEST_WEBHOOK_SECRET } = process.env;
+            const { STRIPE_TEST_SECRET, PLAID_TEST_CLIENT, PLAID_TEST_SECRET, PLAID_TEST_PUBLIC_KEY, STRIPE_TEST_WEBHOOK_SECRET, PAYSTACK_TEST_SECRET } = process.env;
 
             this.stripe_secret = STRIPE_TEST_SECRET;
             this.stripe_webhook_secret = STRIPE_TEST_WEBHOOK_SECRET;
             this.plaid_client = PLAID_TEST_CLIENT;
             this.plaid_public_key = PLAID_TEST_PUBLIC_KEY;
             this.plaid_secret = PLAID_TEST_SECRET
+            this.paystack_secret = PAYSTACK_TEST_SECRET
 
         } else if (process.env.NODE_ENV = 'production') {
-            const { STRIPE_SECRET, PLAID_CLIENT, PLAID_SECRET, PLAID_PUBLIC_KEY, STRIPE_WEBHOOK_SECRET } = process.env;
+            const { STRIPE_SECRET, PLAID_CLIENT, PLAID_SECRET, PLAID_PUBLIC_KEY, STRIPE_WEBHOOK_SECRET, PAYSTACK_SECRET } = process.env;
 
             this.stripe_secret = STRIPE_SECRET;
             this.stripe_webhook_secret = STRIPE_WEBHOOK_SECRET;
             this.plaid_client = PLAID_CLIENT;
             this.plaid_public_key = PLAID_PUBLIC_KEY;
             this.plaid_secret = PLAID_SECRET
+            this.paystack_secret = PAYSTACK_SECRET
 
         }
 
@@ -68,6 +72,9 @@ class Donations {
             this.plaid_public_key,
             this.getPlaidEnvironment(Plaid)
         );
+
+        // initialize paystack
+        this.paystack = Paystack(this.paystack_secret)
 
     }
 
@@ -228,11 +235,6 @@ class Donations {
                 await new Donation(donationObj).save();
 
 
-                // update project
-                // project.raised = Number(project.raised) + Number(amount / 100);
-
-                // await Promise.all([donation.save()]);
-
                 if (isNewUser) {
                     // send email to user notifying them about their account and 
                     //  donation
@@ -249,8 +251,6 @@ class Donations {
 
         } catch (error) {
             if (error.type === 'StripeInvalidRequestError') {
-                console.log(error)
-                console.log(error.message)
                 return res.status(error.statusCode).send({ error: error.message });
             }
 
@@ -363,6 +363,101 @@ class Donations {
     }
 
 
+    async paystackCard(req, res) {
+        const { reference, amount, description, currency, projectId, email, firstName, lastName } = req.body;
+
+        let paystackPayment;
+        try {
+            paystackPayment = await this.paystack.transaction.verify({ reference });
+        } catch (error) {
+            console.log(error)
+            return res.status(error.statusCode).send({ error: error.message });
+        }
+
+        const { data: { status, id } } = paystackPayment;
+
+        if (status !== 'success') {
+            return res.status(200).send({ message: "Your Donation was not successful" });
+        }
+
+
+        try {
+
+            // verify project
+            let project = await Project.findById(projectId);
+
+            if (project == null) {
+                return res.status(404).json({ message: "Project Not Found." });
+            }
+
+            let donationObj = {
+                amountDonated: amount,
+                project: projectId,
+                currency: currency || "NGN",
+                paymentMethod: req.body.method,
+                description,
+                transaction: reference,
+                status,
+                chargeId: id,
+                email,
+                service: "paystack"
+
+            }
+
+            let user = await User.findOne({ email });
+            let newUser;
+            let isNewUser = false;
+
+            if (user == null) {
+
+                const userObj = {
+                    email,
+                    firstName,
+                    lastName,
+                    password: crypto.randomBytes(5).toString('hex'),
+                    isPassiveFunder: true
+                }
+
+                newUser = await new User(userObj).save();
+
+                donationObj.firstName = newUser.firstName;
+                donationObj.lastName = newUser.lastName;
+                donationObj.hasSelaAccount = true;
+                donationObj.userId = newUser._id;
+
+                isNewUser = true;
+
+            } else {
+                donationObj.hasSelaAccount = true;
+                donationObj.userId = user._id;
+                donationObj.firstName = user.firstName;
+                donationObj.lastName = user.lastName;
+            }
+
+            // create a donation instance
+            await new Donation(donationObj).save();
+
+            if (isNewUser) {
+                // send email to user notifying them about their account and 
+                //  donation
+                this.notification.accountCreationOnDonation(email);
+            }
+
+            const donator = donationObj.userId;
+
+            // update project stakeholder
+            await Donations.updateProjectStakeholder(project, donator)
+
+            return res.status(200).json({ message: `Thank You for funding this project.` })
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).send({ error: error.message });
+        }
+
+    }
+
+
     /**
      *
      *
@@ -380,8 +475,11 @@ class Donations {
             case 'card.stripe':
                 await this.stripeCard(req, res)
                 break;
-
+            case 'card.paystack':
+                await this.paystackCard(req, res)
+                break;
             default:
+                (() => { return res.status(400).json({ message: "invalid transfer medium. \n valid type:['card.stripe','card.paypal','card.paystack' ]" }) })();
                 break;
         }
 
@@ -891,6 +989,7 @@ class Donations {
                     return this.crypto(req, res);
 
                 default:
+                    (() => { return res.status(400).json({ message: "invalid transfer medium. \n valid type:['transfer','card','crypto' ]" }) })();
                     break;
             }
 
