@@ -20,7 +20,7 @@ const impactMetricDescriptorStructure = {
 
     tagId: {
         type: ObjectId,
-        ref: "ImpactTag",
+        ref: "ImpactCategory",
         autoPopulate: {
             select:
                 "name _id"

@@ -7,7 +7,7 @@ const { schemaOptions } = require("./schemaOptions");
 const mongoosePaginate = require('mongoose-paginate');
 
 
-const impactTagStructure = {
+const ImpactCategoryStructure = {
     name: {
         type: String,
         required: true
@@ -36,17 +36,17 @@ const impactTagStructure = {
 
 
 if (process.env.NODE_ENV === "development") {
-    impactTagStructure.test = {
+    ImpactCategoryStructure.test = {
         type: Boolean,
         default: true
     };
 }
 
 
-const impactTagSchema = new Schema(impactTagStructure, schemaOptions);
+const ImpactCategorySchema = new Schema(ImpactCategoryStructure, schemaOptions);
 
 
-impactTagSchema.plugin(autoPopulate);
-impactTagSchema.plugin(mongoosePaginate);
+ImpactCategorySchema.plugin(autoPopulate);
+ImpactCategorySchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model("ImpactTag", impactTagSchema);
+module.exports = mongoose.model("ImpactCategory", ImpactCategorySchema);
