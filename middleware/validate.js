@@ -135,6 +135,24 @@ const validator = {
       .notEmpty()
   },
 
+  validateAddImpactStandard(req, res) {
+    req
+      .checkBody("name", "Impact Standard name cannot be empty.")
+      .notEmpty()
+    req
+      .checkBody("description", "description cannot be empty.")
+      .notEmpty()
+  },
+
+  validateAddImpactCategory(req, res) {
+    req
+      .checkBody("name", "Impact Category name cannot be empty.")
+      .notEmpty()
+    req
+      .checkBody("impactStandardId", "Please select an impact standard.")
+      .notEmpty()
+  },
+
   // capitalize First letter
   capitalizeFirst(name) {
     return name.charAt(0).toUpperCase() + name.slice(1)

@@ -115,10 +115,6 @@ app.use(
 
 // http.Server(app);
 
-// // backup database
-// (async () => {
-//   mongoexport 
-// })();
 
 if (process.env.NODE_ENV === "development") {
   environmentsDev.call(app);
