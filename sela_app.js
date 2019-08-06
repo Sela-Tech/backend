@@ -10,8 +10,8 @@ var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 const validator = require('express-validator');
-const mongodb = require('mongodb');
-// const helmet = require('helmet')
+// const fileUpload = require('express-fileupload');
+const helmet = require('helmet')
 
 var http = require("http").Server(app);
 
@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
 
 
 app.disable('x-powered-by');
-
+app.use(helmet())
 app.use(logger("dev"));
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
@@ -70,6 +70,8 @@ app.use(bodyParser.json({
   }
 }));
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// app.use(fileUpload());
 
 app.use(cors());
 

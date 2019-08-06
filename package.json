@@ -54,6 +54,7 @@
     "express-messages": "*",
     "express-session": "^1.15.6",
     "express-validator": "*",
+    "helmet": "^3.20.0",
     "install": "^0.10.2",
     "ipfs-api": "^24.0.2",
     "js-schema": "^1.0.1",

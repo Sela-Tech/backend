@@ -8,6 +8,10 @@ const validate = require("../../middleware/validate");
 
 const Helper = require('../helper/helper');
 
+// const multer = require("multer");
+
+
+// const uploaded = multer({ dest: 'uploads/' })
 
 class ImpactStandardLIb {
 
@@ -158,10 +162,55 @@ class ImpactStandardLIb {
 
     }
 
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @memberof ImpactStandardLIb
+     */
+    async getImpactCategory(req, res) {
+        const { id } = req.query;
+
+        let data;
+
+        try {
+            if (id && (id !== null || id !== "")) {
+                let category = await ImpactCatgeory.findById(id).populate({ path: 'impactStandardId', select: 'name' });
+                console.log(category)
+                data = {
+                    impact_category: category
+                }
+            } else {
+                let categories = await ImpactCatgeory.find({}).populate({ path: 'impactStandardId', select: 'name' });
+                data = { impact_categories: categories };
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: "internal server error" });
+        }
+
+
+        if (data.hasOwnProperty('impact_category') && data['impact_category'] == null) {
+            return res.status(404).json({ data: { ...data, message: "impact category not found" } });
+        }
+
+        return res.status(200).json({ data });
+    }
+
 }
 
 class ImpactLibraryLib {
 
+    async uploadmetricCSV(req, res) {
+        // if (Object.keys(req.files).length == 0) {
+        //     return res.status(400).send('No files were uploaded.');
+        //   }
+
+        // uploaded.single('csv')(req, res, next)
+        console.log(req.files)
+    }
 }
 
 module.exports = {

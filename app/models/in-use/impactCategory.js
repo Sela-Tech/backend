@@ -28,7 +28,7 @@ const ImpactCategoryStructure = {
         ref: "ImpactStandard",
         autoPopulate: {
             select:
-                "name _id"
+                "name  _id"
         }
     }
 
