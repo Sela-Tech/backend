@@ -15,6 +15,9 @@ module.exports = (app) => {
   app
     .route("/impact-category/create").post(verifyToken, ImpactStandard.createImpactCategory.bind(ImpactStandard));
 
+  app
+    .route("/impact-standards").get(ImpactStandard.getImpactStandard.bind(ImpactStandard));
+
 
 
   // impact library
