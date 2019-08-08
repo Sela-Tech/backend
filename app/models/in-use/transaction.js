@@ -77,37 +77,7 @@ if (process.env.NODE_ENV === "development") {
 
 const TransactionSchema = new Schema(transactionStructure, schemaOptions);
 
-// TransactionSchema.pre("save", true, function(next, done) {
-//   next();
 
-//   this.updatedOn = new Date();
-
-//   done();
-// });
-
-// TransactionSchema.pre("update", true, function(next, done) {
-//   next();
-
-//   this.update(
-//     {},
-//     {
-//       $set: {
-//         updatedOn: new Date()
-//       }
-//     }
-//   );
-
-//   done();
-// });
-
-//Export model
-/*module.exports = function(connection) {
-
-    if (!connection) {
-        connection = mongoose;
-    }
-    connection.model('Transaction', TransactionSchema);
-};*/
 
 TransactionSchema.plugin(mongoosePaginate);
 // TransactionSchema.plugin(autoPopulate);

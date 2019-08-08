@@ -1,20 +1,23 @@
-const { ImpactLibraryLib, ImpactStandardLIb } = require("../app/controllers/ImpactLibrary");
+const { ImpactStandardLIb } = require("../app/controllers/ImpactStandard");
+const { ImpactMetricLib, } = require("../app/controllers/impactMetric");
 var { verifyToken } = require("../in-use/utils");
 const multer = require("multer");
 
-const storage = multer.diskStorage({
-  estination: function (req, file, cb) {
-    cb(null, '/tmp/my-uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now())
-  }
-})
-const uploaded = multer({ storage })
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, '/tmp/my-uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now())
+//   }
+// })
+
+const storage = multer.memoryStorage()
+const uploaded = multer({ storage: storage });
 
 
 
-const ImpactLibrary = new ImpactLibraryLib();
+const ImpactMetric = new ImpactMetricLib();
 const ImpactStandard = new ImpactStandardLIb();
 
 
@@ -37,7 +40,10 @@ module.exports = (app) => {
 
 
 
-  // impact library
+  // // impact library
+  // app
+  //   .route("/upload-metric-csv").post(uploaded.single('csv'), ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+
   app
-    .route("/upload-metric-csv").post(uploaded.single('csv'), ImpactLibrary.uploadmetricCSV.bind(ImpactLibrary));
+    .route("/upload-metric-csv").post(ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
 }

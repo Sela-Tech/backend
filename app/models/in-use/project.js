@@ -95,7 +95,7 @@ const projectStructure = {
     type: Number,
     default: 0
   },
- 
+
   documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
   transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
   proposals: [{ type: ObjectId, ref: "Proposal", autopopulate: { select: "proposalName milestones proposedBy assignedTo status" } }],

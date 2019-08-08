@@ -1,5 +1,5 @@
-module.exports = schemaOptions = {
-    collection: "donations",
+const schemaOptions = {
+    // collection: "donations",
     minimize: false,
     id: false,
     toJSON: {
@@ -21,3 +21,5 @@ module.exports = schemaOptions = {
     autoIndex: process.env.NODE_ENV === "development",
     strict: process.env.NODE_ENV !== "development"
 };
+
+module.exports = { schemaOptions }

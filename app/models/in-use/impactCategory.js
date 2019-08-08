@@ -13,6 +13,11 @@ const ImpactCategoryStructure = {
         required: true
     },
 
+    orderNo: {
+        type: String,
+        default: null
+    },
+
     logo: {
         type: String,
         default: null

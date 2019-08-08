@@ -64,7 +64,7 @@ app.use(bodyParser.json({
     let url = req.originalUrl;
     if (url.startsWith('/charge/stripe/webhook') || url.startsWith('/charge/stripe/webhook/dev') || url.startsWith('/charge/stripe/webhook/test')) {
       req.rawBody = buf.toString()
-    }else if( url.startsWith('/charge/coinbase/webhook')){
+    } else if (url.startsWith('/charge/coinbase/webhook')) {
       req.rawBody = buf.toString()
     }
   }

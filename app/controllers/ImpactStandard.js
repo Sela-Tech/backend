@@ -8,10 +8,16 @@ const validate = require("../../middleware/validate");
 
 const Helper = require('../helper/helper');
 
+
+// const file= require("../../iris.csv");
+
+
 // const multer = require("multer");
 
 
 // const uploaded = multer({ dest: 'uploads/' })
+
+const doesExist = Symbol();
 
 class ImpactStandardLIb {
 
@@ -20,6 +26,23 @@ class ImpactStandardLIb {
         this.ac = new AccessControl(grantsObject);
     }
 
+
+    async [doesExist](model, value) {
+
+        let exists = false;
+
+        try {
+            let existingRecord = await model.findOne({ "name": { $regex: new RegExp('^' + value, 'i') } });
+
+            if (existingRecord !== null) {
+                exists = true
+            }
+
+        } catch (error) {
+            throw new Error(error.message)
+        }
+        return exists;
+    }
 
     /**
      *
@@ -57,6 +80,16 @@ class ImpactStandardLIb {
             // }
 
 
+            // prevent impact standard from being created twice
+            //  let existingStandardByName = await ImpactStandard.findOne({ 'name': { $regex: new RegExp('^' + name, 'i') } });
+
+
+            let existingStandardByName = await this[doesExist](ImpactStandard, name);
+
+            if (existingStandardByName) {
+                return res.status(409).json({ message: "You already have an impact standard with thesame name!" });
+            }
+
             // create record
             let standard = await new ImpactStandard({ name, description }).save();
 
@@ -92,7 +125,7 @@ class ImpactStandardLIb {
                 });
             }
 
-            const { name, logo, description, impactStandardId } = req.body;
+            const { name, logo, description, impactStandardId, orderNo } = req.body;
             // validate role
 
             // const role = this.helper.getRole(req.roles);
@@ -106,11 +139,19 @@ class ImpactStandardLIb {
 
             // verify impactStandardId against record in db;
 
+            // prevent impact category from being created twice
+            let existingCategoryByName = await this[doesExist](ImpactCatgeory, name);
+
+            if (existingCategoryByName) {
+                return res.status(409).json({ message: "You already have an impact category with thesame name!" });
+            }
+
             const impactCategory = await new ImpactCatgeory({
                 name,
                 logo,
                 description,
-                impactStandardId
+                impactStandardId,
+                orderNo
             }).save();
 
             return res.status(201).json(impactCategory);
@@ -191,7 +232,6 @@ class ImpactStandardLIb {
             return res.status(500).json({ message: "internal server error" });
         }
 
-
         if (data.hasOwnProperty('impact_category') && data['impact_category'] == null) {
             return res.status(404).json({ data: { ...data, message: "impact category not found" } });
         }
@@ -201,19 +241,8 @@ class ImpactStandardLIb {
 
 }
 
-class ImpactLibraryLib {
 
-    async uploadmetricCSV(req, res) {
-        // if (Object.keys(req.files).length == 0) {
-        //     return res.status(400).send('No files were uploaded.');
-        //   }
-
-        // uploaded.single('csv')(req, res, next)
-        console.log(req.files)
-    }
-}
 
 module.exports = {
-    ImpactLibraryLib,
     ImpactStandardLIb
 }
