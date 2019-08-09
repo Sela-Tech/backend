@@ -22,6 +22,7 @@ const fs = require('fs');
 const getFieldName = Symbol();
 const getMetrices = Symbol();
 const getImpactCategories = Symbol();
+const additionalInfo = Symbol();
 
 
 class ImpactMetricLib {
@@ -49,6 +50,22 @@ class ImpactMetricLib {
     }
 
 
+    [additionalInfo](row, unusedFields) {
+        const additionalFields = { ...row }
+
+        delete additionalFields.metric_standard_id;
+        delete additionalFields['Metric Name'];
+        delete additionalFields['Definition'];
+        delete additionalFields['Impact Category & Impact Theme'];
+        delete additionalFields['SDGs'];
+
+        for (let field of unusedFields) {
+            delete additionalFields[`${field.name}`]
+        }
+
+        return additionalFields
+
+    }
 
     /**
      *
@@ -61,17 +78,17 @@ class ImpactMetricLib {
     [getMetrices](rows, categories, standard) {
 
         const metrices = [];
+        let columnsToIgnore = [...new Set(categories)];
+
         return new Promise((resolve, reject) => {
             try {
+
 
                 rows.forEach((row) => {
                     const impactCategories = [];
 
-
                     for (let cat of categories) {
-                        // Object.keys.includes(cat)
 
-                        // console.log(this[getFieldName](row, cat))
                         if (Object.keys(row).includes(cat.name) && (row[`${cat.name}`] == 'X' || row[`${cat.name}`] !== '')) {
                             impactCategories.push(cat.id);
 
@@ -83,12 +100,18 @@ class ImpactMetricLib {
                         name: row["Metric Name"],
                         description: row['Definition'],
                         impactCategories: impactCategories,
-                        standard
+                        standard,
+                        additionalInfo: this[additionalInfo](row, columnsToIgnore)
 
                         // cat:row[`${cat}`]
                     });
 
                 })
+
+                // const ignored = new Set(columnsToIgnore)
+
+                // const ignored =[...new Set(columnsToIgnore)]
+
 
                 resolve(metrices);
             } catch (error) {
@@ -108,7 +131,8 @@ class ImpactMetricLib {
                 return {
                     name: category.name,
                     id: category._id,
-                    orderNo: category.orderNo
+                    orderNo: category.orderNo,
+                    subCategories:categories
                 }
             })
         } catch (error) {
@@ -139,21 +163,26 @@ class ImpactMetricLib {
         const rows = [];
         let categories = await this[getImpactCategories]();
 
+        console.log('cat ' + categories.length)
+
         if (categories.length == 0) {
             return res.status(404).json({ message: "There are no categories to map with metrices" });
         }
 
         try {
             // console.log(req.files)
-            fs.createReadStream("iris_custom.csv")
+            fs.createReadStream("iris.csv")
                 .pipe(csv())
                 .on('data', (data) => rows.push(data))
                 .on('end', async () => {
                     // res.json(rows)
                     const metrices = await this[getMetrices](rows, categories, standard);
 
-                    const metricLib = await MetricDescriptor.insertMany(metrices);
-                    res.json({ data: { metricLib } });
+                    // const metricLib = await MetricDescriptor.insertMany(metrices);
+                    console.log('met ' + metrices.length)
+
+                    //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
+                    res.json({ data: { categories } });
 
                 });
 

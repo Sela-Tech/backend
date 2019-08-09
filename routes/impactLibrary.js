@@ -1,5 +1,5 @@
 const { ImpactStandardLIb } = require("../app/controllers/ImpactStandard");
-const { ImpactMetricLib, } = require("../app/controllers/impactMetric");
+const { ImpactMetricLib, } = require("../app/controllers/ImpactMetric");
 var { verifyToken } = require("../in-use/utils");
 const multer = require("multer");
 

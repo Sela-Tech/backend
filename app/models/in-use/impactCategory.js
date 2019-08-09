@@ -35,7 +35,12 @@ const ImpactCategoryStructure = {
             select:
                 "name  _id"
         }
-    }
+    },
+    subCategories:[
+        {
+            name:String
+        }
+    ]
 
 };
 

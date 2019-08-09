@@ -28,8 +28,10 @@ const impactMetricDescriptorStructure = {
                 "name _id"
         }
     }],
+
+    standard: String,
     
-    standard: String
+    additionalInfo: [Schema.Types.Mixed]
 
 };
 
