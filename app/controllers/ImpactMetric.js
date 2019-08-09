@@ -163,8 +163,6 @@ class ImpactMetricLib {
         const rows = [];
         let categories = await this[getImpactCategories]();
 
-        console.log('cat ' + categories.length)
-
         if (categories.length == 0) {
             return res.status(404).json({ message: "There are no categories to map with metrices" });
         }
@@ -176,13 +174,13 @@ class ImpactMetricLib {
                 .on('data', (data) => rows.push(data))
                 .on('end', async () => {
                     // res.json(rows)
-                    // const metrices = await this[getMetrices](rows, categories, standard);
+                    const metrices = await this[getMetrices](rows, categories, standard);
 
-                    // const metricLib = await MetricDescriptor.insertMany(metrices);
+                    const metricLib = await MetricDescriptor.insertMany(metrices);
                     // console.log('met ' + metrices.length)
 
                     //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
-                    res.status(201).json({ data: { categories } });
+                    res.status(201).json({ data: { metricLib } });
 
                 });
 

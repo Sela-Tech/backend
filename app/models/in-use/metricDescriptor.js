@@ -30,8 +30,8 @@ const impactMetricDescriptorStructure = {
     }],
 
     standard: String,
-    
-    additionalInfo: [Schema.Types.Mixed]
+
+    additionalInfo: Schema.Types.Mixed
 
 };
 
