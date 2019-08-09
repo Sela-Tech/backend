@@ -132,7 +132,7 @@ class ImpactMetricLib {
                     name: category.name,
                     id: category._id,
                     orderNo: category.orderNo,
-                    subCategories:categories
+                    subCategories:category.subCategories
                 }
             })
         } catch (error) {
@@ -176,13 +176,13 @@ class ImpactMetricLib {
                 .on('data', (data) => rows.push(data))
                 .on('end', async () => {
                     // res.json(rows)
-                    const metrices = await this[getMetrices](rows, categories, standard);
+                    // const metrices = await this[getMetrices](rows, categories, standard);
 
                     // const metricLib = await MetricDescriptor.insertMany(metrices);
-                    console.log('met ' + metrices.length)
+                    // console.log('met ' + metrices.length)
 
                     //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
-                    res.json({ data: { categories } });
+                    res.status(201).json({ data: { categories } });
 
                 });
 
