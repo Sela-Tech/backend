@@ -213,7 +213,7 @@ class ImpactMetricLib {
 
         const fileName = Date.now() + '-' + csvFile.name;
 
-        csvFile.mv(path.resolve('temp_upload/' + fileName), async(err) => {
+        csvFile.mv(path.resolve('temp_upload/' + fileName), async (err) => {
             if (err) console.log(err);
 
             const rows = [];
@@ -225,7 +225,7 @@ class ImpactMetricLib {
 
             try {
                 // console.log(req.files)
-                fs.createReadStream(path.resolve('temp_upload/'+fileName))
+                fs.createReadStream(path.resolve('temp_upload/' + fileName))
                     .pipe(csv())
                     .on('data', (data) => rows.push(data))
                     .on('end', async () => {
@@ -254,6 +254,36 @@ class ImpactMetricLib {
 
 
     }
+
+    async getImpactMetrices(req, res) {
+        const { id } = req.query;
+
+        let data;
+
+        try {
+            if (id && (id !== null || id !== "")) {
+                let metric = await MetricDescriptor.findById(id);
+                data = {
+                    impact_metric: metric
+                }
+            } else {
+                let metrices = await MetricDescriptor.find({});
+                data = { impact_metrices: metrices };
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: "internal server error" });
+        }
+
+
+        if (data.hasOwnProperty('impact_metric') && data['impact_metric'] == null) {
+            return res.status(404).json({ data: { ...data, message: "impact metric not found" } });
+        }
+
+        return res.status(200).json({ data });
+
+    }
+
 }
 
 module.exports = {
