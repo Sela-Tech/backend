@@ -232,15 +232,21 @@ class ImpactMetricLib {
                         // res.json(rows)
                         const metrices = await this[getMetrices](rows, categories, standard);
 
-                        const metricLib = await MetricDescriptor.insertMany(metrices);
+                        const [err, metricLib] = await MetricDescriptor.insertMany(metrices);
 
+                        if(err){
+                            res.status(409).json({ message:"impact metrices already exists"});
+
+                        }
                         // //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
                         res.status(201).json({ data: { metricLib } });
 
                     });
 
             } catch (error) {
-                throw new Error(error)
+                // throw new Error(error)
+
+                res.json({message:"internal server error"})
                 // if (error.includes('duplicate key error index')){
                 // }
             }
