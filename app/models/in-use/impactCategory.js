@@ -13,6 +13,11 @@ const ImpactCategoryStructure = {
         required: true
     },
 
+    orderNo: {
+        type: String,
+        default: null
+    },
+
     logo: {
         type: String,
         default: null
@@ -28,9 +33,14 @@ const ImpactCategoryStructure = {
         ref: "ImpactStandard",
         autoPopulate: {
             select:
-                "name _id"
+                "name  _id"
         }
-    }
+    },
+    subCategories:[
+        {
+            name:String
+        }
+    ]
 
 };
 

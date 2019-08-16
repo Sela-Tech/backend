@@ -13,19 +13,31 @@ const impactMetricDescriptorStructure = {
         required: true
     },
 
+    metric_standard_id: {
+        type:String,
+        index:true,
+        unique:true
+    },
+
     description: {
         type: String,
         default: null
     },
 
-    tagId: {
+    impactCategories: [{
         type: ObjectId,
         ref: "ImpactCategory",
         autoPopulate: {
             select:
                 "name _id"
         }
-    }
+    }],
+
+    standard: String,
+
+    additionalInfo: Schema.Types.Mixed,
+
+    relatedSubImpactCategory:Schema.Types.Mixed,
 
 };
 
