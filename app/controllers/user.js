@@ -175,21 +175,6 @@ exports.register = async (req, res) => {
 
       var newUser = await new User(userObj).save();
 
-      // remove this code in a production environemnt
-
-      // if (newUser) {
-      //   (async () => {
-      //     let role = helper.getRole(newUser);
-      //     let wallet = await helper.createWallet(newUser._id, role);
-
-      //     if (wallet.success == true) {
-      //       newUser.publicKey = wallet.publicKey
-      //       // updated user with detail
-      //       await newUser.save();
-      //     }
-      //   })();
-      // }
-      // code above is only meant for testing
 
       const receiver = '+234' + req.body.phone;
       const to = [receiver];

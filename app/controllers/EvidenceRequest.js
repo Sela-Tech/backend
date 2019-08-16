@@ -797,7 +797,7 @@ class Evidences {
             let submissions = {};
             let projectLevelSubmissions;
             let taskLevelSubmissions;
-            let proposal
+            let proposal;
 
 
             switch (level) {

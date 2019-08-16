@@ -15,4 +15,7 @@ module.exports = function(connection) {
   require("./in-use/submission")(connection);
   require("./in-use/taskUpdate")(connection);
   require("./in-use/donation")(connection);
+  require("./in-use/impactStandard")(connection);
+  require("./in-use/impactCategory")(connection);
+
 };

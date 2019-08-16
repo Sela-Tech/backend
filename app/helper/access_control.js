@@ -20,6 +20,13 @@ const grantsObject={
             'update:any':['*'],
             'read:any':['*'],
             'create:own':['*']
+        },
+
+        impactLibrary:{
+            'create:any':['*'],
+            'delete:any':['*'],
+            'update:any':['*'],
+            'read:any':['*'],
         }
 
 

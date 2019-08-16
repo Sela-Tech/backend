@@ -1,11 +1,13 @@
-var mongoose = require("mongoose");
-var autoPopulate = require("mongoose-autopopulate");
+const mongoose = require("mongoose");
+const autoPopulate = require("mongoose-autopopulate");
 const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
 
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
 
-var saveProjectStructure = {
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+
+const saveProjectStructure = {
 
   project: {
     type: ObjectId,
@@ -25,28 +27,6 @@ var saveProjectStructure = {
 
 };
 
-var schemaOptions = {
-  collection: "saves",
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  timestamps: true,
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
 
 if (process.env.NODE_ENV === "development") {
   saveProjectStructure.test = {
@@ -56,7 +36,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var SaveProjectSchema = new Schema(saveProjectStructure, schemaOptions);
+const SaveProjectSchema = new Schema(saveProjectStructure, schemaOptions);
 
 SaveProjectSchema.plugin(autoPopulate);
 SaveProjectSchema.plugin(mongoosePaginate);

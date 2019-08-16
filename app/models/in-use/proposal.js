@@ -1,38 +1,14 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
-var _ = require("underscore");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const { schemaOptions } = require("./schemaOptions");
 
 const mongoosePaginate=require('mongoose-paginate'); 
 
 const Project = require('./project');
 
-
-var schemaOptions = {
-    minimize: false,
-    id: false,
-    toJSON: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    toObject: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    timestamps:true,
-    usePushEach : true,
-    autoIndex: process.env.NODE_ENV === "development",
-    strict: process.env.NODE_ENV !== "development"
-};
-
-var proposalStructure = {
+const proposalStructure = {
     proposalName:{
         type:String,
         required:true
@@ -110,7 +86,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-var proposalSchema = new Schema(proposalStructure,schemaOptions);
+const proposalSchema = new Schema(proposalStructure,schemaOptions);
 
 proposalSchema.post('remove', async (next) => {
     try {

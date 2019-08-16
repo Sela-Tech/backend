@@ -1,7 +1,7 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-var OrganizationSchema = new Schema(
+const OrganizationSchema = new Schema(
   {
     name: {
       type: String,
@@ -15,7 +15,7 @@ var OrganizationSchema = new Schema(
   { timestamps: true }
 );
 
-var Organization = mongoose.model("Organization", OrganizationSchema);
+const Organization = mongoose.model("Organization", OrganizationSchema);
 
 exports.OrganizationSchema = OrganizationSchema;
 module.exports = Organization;

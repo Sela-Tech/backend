@@ -18,6 +18,7 @@ const evidence = require("./evidence");
 const update = require("./updates");
 const clean = require("./clean");
 const donations = require("./donations");
+const impactLibrary = require("./impactLibrary");
 
 module.exports = function (app) {
   user(app);
@@ -40,4 +41,5 @@ module.exports = function (app) {
   update(app);
   clean(app);
   donations(app);
+  impactLibrary(app);
 };

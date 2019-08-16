@@ -183,9 +183,6 @@ class Tasks {
 
   }
 
-  static async deleteTask(req, res) {
-
-  }
 }
 
 module.exports = { Tasks };

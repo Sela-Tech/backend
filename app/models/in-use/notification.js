@@ -1,35 +1,13 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
-var _ = require("underscore");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
 const mongoosePaginate=require('mongoose-paginate'); 
+const { schemaOptions } = require("./schemaOptions");
 
 
-
-var schemaOptions = {
-  minimize: false,
-  id: false,
-  toJSON: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  toObject: {
-    getters: true,
-    virtuals: true,
-    minimize: false,
-    versionKey: false,
-    retainKeyOrder: true
-  },
-  timestamps: true ,
-  autoIndex: process.env.NODE_ENV === "development",
-  strict: process.env.NODE_ENV !== "development"
-};
-
-var notificationStructure = {
+const notificationStructure = {
   project: {
     type: ObjectId,
     ref: "Project",
@@ -100,11 +78,11 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-// var notificationSchemaOptions = _.extend({}, schemaOptions, {
+// const notificationSchemaOptions = _.extend({}, schemaOptions, {
 //   collection: "notifications"
 // });
   
-var notificationSchema = new Schema(notificationStructure,schemaOptions);
+const notificationSchema = new Schema(notificationStructure,schemaOptions);
 notificationSchema.plugin(autoPopulate);
 notificationSchema.plugin(mongoosePaginate);
 
