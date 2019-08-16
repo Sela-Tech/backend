@@ -10,7 +10,7 @@ var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 const validator = require('express-validator');
-// const fileUpload = require('express-fileupload');
+const fileUpload = require('express-fileupload');
 const helmet = require('helmet')
 
 var http = require("http").Server(app);
@@ -71,7 +71,7 @@ app.use(bodyParser.json({
 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// app.use(fileUpload());
+app.use(fileUpload());
 
 app.use(cors());
 

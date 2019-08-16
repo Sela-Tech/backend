@@ -13,7 +13,11 @@ const impactMetricDescriptorStructure = {
         required: true
     },
 
-    metric_standard_id: String,
+    metric_standard_id: {
+        type:String,
+        index:true,
+        unique:true
+    },
 
     description: {
         type: String,
@@ -31,7 +35,9 @@ const impactMetricDescriptorStructure = {
 
     standard: String,
 
-    additionalInfo: Schema.Types.Mixed
+    additionalInfo: Schema.Types.Mixed,
+
+    relatedSubImpactCategory:Schema.Types.Mixed,
 
 };
 

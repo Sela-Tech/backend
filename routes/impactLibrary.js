@@ -2,18 +2,20 @@ const { ImpactStandardLIb } = require("../app/controllers/ImpactStandard");
 const { ImpactMetricLib, } = require("../app/controllers/ImpactMetric");
 var { verifyToken } = require("../in-use/utils");
 const multer = require("multer");
+const path = require('path');
+
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
-//     cb(null, '/tmp/my-uploads')
+//     cb(null, path.resolve(__dirname + '/tmp/my-uploads'))
 //   },
 //   filename: function (req, file, cb) {
 //     cb(null, file.fieldname + '-' + Date.now())
 //   }
 // })
 
-const storage = multer.memoryStorage()
-const uploaded = multer({ storage: storage });
+// const storage = multer.memoryStorage()
+// const uploaded = multer({ storage: storage });
 
 
 
@@ -42,7 +44,7 @@ module.exports = (app) => {
 
   // // impact library
   // app
-  //   .route("/upload-metric-csv").post(uploaded.single('csv'), ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+  //   .route("/upload-metric-csv").post(uploaded.single('csvFile'), ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
 
   app
     .route("/upload-metric-csv").post(ImpactMetric.uploadmetricCSV.bind(ImpactMetric));

@@ -10,6 +10,7 @@ const Helper = require('../helper/helper');
 
 const csv = require('csv-parser')
 const fs = require('fs');
+const path = require('path');
 
 // const file= require("../../iris.csv");
 
@@ -23,6 +24,8 @@ const getFieldName = Symbol();
 const getMetrices = Symbol();
 const getImpactCategories = Symbol();
 const additionalInfo = Symbol();
+const getRelatedSubCategories = Symbol();
+const extractRelatedCategories = Symbol()
 
 
 class ImpactMetricLib {
@@ -47,6 +50,42 @@ class ImpactMetricLib {
         let columns = Object.keys(row);
 
         return columns.filter(column => column.includes(cat));
+    }
+
+
+    /**
+     *
+     *
+     * @param {*} row
+     * @param {*} subCategories
+     * @returns
+     * @memberof ImpactMetricLib
+     */
+    [getRelatedSubCategories](row, cat, subCategories) {
+        const subCat = [];
+        const relatedCat = [];
+        if (Array.isArray(subCategories)) {
+
+            for (let sub of subCategories) {
+                if (row[`${sub.name}`] !== '' || row[`${sub.name}`] == 'X') {
+                    subCat.push(sub.name)
+                    relatedCat.push(cat)
+                }
+
+            }
+
+        }
+        return { relatedCat: Array.prototype.concat.apply([], [...new Set(relatedCat)]), subCat };
+
+
+    }
+
+
+    [extractRelatedCategories](subCategories) {
+        const relatedCategory = subCategories.relatedCat;
+        const relatedSubCat = subCategories.subCat;
+
+        return [relatedCategory, relatedSubCat];
     }
 
 
@@ -83,25 +122,37 @@ class ImpactMetricLib {
         return new Promise((resolve, reject) => {
             try {
 
-
                 rows.forEach((row) => {
                     const impactCategories = [];
+                    const relatedSubCategories = [];
 
                     for (let cat of categories) {
 
-                        if (Object.keys(row).includes(cat.name) && (row[`${cat.name}`] == 'X' || row[`${cat.name}`] !== '')) {
+                        const hasKey = Object.keys(row).includes(cat.name);
+                        if (hasKey && (row[`${cat.name}`] == 'X' || row[`${cat.name}`] !== '')) {
                             impactCategories.push(cat.id);
 
                         }
+
+                        if (hasKey && cat.subCategories.length > 0) {
+                            const sub = this[getRelatedSubCategories](row, cat.id, cat.subCategories);
+                            const [relatedCategory, relatedSubCat] = this[extractRelatedCategories](sub);
+                            impactCategories.push(...relatedCategory);
+                            relatedSubCategories.push(...relatedSubCat);
+                        }
+
+
+
                     }
 
                     metrices.push({
                         metric_standard_id: row['metric_standard_id'],
                         name: row["Metric Name"],
                         description: row['Definition'],
-                        impactCategories: impactCategories,
+                        impactCategories: [...new Set(impactCategories)],
                         standard,
-                        additionalInfo: this[additionalInfo](row, columnsToIgnore)
+                        additionalInfo: this[additionalInfo](row, columnsToIgnore),
+                        relatedSubImpactCategory: relatedSubCategories
 
                         // cat:row[`${cat}`]
                     });
@@ -132,7 +183,7 @@ class ImpactMetricLib {
                     name: category.name,
                     id: category._id,
                     orderNo: category.orderNo,
-                    subCategories:category.subCategories
+                    subCategories: category.subCategories
                 }
             })
         } catch (error) {
@@ -153,40 +204,55 @@ class ImpactMetricLib {
      */
     async uploadmetricCSV(req, res) {
         // if (Object.keys(req.files).length == 0) {
-        //     return res.status(400).send('No files were uploaded.');
+        //     return res.status(400).json({message:'No files were uploaded.'});
         //   }
-
-        // const { csv } = req.files
 
         const standard = req.query.standard_name || 'IRIS'
 
-        const rows = [];
-        let categories = await this[getImpactCategories]();
+        const { csvFile } = req.files;
 
-        if (categories.length == 0) {
-            return res.status(404).json({ message: "There are no categories to map with metrices" });
-        }
+        const fileName = Date.now() + '-' + csvFile.name;
 
-        try {
-            // console.log(req.files)
-            fs.createReadStream("iris.csv")
-                .pipe(csv())
-                .on('data', (data) => rows.push(data))
-                .on('end', async () => {
-                    // res.json(rows)
-                    const metrices = await this[getMetrices](rows, categories, standard);
+        csvFile.mv(path.resolve('temp_upload/' + fileName), async(err) => {
+            if (err) console.log(err);
 
-                    const metricLib = await MetricDescriptor.insertMany(metrices);
-                    // console.log('met ' + metrices.length)
+            const rows = [];
+            let categories = await this[getImpactCategories]();
 
-                    //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
-                    res.status(201).json({ data: { metricLib } });
+            if (categories.length == 0) {
+                return res.status(404).json({ message: "There are no categories to map with metrices" });
+            }
 
-                });
+            try {
+                // console.log(req.files)
+                fs.createReadStream(path.resolve('temp_upload/'+fileName))
+                    .pipe(csv())
+                    .on('data', (data) => rows.push(data))
+                    .on('end', async () => {
+                        // res.json(rows)
+                        const metrices = await this[getMetrices](rows, categories, standard);
 
-        } catch (error) {
-            console.log(error)
-        }
+                        const metricLib = await MetricDescriptor.insertMany(metrices);
+
+                        // //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
+                        res.status(201).json({ data: { metricLib } });
+
+                    });
+
+            } catch (error) {
+                throw new Error(error)
+                // if (error.includes('duplicate key error index')){
+                // }
+            }
+
+
+
+        })
+
+        // return res.status(200).json(req.file);
+
+
+
     }
 }
 
