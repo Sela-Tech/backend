@@ -98,12 +98,18 @@ class ImpactMetricLib {
      *
      *
      * @param {*} row
-     * @param {*} unusedFields
+     * @param {*} fieldsNotNeeded
      * @returns
      * @memberof ImpactMetricLib
      */
-    [additionalInfo](row, unusedFields) {
+    [additionalInfo](row, fieldsNotNeeded) {
         const additionalFields = { ...row }
+
+
+        let categories = fieldsNotNeeded.map(cat => cat.name);
+        let subCategories = Array.prototype.concat.apply([], fieldsNotNeeded.map(subCat => subCat.subCategories)).map(subCat => subCat.name);
+
+        fieldsNotNeeded = [...categories, ...subCategories];
 
         delete additionalFields.metric_standard_id;
         delete additionalFields['Metric Name'];
@@ -111,8 +117,8 @@ class ImpactMetricLib {
         delete additionalFields['Impact Category & Impact Theme'];
         delete additionalFields['SDGs'];
 
-        for (let field of unusedFields) {
-            delete additionalFields[`${field.name}`]
+        for (let field of fieldsNotNeeded) {
+            delete additionalFields[`${field}`]
         }
 
         return additionalFields
@@ -168,15 +174,9 @@ class ImpactMetricLib {
                         additionalInfo: this[additionalInfo](row, columnsToIgnore),
                         relatedSubImpactCategory: relatedSubCategories
 
-                        // cat:row[`${cat}`]
                     });
 
                 })
-
-                // const ignored = new Set(columnsToIgnore)
-
-                // const ignored =[...new Set(columnsToIgnore)]
-
 
                 resolve(metrices);
             } catch (error) {
@@ -251,21 +251,23 @@ class ImpactMetricLib {
                         // res.json(rows)
                         const metrices = await this[getMetrices](rows, categories, standard);
 
-                        const [err, metricLib] = await MetricDescriptor.insertMany(metrices);
+                        const metricLib = await MetricDescriptor.insertMany(metrices);
 
                         if (err) {
-                            res.status(409).json({ message: "impact metrices already exists" });
+                            return res.status(409).json({ message: "impact metrices already exists" });
 
                         }
+
+                        fs.unlinkSync(path.resolve('temp_upload/' + fileName));
                         // //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
-                        res.status(201).json({ data: { metricLib } });
+                        return res.status(201).json({ data: { metricLib } });
 
                     });
 
             } catch (error) {
                 // throw new Error(error)
 
-                res.json({ message: "internal server error" })
+                return res.json({ message: "internal server error" })
                 // if (error.includes('duplicate key error index')){
                 // }
             }
