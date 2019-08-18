@@ -292,12 +292,25 @@ class ImpactMetricLib {
 
         try {
             if (id && (id !== null || id !== "")) {
-                let metric = await MetricDescriptor.findById(id);
-                data = {
-                    impact_metric: metric
-                }
+                let metric = await MetricDescriptor.findById(id)
+                    .populate({
+                        path: "impactCategories",
+                        select: "name",
+                        populate: {
+                            path: "impactStandardId",
+                            select: "name"
+                        }
+                    });
+
+                data = { impact_metric: metric }
+
             } else {
-                let metrices = await MetricDescriptor.find({});
+                let metrices = await MetricDescriptor.find({})
+                    .populate({
+                        path: "impactCategories",
+                        select: "name"
+                    });
+
                 data = { impact_metrices: metrices };
             }
         } catch (error) {

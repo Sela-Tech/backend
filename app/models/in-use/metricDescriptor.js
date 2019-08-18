@@ -33,11 +33,12 @@ const impactMetricDescriptorStructure = {
         }
     }],
 
+    relatedSubImpactCategory:Schema.Types.Mixed,
+
     standard: String,
 
     additionalInfo: Schema.Types.Mixed,
 
-    relatedSubImpactCategory:Schema.Types.Mixed,
 
 };
 
