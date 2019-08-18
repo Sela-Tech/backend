@@ -24,7 +24,7 @@ const getFieldName = Symbol();
 const getMetrices = Symbol();
 const getImpactCategories = Symbol();
 const additionalInfo = Symbol();
-const getRelatedSubCategories = Symbol();
+const getRelatedCategories = Symbol();
 const extractRelatedCategories = Symbol()
 
 
@@ -61,7 +61,7 @@ class ImpactMetricLib {
      * @returns
      * @memberof ImpactMetricLib
      */
-    [getRelatedSubCategories](row, cat, subCategories) {
+    [getRelatedCategories](row, cat, subCategories) {
         const subCat = [];
         const relatedCat = [];
         if (Array.isArray(subCategories)) {
@@ -80,7 +80,13 @@ class ImpactMetricLib {
 
     }
 
-
+    /**
+     *
+     *
+     * @param {*} subCategories
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     [extractRelatedCategories](subCategories) {
         const relatedCategory = subCategories.relatedCat;
         const relatedSubCat = subCategories.subCat;
@@ -88,7 +94,14 @@ class ImpactMetricLib {
         return [relatedCategory, relatedSubCat];
     }
 
-
+    /**
+     *
+     *
+     * @param {*} row
+     * @param {*} unusedFields
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     [additionalInfo](row, unusedFields) {
         const additionalFields = { ...row }
 
@@ -135,7 +148,7 @@ class ImpactMetricLib {
                         }
 
                         if (hasKey && cat.subCategories.length > 0) {
-                            const sub = this[getRelatedSubCategories](row, cat.id, cat.subCategories);
+                            const sub = this[getRelatedCategories](row, cat.id, cat.subCategories);
                             const [relatedCategory, relatedSubCat] = this[extractRelatedCategories](sub);
                             impactCategories.push(...relatedCategory);
                             relatedSubCategories.push(...relatedSubCat);
@@ -144,6 +157,7 @@ class ImpactMetricLib {
 
 
                     }
+
 
                     metrices.push({
                         metric_standard_id: row['metric_standard_id'],
@@ -172,7 +186,12 @@ class ImpactMetricLib {
         })
     }
 
-
+    /**
+     *
+     *
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     async [getImpactCategories]() {
         let categories;
 
@@ -234,8 +253,8 @@ class ImpactMetricLib {
 
                         const [err, metricLib] = await MetricDescriptor.insertMany(metrices);
 
-                        if(err){
-                            res.status(409).json({ message:"impact metrices already exists"});
+                        if (err) {
+                            res.status(409).json({ message: "impact metrices already exists" });
 
                         }
                         // //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
@@ -246,7 +265,7 @@ class ImpactMetricLib {
             } catch (error) {
                 // throw new Error(error)
 
-                res.json({message:"internal server error"})
+                res.json({ message: "internal server error" })
                 // if (error.includes('duplicate key error index')){
                 // }
             }
@@ -255,12 +274,17 @@ class ImpactMetricLib {
 
         })
 
-        // return res.status(200).json(req.file);
-
-
-
     }
 
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     async getImpactMetrices(req, res) {
         const { id } = req.query;
 
