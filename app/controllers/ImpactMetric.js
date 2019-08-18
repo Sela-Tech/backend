@@ -24,7 +24,7 @@ const getFieldName = Symbol();
 const getMetrices = Symbol();
 const getImpactCategories = Symbol();
 const additionalInfo = Symbol();
-const getRelatedSubCategories = Symbol();
+const getRelatedCategories = Symbol();
 const extractRelatedCategories = Symbol()
 
 
@@ -61,7 +61,7 @@ class ImpactMetricLib {
      * @returns
      * @memberof ImpactMetricLib
      */
-    [getRelatedSubCategories](row, cat, subCategories) {
+    [getRelatedCategories](row, cat, subCategories) {
         const subCat = [];
         const relatedCat = [];
         if (Array.isArray(subCategories)) {
@@ -80,7 +80,13 @@ class ImpactMetricLib {
 
     }
 
-
+    /**
+     *
+     *
+     * @param {*} subCategories
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     [extractRelatedCategories](subCategories) {
         const relatedCategory = subCategories.relatedCat;
         const relatedSubCat = subCategories.subCat;
@@ -88,9 +94,22 @@ class ImpactMetricLib {
         return [relatedCategory, relatedSubCat];
     }
 
-
-    [additionalInfo](row, unusedFields) {
+    /**
+     *
+     *
+     * @param {*} row
+     * @param {*} fieldsNotNeeded
+     * @returns
+     * @memberof ImpactMetricLib
+     */
+    [additionalInfo](row, fieldsNotNeeded) {
         const additionalFields = { ...row }
+
+
+        let categories = fieldsNotNeeded.map(cat => cat.name);
+        let subCategories = Array.prototype.concat.apply([], fieldsNotNeeded.map(subCat => subCat.subCategories)).map(subCat => subCat.name);
+
+        fieldsNotNeeded = [...categories, ...subCategories];
 
         delete additionalFields.metric_standard_id;
         delete additionalFields['Metric Name'];
@@ -98,8 +117,8 @@ class ImpactMetricLib {
         delete additionalFields['Impact Category & Impact Theme'];
         delete additionalFields['SDGs'];
 
-        for (let field of unusedFields) {
-            delete additionalFields[`${field.name}`]
+        for (let field of fieldsNotNeeded) {
+            delete additionalFields[`${field}`]
         }
 
         return additionalFields
@@ -135,7 +154,7 @@ class ImpactMetricLib {
                         }
 
                         if (hasKey && cat.subCategories.length > 0) {
-                            const sub = this[getRelatedSubCategories](row, cat.id, cat.subCategories);
+                            const sub = this[getRelatedCategories](row, cat.id, cat.subCategories);
                             const [relatedCategory, relatedSubCat] = this[extractRelatedCategories](sub);
                             impactCategories.push(...relatedCategory);
                             relatedSubCategories.push(...relatedSubCat);
@@ -144,6 +163,7 @@ class ImpactMetricLib {
 
 
                     }
+
 
                     metrices.push({
                         metric_standard_id: row['metric_standard_id'],
@@ -154,15 +174,9 @@ class ImpactMetricLib {
                         additionalInfo: this[additionalInfo](row, columnsToIgnore),
                         relatedSubImpactCategory: relatedSubCategories
 
-                        // cat:row[`${cat}`]
                     });
 
                 })
-
-                // const ignored = new Set(columnsToIgnore)
-
-                // const ignored =[...new Set(columnsToIgnore)]
-
 
                 resolve(metrices);
             } catch (error) {
@@ -172,7 +186,12 @@ class ImpactMetricLib {
         })
     }
 
-
+    /**
+     *
+     *
+     * @returns
+     * @memberof ImpactMetricLib
+     */
     async [getImpactCategories]() {
         let categories;
 
@@ -213,7 +232,7 @@ class ImpactMetricLib {
 
         const fileName = Date.now() + '-' + csvFile.name;
 
-        csvFile.mv(path.resolve('temp_upload/' + fileName), async(err) => {
+        csvFile.mv(path.resolve('temp_upload/' + fileName), async (err) => {
             if (err) console.log(err);
 
             const rows = [];
@@ -225,7 +244,7 @@ class ImpactMetricLib {
 
             try {
                 // console.log(req.files)
-                fs.createReadStream(path.resolve('temp_upload/'+fileName))
+                fs.createReadStream(path.resolve('temp_upload/' + fileName))
                     .pipe(csv())
                     .on('data', (data) => rows.push(data))
                     .on('end', async () => {
@@ -234,13 +253,21 @@ class ImpactMetricLib {
 
                         const metricLib = await MetricDescriptor.insertMany(metrices);
 
+                        if (err) {
+                            return res.status(409).json({ message: "impact metrices already exists" });
+
+                        }
+
+                        fs.unlinkSync(path.resolve('temp_upload/' + fileName));
                         // //    const withoutCat= metrices.filter(metric=>metric.impactCategories.length ==0).map(metric=>metric.metric_standard_id)
-                        res.status(201).json({ data: { metricLib } });
+                        return res.status(201).json({ data: { metricLib } });
 
                     });
 
             } catch (error) {
-                throw new Error(error)
+                // throw new Error(error)
+
+                return res.json({ message: "internal server error" })
                 // if (error.includes('duplicate key error index')){
                 // }
             }
@@ -249,11 +276,59 @@ class ImpactMetricLib {
 
         })
 
-        // return res.status(200).json(req.file);
+    }
 
 
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @returns
+     * @memberof ImpactMetricLib
+     */
+    async getImpactMetrices(req, res) {
+        const { id } = req.query;
+
+        let data;
+
+        try {
+            if (id && (id !== null || id !== "")) {
+                let metric = await MetricDescriptor.findById(id)
+                    .populate({
+                        path: "impactCategories",
+                        select: "name",
+                        populate: {
+                            path: "impactStandardId",
+                            select: "name"
+                        }
+                    });
+
+                data = { impact_metric: metric }
+
+            } else {
+                let metrices = await MetricDescriptor.find({})
+                    .populate({
+                        path: "impactCategories",
+                        select: "name"
+                    });
+
+                data = { impact_metrices: metrices };
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: "internal server error" });
+        }
+
+
+        if (data.hasOwnProperty('impact_metric') && data['impact_metric'] == null) {
+            return res.status(404).json({ data: { ...data, message: "impact metric not found" } });
+        }
+
+        return res.status(200).json({ data });
 
     }
+
 }
 
 module.exports = {

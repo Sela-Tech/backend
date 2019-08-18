@@ -125,7 +125,7 @@ class ImpactStandardLIb {
                 });
             }
 
-            const { name, logo, description, impactStandardId, orderNo } = req.body;
+            const { name, logo, description, impactStandardId, orderNo, subCategories } = req.body;
             // validate role
 
             // const role = this.helper.getRole(req.roles);
@@ -151,6 +151,7 @@ class ImpactStandardLIb {
                 logo,
                 description,
                 impactStandardId,
+                subCategories,
                 orderNo
             }).save();
 
@@ -163,7 +164,6 @@ class ImpactStandardLIb {
 
 
     }
-
 
 
     /**

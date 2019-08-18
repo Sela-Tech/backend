@@ -48,4 +48,7 @@ module.exports = (app) => {
 
   app
     .route("/upload-metric-csv").post(ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+
+  app
+    .route("/impact-metrices").get(ImpactMetric.getImpactMetrices.bind(ImpactMetric));
 }
