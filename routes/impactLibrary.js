@@ -25,30 +25,35 @@ const ImpactStandard = new ImpactStandardLIb();
 
 module.exports = (app) => {
 
-  // impact standard
-  app
-    .route("/impact-standard/create").post(verifyToken, ImpactStandard.createStandard.bind(ImpactStandard));
+    // impact standard
+    app
+        .route("/impact-standard/create").post(verifyToken, ImpactStandard.createStandard.bind(ImpactStandard));
 
-  app
-    .route("/impact-standards").get(ImpactStandard.getImpactStandard.bind(ImpactStandard));
-
-
-  // impact category
-  app
-    .route("/impact-category/create").post(verifyToken, ImpactStandard.createImpactCategory.bind(ImpactStandard));
-
-  app
-    .route("/impact-categories").get(ImpactStandard.getImpactCategory.bind(ImpactStandard));
+    app
+        .route("/impact-standards").get(ImpactStandard.getImpactStandard.bind(ImpactStandard));
 
 
+    // impact category
+    app
+        .route("/impact-category/create").post(verifyToken, ImpactStandard.createImpactCategory.bind(ImpactStandard));
 
-  // // impact library
-  // app
-  //   .route("/upload-metric-csv").post(uploaded.single('csvFile'), ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+    app
+        .route("/impact-categories").get(ImpactStandard.getImpactCategory.bind(ImpactStandard));
 
-  app
-    .route("/upload-metric-csv").post(ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+    // app
+    //   .route("/impact-categories").get(ImpactStandard.getImpactCategory.bind(ImpactStandard));
 
-  app
-    .route("/impact-metrices").get(ImpactMetric.getImpactMetrices.bind(ImpactMetric));
+
+
+    // // impact library
+    // app
+    //   .route("/upload-metric-csv").post(uploaded.single('csvFile'), ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+
+    app
+        .route("/upload-metric-csv").post(ImpactMetric.uploadmetricCSV.bind(ImpactMetric));
+
+    app
+        .route("/impact-metrices").get(ImpactMetric.getImpactMetrices.bind(ImpactMetric));
+    app
+        .route("/impact-catgory/:impactCategoryId/impact-metrics").get(ImpactMetric.getImpactMetricByImpactCategory.bind(ImpactMetric));
 }

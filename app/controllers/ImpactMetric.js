@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-const ImpactStandard = mongoose.model("ImpactStandard"), ImpactCatgeory = mongoose.model("ImpactCategory"), MetricDescriptor = mongoose.model('ImpactMetricDescriptor');
+const ImpactStandard = mongoose.model("ImpactStandard"),
+    ImpactCatgeory = mongoose.model("ImpactCategory"),
+    MetricDescriptor = mongoose.model('ImpactMetricDescriptor');
 
 const grantsObject = require("../helper/access_control");
 const { AccessControl } = require('accesscontrol');
@@ -103,7 +105,7 @@ class ImpactMetricLib {
      * @memberof ImpactMetricLib
      */
     [additionalInfo](row, fieldsNotNeeded) {
-        const additionalFields = { ...row }
+        const additionalFields = {...row }
 
 
         let categories = fieldsNotNeeded.map(cat => cat.name);
@@ -232,7 +234,7 @@ class ImpactMetricLib {
 
         const fileName = Date.now() + '-' + csvFile.name;
 
-        csvFile.mv(path.resolve('temp_upload/' + fileName), async (err) => {
+        csvFile.mv(path.resolve('temp_upload/' + fileName), async(err) => {
             if (err) console.log(err);
 
             const rows = [];
@@ -247,7 +249,7 @@ class ImpactMetricLib {
                 fs.createReadStream(path.resolve('temp_upload/' + fileName))
                     .pipe(csv())
                     .on('data', (data) => rows.push(data))
-                    .on('end', async () => {
+                    .on('end', async() => {
                         // res.json(rows)
                         const metrices = await this[getMetrices](rows, categories, standard);
 
@@ -268,8 +270,8 @@ class ImpactMetricLib {
                 // throw new Error(error)
 
                 return res.json({ message: "internal server error" })
-                // if (error.includes('duplicate key error index')){
-                // }
+                    // if (error.includes('duplicate key error index')){
+                    // }
             }
 
 
@@ -322,11 +324,39 @@ class ImpactMetricLib {
 
 
         if (data.hasOwnProperty('impact_metric') && data['impact_metric'] == null) {
-            return res.status(404).json({ data: { ...data, message: "impact metric not found" } });
+            return res.status(404).json({ data: {...data, message: "impact metric not found" } });
         }
 
         return res.status(200).json({ data });
 
+    }
+
+
+
+    /**
+     *
+     *
+     * @param {*} req
+     * @param {*} res
+     * @memberof ImpactMetricLib
+     */
+    async getImpactMetricByImpactCategory(req, res) {
+        const { impactCategoryId } = req.params;
+
+        let data;
+
+        try {
+            let metrics = await MetricDescriptor.find({ impactCategories: impactCategoryId });
+            data = { impact_metrics: metrics };
+
+            console.log(metrics.length)
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: "internal server error" });
+        }
+
+        return res.status(200).json({ data });
     }
 
 }
