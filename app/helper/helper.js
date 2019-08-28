@@ -32,8 +32,7 @@ const BLOCKCHAIN_URL = process.env.BLOCKCHAIN_URL.toString();
  */
 class Helper {
 
-    constructor() {
-    }
+    constructor() {}
 
     /**
      *
@@ -52,7 +51,8 @@ class Helper {
             let user = {
                 isFunder: data.isFunder,
                 isContractor: data.isContractor,
-                isEvaluator: data.isEvaluator
+                isEvaluator: data.isEvaluator,
+                isPassiveFunder: data.isPassiveFunder
             }
 
             let role = Object.keys(user).filter(k => user[k] === true);
@@ -159,9 +159,9 @@ class Helper {
             },
         }
 
-        s3.deleteObjects(params, function (err, data) {
+        s3.deleteObjects(params, function(err, data) {
             if (err) console.log(err, err.stack); // an error occurred
-            else console.log(data);           // successful response
+            else console.log(data); // successful response
         });
     }
 
@@ -347,19 +347,19 @@ class Helper {
     }
 
 
-   async getProjectBalancesPublic(project) {
-       try {
-               let projectBalances = await fetch(`${BLOCKCHAIN_URL}project/${project}/balance/public`, {
-                   headers: { 'Content-Type': 'application/json' },
-               });
+    async getProjectBalancesPublic(project) {
+        try {
+            let projectBalances = await fetch(`${BLOCKCHAIN_URL}project/${project}/balance/public`, {
+                headers: { 'Content-Type': 'application/json' },
+            });
 
-               return projectBalances = await projectBalances.json();
+            return projectBalances = await projectBalances.json();
 
 
-       } catch (error) {
-           console.log(error)
-       }
-   }
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
 
     /**
@@ -441,10 +441,10 @@ class Helper {
         }
     }
 
-    isProjectStakeholder(user, stakeholders){
-        const projectStakeholder = stakeholders.find(c => c.user.information._id.toString() === user.toString() && c.user.status==="ACCEPTED");
+    isProjectStakeholder(user, stakeholders) {
+        const projectStakeholder = stakeholders.find(c => c.user.information._id.toString() === user.toString() && c.user.status === "ACCEPTED");
 
-        if(projectStakeholder === undefined || projectStakeholder==null || Object.getOwnPropertyNames(projectStakeholder).length === 0){
+        if (projectStakeholder === undefined || projectStakeholder == null || Object.getOwnPropertyNames(projectStakeholder).length === 0) {
             return false;
         }
 
