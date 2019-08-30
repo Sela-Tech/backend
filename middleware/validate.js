@@ -4,182 +4,182 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const options = {
-  enforce: {
-    lowercase: true,
-    uppercase: true,
-    specialCharacters: true,
-    numbers: true
-  }
+    enforce: {
+        lowercase: true,
+        uppercase: true,
+        specialCharacters: true,
+        numbers: true
+    }
 };
 
 
 const validator = {
 
-  //validates reset password request email
-  validateRequestResetPasswordEmail(request, response) {
-    request
-      .checkBody("email", "Please enter a valid email.")
-      .isEmail();
-  },
+    //validates reset password request email
+    validateRequestResetPasswordEmail(request, response) {
+        request
+            .checkBody("email", "Please enter a valid email.")
+            .isEmail();
+    },
 
-  // validates reset password
-  validateResetPassword(request, response) {
-    request
-      .checkBody("newPassword",
-        "Password can't be less than 8 characters and must not contain spaces."
-      )
-      .matches(/^[a-zA-Z0-9!@#$%^&*()_\-.]{8,32}$/);
+    // validates reset password
+    validateResetPassword(request, response) {
+        request
+            .checkBody("newPassword",
+                "Password can't be less than 8 characters and must not contain spaces."
+            )
+            .matches(/^[a-zA-Z0-9!@#$%^&*()_\-.]{8,32}$/);
 
-    request
-      .checkBody("confirmPassword",
-        "Password confirmation field can't be empty."
-      )
-      .notEmpty();
-    request
-      .checkBody("newPassword", "Password didn't match")
-      .equals(request.body.confirmPassword);
-  },
-
-
-  validateAddTask(req, res) {
-    req
-      .checkBody("name",
-        "Task name can't be empty."
-      )
-      .notEmpty();
-    req
-      .checkBody("dueDate", "please specify due date")
-      .notEmpty();
-
-    req
-      .checkBody("description", "Decription cannot empty")
-      .notEmpty();
-
-    req
-      .checkBody("estimatedCost", "Please enter an estimated cost")
-      .notEmpty();
-  },
-
-  validateAddMilestone(req, res) {
-    req
-      .checkBody("title",
-        "Milestone title can't be empty."
-      )
-      .notEmpty()
-
-    req
-      .checkBody("projectId",
-        "Invalid projectId."
-      )
-      .notEmpty()
-
-    req
-      .checkBody("tasks", "You must add atleast one task")
-      .isArray()
-      .notEmpty();
-  },
+        request
+            .checkBody("confirmPassword",
+                "Password confirmation field can't be empty."
+            )
+            .notEmpty();
+        request
+            .checkBody("newPassword", "Password didn't match")
+            .equals(request.body.confirmPassword);
+    },
 
 
-  validateAddAreaOfInterest(req, res) {
-    req
-      .checkBody("areasOfInterest", "Add atleast one area of interest")
-      .isArray()
-      .notEmpty();
-  },
+    validateAddTask(req, res) {
+        req
+            .checkBody("name",
+                "Task name can't be empty."
+            )
+            .notEmpty();
+        req
+            .checkBody("dueDate", "please specify due date")
+            .notEmpty();
 
-  validateAddComment(req, res) {
-    req
-      .checkBody("comment",
-        "comment cannot be empty."
-      )
-      .notEmpty()
-  },
+        req
+            .checkBody("description", "Decription cannot empty")
+            .notEmpty();
 
-  validateAddEvidenceRequest(req, res) {
-    req
-      .checkBody("title", "title cannot be empty.")
-      .notEmpty()
-    req
-      .checkBody("project", "Please specify project.")
-      .notEmpty()
-    req
-      .checkBody("level", "Please specify level(task or project).")
-      .notEmpty()
-    req
-      .checkBody("quote", "Please specify quote for this request")
-      .notEmpty()
-    req
-      .checkBody("stakeholders", "Please add who submits the evidence")
-      .isArray()
-      .notEmpty()
-    req
-      .checkBody("datatype", "Please specify datatype(video, audio, image, e.t.c)")
-      .notEmpty()
-  },
+        // req
+        //   .checkBody("estimatedCost", "Please enter an estimated cost")
+        //   .notEmpty();
+    },
 
-  validateFundTransfer(req, res) {
-    req
-      .checkBody("projectId", "Please Specify project.")
-      .notEmpty()
-    req
-      .checkBody("receiver", "Please Specify receiver.")
-      .notEmpty()
-    req
-      .checkBody("assetType", "Please Specify asset type.")
-      .notEmpty()
-    req
-      .checkBody("amount", "Please Specify amount.")
-      .notEmpty()
-    req
-      .checkBody("remarks", "remarks cannot be empty.")
-      .notEmpty()
-  },
+    validateAddMilestone(req, res) {
+        req
+            .checkBody("title",
+                "Milestone title can't be empty."
+            )
+            .notEmpty()
 
-  validateAddImpactStandard(req, res) {
-    req
-      .checkBody("name", "Impact Standard name cannot be empty.")
-      .notEmpty()
-    req
-      .checkBody("description", "description cannot be empty.")
-      .notEmpty()
-  },
+        req
+            .checkBody("projectId",
+                "Invalid projectId."
+            )
+            .notEmpty()
 
-  validateAddImpactCategory(req, res) {
-    req
-      .checkBody("name", "Impact Category name cannot be empty.")
-      .notEmpty()
-    req
-      .checkBody("impactStandardId", "Please select an impact standard.")
-      .notEmpty()
-  },
-
-  // capitalize First letter
-  capitalizeFirst(name) {
-    return name.charAt(0).toUpperCase() + name.slice(1)
-  },
+        req
+            .checkBody("tasks", "You must add atleast one task")
+            .isArray()
+            .notEmpty();
+    },
 
 
-  // compared password
-  comparePassword(password1, hashedPassword) {
-    if (bcrypt.compareSync(password1, hashedPassword)) {
-      return true;
-    }
-    return false;
-  },
+    validateAddAreaOfInterest(req, res) {
+        req
+            .checkBody("areasOfInterest", "Add atleast one area of interest")
+            .isArray()
+            .notEmpty();
+    },
+
+    validateAddComment(req, res) {
+        req
+            .checkBody("comment",
+                "comment cannot be empty."
+            )
+            .notEmpty()
+    },
+
+    validateAddEvidenceRequest(req, res) {
+        req
+            .checkBody("title", "title cannot be empty.")
+            .notEmpty()
+        req
+            .checkBody("project", "Please specify project.")
+            .notEmpty()
+        req
+            .checkBody("level", "Please specify level(task or project).")
+            .notEmpty()
+        req
+            .checkBody("quote", "Please specify quote for this request")
+            .notEmpty()
+        req
+            .checkBody("stakeholders", "Please add who submits the evidence")
+            .isArray()
+            .notEmpty()
+        req
+            .checkBody("datatype", "Please specify datatype(video, audio, image, e.t.c)")
+            .notEmpty()
+    },
+
+    validateFundTransfer(req, res) {
+        req
+            .checkBody("projectId", "Please Specify project.")
+            .notEmpty()
+        req
+            .checkBody("receiver", "Please Specify receiver.")
+            .notEmpty()
+        req
+            .checkBody("assetType", "Please Specify asset type.")
+            .notEmpty()
+        req
+            .checkBody("amount", "Please Specify amount.")
+            .notEmpty()
+        req
+            .checkBody("remarks", "remarks cannot be empty.")
+            .notEmpty()
+    },
+
+    validateAddImpactStandard(req, res) {
+        req
+            .checkBody("name", "Impact Standard name cannot be empty.")
+            .notEmpty()
+        req
+            .checkBody("description", "description cannot be empty.")
+            .notEmpty()
+    },
+
+    validateAddImpactCategory(req, res) {
+        req
+            .checkBody("name", "Impact Category name cannot be empty.")
+            .notEmpty()
+        req
+            .checkBody("impactStandardId", "Please select an impact standard.")
+            .notEmpty()
+    },
+
+    // capitalize First letter
+    capitalizeFirst(name) {
+        return name.charAt(0).toUpperCase() + name.slice(1)
+    },
 
 
-  // hash password
-  hashPassword(password) {
-    const salt = bcrypt.genSaltSync(8);
-    return bcrypt.hashSync(password, salt);
-  },
+    // compared password
+    comparePassword(password1, hashedPassword) {
+        if (bcrypt.compareSync(password1, hashedPassword)) {
+            return true;
+        }
+        return false;
+    },
 
-  // convert string to title case
-  toTitleCase(str) {
-    return str.replace(/\w\S*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
-  },
+
+    // hash password
+    hashPassword(password) {
+        const salt = bcrypt.genSaltSync(8);
+        return bcrypt.hashSync(password, salt);
+    },
+
+    // convert string to title case
+    toTitleCase(str) {
+        return str.replace(/\w\S*/g, function(txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+    },
 
 }
 
