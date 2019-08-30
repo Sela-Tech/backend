@@ -91,10 +91,15 @@ const projectStructure = {
         type: String,
         default: null
     },
+
     raised: {
         type: Number,
         default: 0
     },
+
+    impactStandardId: { type: ObjectId, ref: "ImpactStandard" },
+
+    impactCategoryId: { type: ObjectId, ref: "ImpactCategory" },
 
     documents: [{ type: ObjectId, ref: "Document", autopopulate: true }],
     transactions: [{ type: ObjectId, ref: "Transaction", autopopulate: true }],
