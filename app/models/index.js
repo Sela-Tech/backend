@@ -18,6 +18,6 @@ module.exports = function(connection) {
     require("./in-use/impactStandard")(connection);
     require("./in-use/impactCategory")(connection);
     require("./in-use/metricDescriptor")(connection);
-    require("./in-use/ProjectGoal")(connection);
+    require("./in-use/projectGoal")(connection);
 
 };
