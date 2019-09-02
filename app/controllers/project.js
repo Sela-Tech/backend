@@ -492,16 +492,20 @@ class Projects {
                         { status: "charge_confirmed" }
                     ]
                 });
+
                 if (donations.length > 0) {
                     donations = donations.map((donation) => { return donation.amountDonated }).reduce((current, next) => current + next);
                 } else {
                     donations = 0
                 }
 
+                let goals = await ProjectGoal.find({project:project._id}).populate({path:"metricId"})
+
 
                 project.isOwner = project.owner._id == req.userId;
                 project.proposals = proposals;
                 project.raised = donations
+                project.goals = goals
                 res.status(200).json(project);
             } else {
                 res.status(400).json({
@@ -570,12 +574,14 @@ class Projects {
                 stakeholderArray.splice(index, 1);
             }
 
+
             // get the users via the email
             // let usersIdFromEmail= await Projects.getUserFromEmail(extractEmail)
 
             // merge back the retrieved ids from email into the stakeholderArray
             // stakeholderArray= [...new Set([...stakeholderArray,...usersIdFromEmail])];
 
+            stakeholderArray = [...new Set(stakeholderArray)];
 
             let stakeholders = stakeholderArray.map(s => {
                 return {
@@ -658,8 +664,8 @@ class Projects {
                 //   });
                 // }
             } else {
-                res.status(200).json({
-                    message: "No Stakeholder Information Provided"
+                res.status(400).json({
+                    message: ["No Stakeholder Information Provided"]
                 });
             }
         } catch (error) {
