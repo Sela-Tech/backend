@@ -167,7 +167,6 @@ class Projects {
         let successRes = { success: true };
         let failRes = { success: false };
 
-        console.log(req.body)
         const { name, description, impactStandardId, impactCategoryId, goals, startDate, endDate, location, implementationBudget } = req.body;
 
         const avatar = req.body["project-avatar"];
@@ -824,7 +823,7 @@ class Projects {
       switch (isProjectOwner) {
         case true:
           transactions = await Transaction.find({ project: project._id },
-            { page: Number(page), limit: Number(limit) }).populate('');
+            { page: Number(page), limit: Number(limit) });
           return res.status(200).json({ transactions });
 
         case false:

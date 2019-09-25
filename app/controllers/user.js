@@ -10,6 +10,7 @@ var Transaction = mongoose.model("Transaction");
 var Uploads = mongoose.model("Upload");
 // var tokenValidityPeriod = 86400; // in seconds; 86400 seconds = 24 hours
 var tokenValidityPeriod = 604800; // in seconds; 86400 seconds = 24 hours
+// var tokenValidityPeriod = 60; // in seconds; 86400 seconds = 24 hours
 var bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const Helper = require('../helper/helper');

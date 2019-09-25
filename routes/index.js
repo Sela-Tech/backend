@@ -19,6 +19,7 @@ const update = require("./updates");
 const clean = require("./clean");
 const donations = require("./donations");
 const impactLibrary = require("./impactLibrary");
+const projectGoals = require("./projectGoals");
 // const fileUpload = require("./fileUpload");
 
 module.exports = function(app) {
@@ -43,5 +44,6 @@ module.exports = function(app) {
     clean(app);
     donations(app);
     impactLibrary(app);
+    projectGoals(app);
     // fileUpload(app);
 };
