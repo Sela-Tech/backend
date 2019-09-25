@@ -1,7 +1,7 @@
 const grantsObject={
-    isAdmin:{
+    Admin:{
 
-        Project:{
+        project:{
             'create:any':['*'],
             'delete:any':['*'],
             'update:any':['*'],
@@ -9,7 +9,7 @@ const grantsObject={
             'create:own':['*']
         },
 
-        Account:{
+        account:{
             'update:any':['*'],
             'read:any':['*'],
         },
@@ -20,27 +20,70 @@ const grantsObject={
             'update:any':['*'],
             'read:any':['*'],
             'create:own':['*']
+        },
+
+        impactLibrary:{
+            'create:any':['*'],
+            'delete:any':['*'],
+            'update:any':['*'],
+            'read:any':['*'],
         }
 
 
     },
 
-    isFunder:{
+    Funder:{
         organization:{
             'delete:own':['*'],
             'update:own':['*'],
             'read:any':['*'],
             'create:own':['*']
         },
-        Project:{
+        project:{
             'create:own':['*'],
             'delete:own':['*'],
             'update:own':['*'],
             'read:own':['*'],
         },
+
+        proposal:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'update:any':['*'],
+            'read:own':['*'],
+            'read:any':['*'],
+
+        }
+
     },
 
-    isEvaluator:{
+
+    Contractor:{
+        'project-view-contractor':{
+            'read:any':['*'],
+        },
+
+        proposal:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'read:own':['*'],
+        },
+        project:{
+            'create:own':['*'],
+            'delete:own':['*'],
+            'update:own':['*'],
+            'read:own':['*'],
+        },
+
+        report:{
+            'create:own':['*'],
+            'read:own':['*'],
+        }
+    },
+
+    Evaluator:{
         organization:{
             'delete:own':['*'],
             'update:own':['*'],
@@ -48,15 +91,6 @@ const grantsObject={
             'create:own':['*']
         }
     },
-
-    isContractor:{
-        organization:{
-            'delete:own':['*'],
-            'update:own':['*'],
-            'read:any':['*'],
-            'create:own':['*']
-        }
-    }
 
 }
 

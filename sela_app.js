@@ -1,14 +1,22 @@
 ROOT = __dirname;
 FRONTEND = __dirname + "/public";
 
+require('dotenv').config({ silent: true });
 var express = require("express");
 var app = express();
 var port = process.env.PORT || 3009;
 var cors = require("cors");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
-var dotenv = require("dotenv");
 const validator = require('express-validator');
+const fileUpload = require('express-fileupload');
+const helmet = require('helmet');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const AWS = require("aws-sdk");
+
+
+
 
 var http = require("http").Server(app);
 
@@ -18,7 +26,7 @@ const io = require('socket.io')(http);
 
 var { pageNotFound, generalError } = require("./in-use/utils");
 
-dotenv.config();
+// dotenv.config();
 
 var mongooseInit = require(ROOT + "/config/initializers/mongoose");
 var passportInit = require(ROOT + "/config/initializers/passport");
@@ -28,73 +36,126 @@ var environmentsDev = require(ROOT + "/config/environments/development");
 var environmentsPro = require(ROOT + "/config/environments/production");
 
 mongooseInit(() => {
-  passportInit();
+    passportInit();
 });
 
 const notification = require('./app/controllers/Notification');
 const Helper = require('./app/helper/helper');
 
 
-io.on('connection', (socket)=>{
-  socket.on('user', async(data)=>{
-    const helper = new Helper();
-    await helper.updateUserSocket(data);
-    const notifications = await notification.getUserNViaSocket(data);
-    socket.emit('notifications', {notifications});
-  });
-  console.log('user connected', socket.id)
-  socket.emit('connected', {user:socket.id});
-  // setInterval(() => socket.emit('message', 'you are still connected...initiating attack on client'), 10000);
+io.on('connection', (socket) => {
+    socket.on('user', async(data) => {
+        const helper = new Helper();
+        await helper.updateUserSocket(data);
+        const notifications = await notification.getUserNViaSocket(data);
+        socket.emit('notifications', { notifications });
+    });
+    console.log('user connected', socket.id)
+    socket.emit('connected', { user: socket.id });
+    // setInterval(() => socket.emit('message', 'you are still connected...initiating attack on client'), 10000);
 
-  socket.on('disconnect',(data)=>{
-    console.log(`user ${socket.id} disconnected,`, data);
-  })
+    socket.on('disconnect', (data) => {
+        console.log(`user ${socket.id} disconnected,`, data);
+    })
 });
 
 
 
 app.disable('x-powered-by');
-
+app.use(helmet())
 app.use(logger("dev"));
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+    verify: (req, res, buf) => {
+        let url = req.originalUrl;
+        if (url.startsWith('/charge/stripe/webhook') || url.startsWith('/charge/stripe/webhook/dev') || url.startsWith('/charge/stripe/webhook/test')) {
+            req.rawBody = buf.toString()
+        } else if (url.startsWith('/charge/coinbase/webhook')) {
+            req.rawBody = buf.toString()
+        }
+    }
+}));
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// app.use(fileUpload());
 
 app.use(cors());
 
-app.use(validator());
+app.use(validator({
+    customValidators: {
+        isArray: function(value) {
+            return Array.isArray(value);
+        },
+        notEmpty: function(array) {
+            return array.length > 0;
+        },
+        gte: function(param, num) {
+            return param >= num;
+        }
+    }
+}));
 
 app.use(function(req, res, next) {
-  req.io = io;
-  next();
+    req.io = io;
+    next();
 });
-const AWS = require("aws-sdk");
-AWS.config = {
-  accessKeyId: process.env.AWSaccessKeyId,
-  secretAccessKey: process.env.AWSsecretAccessKey,
-  region: "us-east-2"
-};
 
-app.use(
-  "/s3",
-  require("react-s3-uploader/s3router")({
-    bucket: "selamvp",
-    region: "us-east-2", //optional
-    signatureVersion: "v4", //optional (use for some amazon regions: frankfurt and others)
-    headers: {
-      "Access-Control-Allow-Origin": "*"
-    }, // optional
-    ACL: "public-read",
-    uniquePrefix: true
-    // (4.0.2 and above) default is true, setting the attribute to false preserves the original filename in S3
-  })
-);
+
+AWS.config = {
+    accessKeyId: process.env.AWSaccessKeyId,
+    secretAccessKey: process.env.AWSsecretAccessKey,
+    region: "us-east-2"
+}
+
+// .config.update({
+//     accessKeyId: process.env.AWSaccessKeyId,
+//     secretAccessKey: process.env.AWSsecretAccessKey,
+//     region: "us-east-2"
+// });
+
+
+// app.use(
+//     "/s3",
+//     require("react-s3-uploader/s3router")({
+//         bucket: "selamvp",
+//         region: "us-east-2", //optional
+//         signatureVersion: "v4", //optional (use for some amazon regions: frankfurt and others)
+//         headers: {
+//             "Access-Control-Allow-Origin": "*"
+//         }, // optional
+//         ACL: "public-read",
+//         uniquePrefix: true
+//             // (4.0.2 and above) default is true, setting the attribute to false preserves the original filename in S3
+//     })
+// );
+
+
+
+const s3 = new AWS.S3({ /* ... */ })
+const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: 'selamvp',
+        acl: 'public-read',
+        metadata: function(req, file, cb) {
+            cb(null, { fieldName: file.fieldname });
+        },
+        key: function(req, file, cb) {
+            cb(null, Date.now().toString() + file.originalname);
+        }
+    })
+});
+
+app.post('/file-upload', upload.single('file'), function(req, res) {
+    return res.status(201).json(req.file.location)
+})
 
 // http.Server(app);
 
+
 if (process.env.NODE_ENV === "development") {
-  environmentsDev.call(app);
+    environmentsDev.call(app);
 } else if (process.env.NODE_ENV === "production") {
-  environmentsPro.call(app);
+    environmentsPro.call(app);
 }
 
 environmentsAll.call(app);
@@ -107,7 +168,7 @@ app.use(pageNotFound);
 app.use(generalError);
 
 http.listen(port, function() {
-  console.log("listening on port " + port);
+    console.log("listening on port " + port);
 });
 
-module.exports=app;
+module.exports = app;

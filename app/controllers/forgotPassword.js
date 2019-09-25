@@ -8,11 +8,11 @@ const User = mongoose.model('User');
 
 const crypto = require('crypto');
 
-const emailTemplates= require('../helper/emailTemplates');
+const emailTemplates = require('../helper/emailTemplates');
 
 
 const options = {
-    apiKey: process.env.AFRICAS_TALKING_API,         
+    apiKey: process.env.AFRICAS_TALKING_API,
     username: process.env.AFRICAS_TALKING_APP_USERNAME
 };
 
@@ -25,7 +25,6 @@ sgMail.setApiKey(process.env.SEND_GRID_API);
 
 let sms = AfricasTalking.SMS;
 
-// const host = 'localhost:3000' //comment out a replace "localhost:3000" with actual url to reset passsword
 
 /**
  *
@@ -82,8 +81,8 @@ class ForgotPassword {
                         // from: '75111'
                     }
 
-                    let result = await sms.send(msg);
-                
+                    await sms.send(msg);
+
                     // if(result){
                     return res.status(200).json({ message: `A message has been sent to ${updatedUser.phone} with further instructions` })
                     // }
@@ -99,34 +98,34 @@ class ForgotPassword {
 
                 let updatedUser = await user.save();
 
-            if (updatedUser) {
-                // const text='You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-                // 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                // getHost(req) + '/password/reset?token=' + token + '\n\n' +
-                // 'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+                if (updatedUser) {
+                    // const text='You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                    // 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                    // getHost(req) + '/password/reset?token=' + token + '\n\n' +
+                    // 'If you did not request this, please ignore this email and your password will remain unchanged.\n'
 
-                const host = getHost(req);
-                const msg = {
-                    to: `${updatedUser.email}`,
-                    from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
-                    subject: "Password Reset",
-                    html:emailTemplates.requestResetPassword(host, updatedUser.firstName,token)
+                    const host = getHost(req);
+                    const msg = {
+                        to: `${updatedUser.email}`,
+                        from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
+                        subject: "Password Reset",
+                        html: emailTemplates.requestResetPassword(host, updatedUser.firstName, token)
                     };
-                    
-                sgMail.send(msg, false, (error, result) => {
-                    if (error) return console.log(error);
-                    res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
-                });
 
+                    sgMail.send(msg, false, (error, result) => {
+                        if (error) return console.log(error);
+                        res.status(200).json({ message: `An e-mail has been sent to ${updatedUser.email} with further instructions` })
+                    });
+
+                }
             }
-        }
 
         } catch (error) {
             console.log(error)
             res.status(500).json({ message: "internal server error" })
         }
     }
-    
+
 
 
 
@@ -172,7 +171,7 @@ class ForgotPassword {
                 if (req.body.verificationCode) {
 
                     const receiver = '+234' + updatedUser.phone;
-                
+
                     // send sms
                     const msg = {
                         to: [receiver],
@@ -191,12 +190,12 @@ class ForgotPassword {
                         to: `${updatedUser.email}`,
                         from: 'Sela Labs' + '<' + 'support@sela-labs.co' + '>',
                         subject: "Your password has been changed",
-                        html:emailTemplates.resetPasswordSuccess(updatedUser.firstName)
+                        html: emailTemplates.resetPasswordSuccess(updatedUser.firstName)
                     };
 
                     sgMail.send(msg, false, (error, result) => {
                         if (error) return console.log(error);
-                       return res.status(200).json({ message: `Your Password has been changed` });
+                        return res.status(200).json({ message: `Your Password has been changed` });
                     });
 
                 }

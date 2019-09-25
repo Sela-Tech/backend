@@ -4,12 +4,12 @@ var tokenHeaderField = "x-access-token";
 var jwt = require("jsonwebtoken");
 
 exports.verifyToken = (req, res, next) => {
-  const whitelisted = ["/projects", "/projects/:id"];
+  const whitelisted = ["/projects", "/projects/:id","/projects/:id/transaction-history/public"];
 
   const token = req.headers[tokenHeaderField] || req.headers['authorization'],
-  public = req.headers[visibilityHeaderField];
+  publicView = req.headers[visibilityHeaderField];
 
-  if (typeof token === "undefined" && public) {
+  if (typeof token === "undefined" && publicView) {
     // check if the route is whitelisted
 
     let isWhitelisted = Boolean(
@@ -55,6 +55,7 @@ exports.verifyToken = (req, res, next) => {
         req.tokenExists = true;
         req.userId = decoded.id;
         req.decodedTokenData = decoded;
+        req.token = token;
         next();
       }
     });

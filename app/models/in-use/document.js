@@ -1,9 +1,13 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const mongoosePaginate = require('mongoose-paginate');
 
-var docStructure = {
+// import related models
+const Project = require("./project");
+
+const docStructure = {
   project: {
     type: ObjectId,
     ref: "Project"
@@ -20,12 +24,23 @@ var docStructure = {
     type: String,
     required: true
   },
-  docKey:{
-    type: String
+  filesize:{
+    type:String
   }
 };
 
-var docSchema = new Schema(docStructure, { timestamps: true });
+const docSchema = new Schema(docStructure, { timestamps: true });
+
+docSchema.post('remove', async (next) => {
+  try {
+    await Project.update({}, { $pull: { documents: { '_id': this.id } } });
+    
+    next();
+  } catch (error) {
+    next(error)
+  }
+})
 docSchema.plugin(autoPopulate);
+docSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Document", docSchema);

@@ -1,7 +1,8 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const mongoosePaginate=require('mongoose-paginate'); 
 
-var locationStructure = {
+const locationStructure = {
   name: {
     type: String,
     required: true
@@ -16,5 +17,5 @@ var locationStructure = {
   }
 };
 
-var LocationSchema = new Schema(locationStructure);
+const LocationSchema = new Schema(locationStructure);
 module.exports = mongoose.model("Location", LocationSchema);

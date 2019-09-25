@@ -1,79 +1,82 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var ObjectId = Schema.Types.ObjectId;
-var autoPopulate = require("mongoose-autopopulate");
-var _ = require("underscore");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const _ = require("underscore");
+const mongoosePaginate = require('mongoose-paginate');
+const { schemaOptions } = require("./schemaOptions");
 
 
 
-var schemaOptions = {
-    minimize: false,
-    id: false,
-    toJSON: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    toObject: {
-        getters: true,
-        virtuals: true,
-        minimize: false,
-        versionKey: false,
-        retainKeyOrder: true
-    },
-    autoIndex: process.env.NODE_ENV === "development",
-    strict: process.env.NODE_ENV !== "development"
-};
+//import related models
+const Project = require('./project');
+const Proposal = require('./proposal');
 
-var milestoneStructure = {
+const milestoneStructure = {
     project: {
         type: ObjectId,
         ref: "Project",
-        autopopulate: {
-            select:
-                "name activated _id, owner "
-        }
+        // autopopulate: {
+        //     select:
+        //         "name activated _id owner"
+        // }
     },
 
-    milestones: [
+    tasks: [
         {
-            task: {
-                type: ObjectId,
-                ref: "Task",
-                autopopulate: {
-                    select:
-                        "name description _id assignedTo status"
-                }
+            type: ObjectId,
+            ref: "Task",
+            autopopulate: {
+                select:
+                    " name description assignedTo status estimatedCost _id createdAt updatedAt dueDate"
             }
         }
     ],
-    name: {
+    title: {
         type: String,
-        require: true
+        required: true,
+        unique: true
     },
 
     createdBy: {
         type: ObjectId,
         ref: "User",
-        default: null
+        default: null,
+        autopopulate: {
+            select:
+                "isFunder isContractor isEvaluator firstName lastName email _id"
+        }
     },
     completed: {
-        type: Boolean
-    }
+        type: Boolean,
+        default: false
+    },
+    estimatedCost: {
+        type: Number,
+        default: 0
+    },
 };
 
 
 if (process.env.NODE_ENV === "development") {
-    projectStructure.test = {
+    milestoneStructure.test = {
         type: Boolean,
         default: true
     };
 }
 
 
-var milestoneSchema = new Schema(milestoneStructure, { timestamps: true });
-milestoneSchema.plugin(autoPopulate);
+const milestoneSchema = new Schema(milestoneStructure, schemaOptions);
 
-module.exports = mongoose.model("Milestones", milestoneSchema);
+milestoneSchema.post('remove', async (next) => {
+    try {
+        await Project.update({}, { $pull: { milestones: { _id: this._id } } })
+        await Proposal.update({}, { $pull: { milestones: { _id: this._id } } })
+    } catch (error) {
+        next(error)
+    }
+});
+milestoneSchema.plugin(autoPopulate);
+milestoneSchema.plugin(mongoosePaginate);
+
+module.exports = mongoose.model("Milestone", milestoneSchema);

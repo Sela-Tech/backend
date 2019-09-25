@@ -1,0 +1,102 @@
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+const autoPopulate = require("mongoose-autopopulate");
+const { schemaOptions } = require("./schemaOptions");
+
+const mongoosePaginate=require('mongoose-paginate'); 
+
+const Project = require('./project');
+
+const proposalStructure = {
+    proposalName:{
+        type:String,
+        required:true
+    },
+    project: {
+        type: ObjectId,
+        ref: "Project",
+        // autopopulate: {
+        //     select:
+        //         "name activated _id, owner stakeholders "
+        // }
+    },
+
+    milestones: [{
+        type: ObjectId,
+        ref: "Milestone",
+        autopopulate: {
+            select:
+                "title createdBy completed _id"
+        }
+    }],
+    proposedBy: {
+        type: ObjectId,
+        ref: "User", autopopulate: {
+            select:
+                "firstName lastName _id socket email profilePhoto"
+        }
+    },
+    assignedTo:{
+        type: ObjectId,
+        ref: "User", autopopulate: {
+            select:
+                "firstName lastName _id socket email profilePhoto"
+        },
+        default:null
+    },
+    approved: {
+        type: Boolean,
+        default: false
+    },
+    status:{
+        type:String,
+        enum:["IN_REVIEW", "DECLINED", "APPROVED","REVERTED"],
+        default:"IN_REVIEW"
+    },
+    comments: [
+        {
+          actor: {
+              type: ObjectId,
+              ref: "User",
+              required: true,
+              autopopulate: {
+                select:
+                  "isFunder isContractor isEvaluator firstName lastName  _id  profilePhoto "
+              }
+            },
+            comment: {
+              type: String,
+              default: ""
+            },
+            createdAt:{
+                type:Date,
+                default:Date.now()
+            }
+          }
+      ],
+};
+
+
+if (process.env.NODE_ENV === "development") {
+    proposalStructure.test = {
+        type: Boolean,
+        default: true
+    };
+}
+
+
+const proposalSchema = new Schema(proposalStructure,schemaOptions);
+
+proposalSchema.post('remove', async (next) => {
+    try {
+        await Project.update({}, { $pull: { proposals: { _id: this._id } } })
+    } catch (error) {
+        next(error)
+    }
+});
+
+proposalSchema.plugin(autoPopulate);
+proposalSchema.plugin(mongoosePaginate);
+
+module.exports = mongoose.model("Proposal", proposalSchema);

@@ -61,4 +61,12 @@ bower_components
 .vscode/**
 
 # temporary ignore
-travis.yml
+.travis.yml
+
+.~lock.iris_custom.csv#
+
+Book1.csv
+
+iris_custom.csv
+
+# iris.csv
