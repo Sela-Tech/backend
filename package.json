@@ -68,7 +68,7 @@
     "request-param": "^1.0.1",
     "session": "0.1.0",
     "socket.io": "^1.0.0",
-    "stellar-sdk": "^0.8.0",
+    "stellar-sdk": "^8.2.3",
     "supertest": "^3.3.0",
     "telegram-node-bot": "^4.0.5",
     "twilio": "^3.25.0",
